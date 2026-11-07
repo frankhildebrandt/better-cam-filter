@@ -27,12 +27,12 @@ enum InspectMask {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let context = CIContext()
         let image = FrameComposition.aspectFill(CIImage(cgImage: bitmap), in: CameraConfiguration.bounds)
-        let baseline = try ForegroundSegmenter().mask(for: image, mode: .foregroundObjects)
+        let baseline = try ForegroundSegmenter().mask(for: image)
         let refiner = AccessoryMaskRefiner(context: context)
         var refined = baseline
-        for _ in 0..<3 {
+        for frame in 0..<6 {
             let start = ProcessInfo.processInfo.systemUptime
-            refined = refiner.refine(mask: baseline, image: image)
+            refined = refiner.refine(mask: baseline, image: image, time: Double(frame) / 30)
             _ = context.createCGImage(refined, from: image.extent)
             print("Accessory refinement: \(Int((ProcessInfo.processInfo.systemUptime - start) * 1000)) ms")
         }

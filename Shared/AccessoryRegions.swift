@@ -1,22 +1,42 @@
 import Foundation
 
+struct AccessoryProposal {
+    let alpha: [UInt8]
+    let evidence: [UInt8]
+}
+
 /// Bounded appearance-based additions anchored to the semantic foreground mask.
 enum AccessoryRegions {
     static func refine(rgba: [UInt8], alpha: [UInt8], width: Int, height: Int) -> [UInt8] {
-        guard width > 0, height > 0 else { return alpha }
+        propose(rgba: rgba, alpha: alpha, width: width, height: height).alpha
+    }
+
+    /// Track approved components independently of which pixels Vision already calls foreground.
+    static func propose(rgba: [UInt8], alpha: [UInt8], width: Int, height: Int) -> AccessoryProposal {
+        let empty = AccessoryProposal(alpha: alpha, evidence: [UInt8](repeating: 0, count: alpha.count))
+        guard width > 0, height > 0 else { return empty }
         let count = width * height
-        guard rgba.count == count * 4, alpha.count == count else { return alpha }
+        guard rgba.count == count * 4, alpha.count == count else { return empty }
         let categories = (0..<count).map { category(rgba, at: $0 * 4) }
-        let regions = components(categories, width: width, height: height)
+        let regions = PixelComponents.regions(categories, width: width, height: height)
+        let person = alpha.indices.filter { alpha[$0] > 200 }
+        guard let top = person.map({ $0 / width }).min(), let bottom = person.map({ $0 / width }).max() else { return empty }
+        let torsoStart = top + (bottom - top) * 55 / 100
+        var torsoSeeds = alpha
+        for pixel in alpha.indices where pixel / width < torsoStart { torsoSeeds[pixel] = 0 }
         var result = alpha
+        var evidence = empty.evidence
+        var anchors = torsoSeeds
         var accepted = Set<Int>()
+        var remaining = count / 4
         let reach = max(2, Int((Double(width) * 0.025).rounded()))
         for _ in 0..<2 {
-            let proximity = distances(from: result, width: width, height: height, reach: reach)
+            let proximity = distances(from: anchors, width: width, height: height, reach: reach)
             for (identifier, region) in regions.enumerated() where !accepted.contains(identifier) {
                 guard region.count >= 4 else { continue }
-                let added = region.filter { alpha[$0] < 128 }
-                guard added.count <= count / 5,
+                if categories[region[0]] == 1 && region.count < max(4, count / 500) { continue }
+                let added = region.filter { alpha[$0] < 128 && result[$0] < 128 }
+                guard added.count <= min(count / 5, remaining),
                       !added.contains(where: { $0 / width < 2 }) else { continue }
                 if categories[region[0]] > 1 {
                     let xs = region.map { $0 % width }
@@ -26,17 +46,25 @@ enum AccessoryRegions {
                 }
                 guard let contact = region.min(by: { proximity.distance[$0] < proximity.distance[$1] }),
                       Int(proximity.distance[contact]) <= reach else { continue }
+                let requiredSupport = max(2, width / 100)
+                let support = region.lazy.filter { Int(proximity.distance[$0]) <= reach }.prefix(requiredSupport).count
+                guard support >= requiredSupport else { continue }
                 accepted.insert(identifier)
-                for pixel in region { result[pixel] = 255 }
+                remaining -= added.count
+                for pixel in region {
+                    result[pixel] = 255
+                    if alpha[pixel] < 128 || pixel / width >= torsoStart { evidence[pixel] = 255 }
+                    if pixel / width >= torsoStart { anchors[pixel] = 255 }
+                }
                 if proximity.distance[contact] > 0 {
                     let anchor = Int(proximity.anchor[contact])
                     let radius = max(1, Int(Double(width) * (categories[region[0]] == 1 ? 0.009 : 0.003)))
-                    bridge(from: contact, to: anchor, radius: radius, alpha: &result, width: width, height: height)
+                    bridge(from: contact, to: anchor, radius: radius, alpha: &result,
+                           evidence: &evidence, original: alpha, remaining: &remaining, width: width, height: height)
                 }
             }
         }
-        let additions = result.indices.lazy.filter { alpha[$0] < 128 && result[$0] > 128 }.count
-        return additions <= count / 4 ? result : alpha
+        return AccessoryProposal(alpha: result, evidence: evidence)
     }
 
     private static func category(_ rgba: [UInt8], at offset: Int) -> UInt8 {
@@ -53,32 +81,6 @@ enum AccessoryRegions {
         else if high == g { hue = (b - r) / chroma + 2 }
         else { hue = (r - g) / chroma + 4 }
         return UInt8(Int(((hue + 6) * 2).rounded(.down)) % 12 + 2)
-    }
-
-    private static func components(_ categories: [UInt8], width: Int, height: Int) -> [[Int]] {
-        var visited = [Bool](repeating: false, count: categories.count)
-        var regions = [[Int]]()
-        for start in categories.indices where categories[start] != 0 && !visited[start] {
-            var pixels = [start]
-            visited[start] = true
-            var cursor = 0
-            while cursor < pixels.count {
-                let pixel = pixels[cursor]
-                cursor += 1
-                let x = pixel % width, y = pixel / width
-                for ny in max(0, y - 1)...min(height - 1, y + 1) {
-                    for nx in max(0, x - 1)...min(width - 1, x + 1) {
-                        let neighbor = ny * width + nx
-                        if !visited[neighbor] && categories[neighbor] == categories[start] {
-                            visited[neighbor] = true
-                            pixels.append(neighbor)
-                        }
-                    }
-                }
-            }
-            regions.append(pixels)
-        }
-        return regions
     }
 
     private static func distances(from alpha: [UInt8], width: Int, height: Int, reach: Int)
@@ -128,7 +130,8 @@ enum AccessoryRegions {
         return dx * dx + dy * dy
     }
 
-    private static func bridge(from start: Int, to end: Int, radius: Int, alpha: inout [UInt8], width: Int, height: Int) {
+    private static func bridge(from start: Int, to end: Int, radius: Int, alpha: inout [UInt8],
+                               evidence: inout [UInt8], original: [UInt8], remaining: inout Int, width: Int, height: Int) {
         let x0 = start % width, y0 = start / width, x1 = end % width, y1 = end / width
         let steps = max(abs(x1 - x0), abs(y1 - y0), 1)
         for step in 0...steps {
@@ -136,7 +139,13 @@ enum AccessoryRegions {
             for ny in max(0, y - radius)...min(height - 1, y + radius) {
                 for nx in max(0, x - radius)...min(width - 1, x + radius)
                 where (nx - x) * (nx - x) + (ny - y) * (ny - y) <= radius * radius {
-                    alpha[ny * width + nx] = 255
+                    let pixel = ny * width + nx
+                    if original[pixel] < 128 && alpha[pixel] < 128 {
+                        guard remaining > 0 else { continue }
+                        remaining -= 1
+                    }
+                    alpha[pixel] = 255
+                    evidence[pixel] = 255
                 }
             }
         }

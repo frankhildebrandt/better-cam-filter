@@ -1,3 +1,4 @@
+import AppKit
 import AVFoundation
 import SwiftUI
 import UniformTypeIdentifiers
@@ -13,8 +14,14 @@ struct ContentView: View {
         NavigationSplitView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    Label("BetterCam", systemImage: "camera.filters")
-                        .font(.title2.bold())
+                    HStack(spacing: 8) {
+                        Image(nsImage: NSApplication.shared.applicationIconImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .accessibilityHidden(true)
+                        Text("BetterCam").font(.title2.bold())
+                    }
                     cameraControls
                     Divider()
                     BackgroundControls(camera: camera, backgrounds: backgrounds,

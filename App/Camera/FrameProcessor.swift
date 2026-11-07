@@ -7,22 +7,39 @@ final class FrameProcessor {
     private let segmentation = ForegroundSegmenter()
     private let accessoryRefiner: AccessoryMaskRefiner
     private var pool: CVPixelBufferPool?
-    var background: CIImage?
-    var segmentationMode = SegmentationMode.foregroundObjects
+    private var inputSize = CGSize.zero
+    var background: CIImage? { didSet { resetSegmentation() } }
+    var segmentationMode = SegmentationMode.foregroundObjects { didSet { resetSegmentation() } }
     var keepMask: CIImage?
-    var accessoriesEnabled = true
+    var accessoriesEnabled = true { didSet { resetSegmentation() } }
 
     init() { accessoryRefiner = AccessoryMaskRefiner(context: context) }
 
+    func resetSegmentation() {
+        segmentation.reset()
+        accessoryRefiner.reset()
+    }
+
     func process(_ input: CVPixelBuffer, at time: CMTime) throws -> CMSampleBuffer {
+        let size = CGSize(width: CVPixelBufferGetWidth(input), height: CVPixelBufferGetHeight(input))
+        if size != inputSize {
+            resetSegmentation()
+            inputSize = size
+        }
         if pool == nil { pool = try VideoBuffers.makePool() }
         guard let pool else { throw VideoError.allocation }
         let foreground = FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: CameraConfiguration.bounds)
         let outputImage: CIImage
         if let background {
-            let automatic = try segmentation.mask(for: foreground, mode: segmentationMode)
-            let mask = accessoriesEnabled && segmentationMode == .foregroundObjects
-                ? accessoryRefiner.refine(mask: automatic, image: foreground) : automatic
+            let mask: CIImage
+            do {
+                let automatic = try segmentation.mask(for: foreground)
+                mask = accessoriesEnabled && segmentationMode == .foregroundObjects
+                    ? accessoryRefiner.refine(mask: automatic, image: foreground, time: time.seconds) : automatic
+            } catch {
+                resetSegmentation()
+                throw error
+            }
             let preserved = FrameComposition.preserving(keepMask, in: mask)
             outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background, mask: preserved)
         } else {

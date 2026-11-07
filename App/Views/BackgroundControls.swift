@@ -25,11 +25,11 @@ struct BackgroundControls: View {
             Picker("Erkennung", selection: $camera.segmentationMode) {
                 ForEach(SegmentationMode.allCases) { Text($0.title).tag($0) }
             }
-            Text("Erkannte Vordergrundobjekte bleiben erhalten. Verarbeitung lokal auf deinem Mac.")
+            Text("Personenmaske mit gezielter Zubehör-Ergänzung. Verarbeitung lokal auf deinem Mac.")
                 .font(.caption).foregroundStyle(.secondary)
             if camera.segmentationMode == .foregroundObjects {
                 Toggle("Stuhl & Mikrofon ergänzen", isOn: $camera.accessoriesEnabled)
-                Text("Ergänzt verbundenes dunkles Zubehör und schmale Kabel. Bei dunklem Raumhintergrund ausschalten.")
+                Text("Zubehör wird zeitlich bestätigt. Bei dunklem Raumhintergrund ausschalten.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Toggle("Bereiche behalten", isOn: $camera.isEditingKeepMask)

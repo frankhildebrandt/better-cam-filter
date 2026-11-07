@@ -78,6 +78,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
 
     private func stopOnQueue() {
         session.stopRunning()
+        processor.resetSegmentation()
         output.disconnect()
         nextFrame = 0
         nextPreview = 0
