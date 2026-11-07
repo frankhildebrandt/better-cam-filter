@@ -5,6 +5,7 @@ struct BackgroundControls: View {
     @ObservedObject var backgrounds: BackgroundModel
     @Binding var choosingBackground: Bool
     @Binding var showingGenerator: Bool
+    @Binding var showingLibrary: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -12,6 +13,7 @@ struct BackgroundControls: View {
             Toggle("Durch Bild ersetzen", isOn: $camera.backgroundEnabled)
                 .disabled(camera.backgroundName == nil)
             Button("Bild auswählen …", systemImage: "photo") { choosingBackground = true }
+            Button("Mediathek …", systemImage: "photo.on.rectangle.angled") { showingLibrary = true }
             Button("Hintergrund erzeugen …", systemImage: "sparkles") { showingGenerator = true }
             if backgrounds.isGenerating {
                 HStack {

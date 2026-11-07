@@ -7,6 +7,7 @@ struct BackgroundGeneratorView: View {
     @State private var editingProfile: BackgroundProfile?
     @State private var confirmingDelete = false
     @State private var showingConnection = false
+    @State private var showingLibrary = false
 
     var body: some View {
         ScrollView {
@@ -67,6 +68,7 @@ struct BackgroundGeneratorView: View {
                 Image(nsImage: image).resizable().scaledToFit().frame(maxHeight: 150)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
+            Button("Mediathek öffnen …", systemImage: "photo.on.rectangle.angled") { showingLibrary = true }
             if let error = model.error {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .font(.callout).foregroundStyle(.orange).textSelection(.enabled)
@@ -88,6 +90,9 @@ struct BackgroundGeneratorView: View {
         .frame(width: 640).frame(minHeight: 520, idealHeight: 680, maxHeight: 720)
         .sheet(item: $editingProfile) { profile in
             BackgroundProfileEditor(profile: profile) { draft, imports in try model.save(draft, imports: imports) }
+        }
+        .sheet(isPresented: $showingLibrary) {
+            BackgroundLibraryView(model: model, camera: camera)
         }
         .confirmationDialog("Profil „\(model.selectedProfile?.name ?? "")“ löschen?", isPresented: $confirmingDelete) {
             Button("Profil löschen", role: .destructive) { model.deleteSelectedProfile() }
