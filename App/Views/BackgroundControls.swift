@@ -25,7 +25,10 @@ struct BackgroundControls: View {
             if let name = camera.backgroundName {
                 Text(name).font(.caption).lineLimit(2).foregroundStyle(.secondary)
             }
-            SettingsLink { Label(segmentationSettings.configuration.provider.title, systemImage: "person.crop.rectangle") }
+            SettingsLink {
+                Label(segmentationSettings.configuration.provider == .apple ? "Apple Vision"
+                      : segmentationSettings.configuration.customModelName ?? "Custom-Modell", systemImage: "person.crop.rectangle")
+            }
                 .help("Bilderkennung konfigurieren")
             Toggle("Bereiche behalten", isOn: $camera.isEditingKeepMask)
                 .disabled(!camera.isRunning || !camera.backgroundEnabled)

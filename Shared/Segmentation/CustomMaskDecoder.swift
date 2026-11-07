@@ -8,7 +8,7 @@ enum CustomSegmentationError: LocalizedError {
         switch self {
         case .missingModel: "Bitte zuerst ein Custom-Modell in der Konfiguration importieren."
         case .unsupportedInput: "Das Modell benötigt genau einen Bildeingang ohne weitere Eingaben oder Zustände."
-        case .unsupportedOutput: "Das Modell muss genau eine Graustufenmaske oder eine Float-Alpha-Maske [H,W], [1,H,W] oder [1,1,H,W] ausgeben."
+        case .unsupportedOutput: "Das Modell muss eine Graustufenmaske oder eine Float-Alpha-Maske [H,W], [1,H,W] oder [1,1,H,W] ausgeben. Die sieben bekannten U²-Net-Ausgänge werden ebenfalls unterstützt."
         case .invalidMask: "Die Modellmaske muss endliche Vordergrundwerte zwischen 0 und 1 enthalten (1 = behalten)."
         }
     }

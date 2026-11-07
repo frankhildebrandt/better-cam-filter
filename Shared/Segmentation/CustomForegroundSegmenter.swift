@@ -28,10 +28,7 @@ final class CustomForegroundSegmenter {
         }
         inputName = feature.name
         input = constraint
-        guard description.outputDescriptionsByName.count == 1,
-              let output = description.outputDescriptionsByName.values.first else {
-            throw CustomSegmentationError.unsupportedOutput
-        }
+        let output = try Self.maskOutput(in: description)
         if let image = output.imageConstraint {
             guard [kCVPixelFormatType_OneComponent8, kCVPixelFormatType_OneComponent16Half,
                    kCVPixelFormatType_OneComponent32Float].contains(image.pixelFormatType) else {
@@ -44,6 +41,17 @@ final class CustomForegroundSegmenter {
             }
         } else { throw CustomSegmentationError.unsupportedOutput }
         outputName = output.name
+    }
+
+    /// U²-Net exports its fused foreground mask plus six auxiliary training heads.
+    private static func maskOutput(in description: MLModelDescription) throws -> MLFeatureDescription {
+        let outputs = description.outputDescriptionsByName
+        if outputs.count == 1, let output = outputs.values.first { return output }
+        let u2netHeads = Set((0...6).map { "out_p\($0)" })
+        guard Set(outputs.keys) == u2netHeads,
+              outputs.values.allSatisfy({ $0.imageConstraint?.pixelFormatType == kCVPixelFormatType_OneComponent8 }),
+              let fused = outputs["out_p0"] else { throw CustomSegmentationError.unsupportedOutput }
+        return fused
     }
 
     /// Validate the declared interface and a real prediction before an imported model becomes active.

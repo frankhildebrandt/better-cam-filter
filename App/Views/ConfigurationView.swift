@@ -9,13 +9,16 @@ struct ConfigurationView: View {
     var body: some View {
         Form {
             Section {
-                Picker("Modell", selection: provider) {
-                    ForEach(SegmentationProvider.allCases) { Text($0.title).tag($0) }
+                Picker("Modell", selection: selectedModel) {
+                    Text("Apple Vision").tag("apple")
+                    ForEach(SegmentationModelCatalog.models) { Text($0.title).tag($0.id) }
+                    ForEach(settings.installedModels.filter { $0.catalogID == nil }) { Text($0.name).tag($0.id) }
+                    Text("Eigenes Modell importieren …").tag("import")
                 }
-                .disabled(settings.isImporting)
+                .disabled(settings.isBusy)
                 Text(settings.configuration.provider == .apple
                      ? "Apples Personenmodell verarbeitet deine Kamera lokal auf dem Mac."
-                     : "Dein importiertes Modell liefert die Vordergrundmaske. Die Verarbeitung bleibt lokal auf dem Mac.")
+                     : "Das gewählte Modell liefert die Vordergrundmaske. Die Verarbeitung bleibt lokal auf dem Mac.")
                     .font(.callout).foregroundStyle(.secondary)
             } header: {
                 Label("Bilderkennung", systemImage: "person.crop.rectangle")
@@ -23,20 +26,22 @@ struct ConfigurationView: View {
                 Text("Die Modellauswahl wird gespeichert und gilt für Vorschau und virtuelle Kamera.")
             }
 
+            ModelCatalogSection(settings: settings)
+
             Section("Custom-Modell") {
                 LabeledContent("Importiertes Modell", value: settings.configuration.customModelName ?? "Keines")
                 Button("Modell importieren …", systemImage: "square.and.arrow.down") { choosingModel = true }
-                    .disabled(settings.isImporting)
-                if settings.isImporting {
+                    .disabled(settings.isBusy)
+                if settings.isImporting && settings.downloadingModelID == nil {
                     HStack {
                         ProgressView().controlSize(.small)
                         Text("Modell wird geprüft …").foregroundStyle(.secondary)
                     }
                 }
-                Text("Core ML: .mlmodel, .mlpackage oder .mlmodelc. Ein geeignetes Modell muss separat importiert werden.")
+                Text("Alternativ ein eigenes Core-ML-Modell als .mlmodel, .mlpackage oder .mlmodelc importieren.")
                     .font(.caption).foregroundStyle(.secondary)
                 DisclosureGroup("Unterstützte Modelle") {
-                    Text("Ein Bildeingang und eine einzelne Graustufen-Vordergrundmaske oder ein einkanaliges Array mit Werten von 0 bis 1. Weiß bedeutet behalten, Schwarz bedeutet Hintergrund. Modelle mit mehreren Klassen oder zusätzlichen Zustandseingängen benötigen einen eigenen Adapter.")
+                    Text("Ein Bildeingang und eine einzelne Graustufen-Vordergrundmaske oder ein einkanaliges Array mit Werten von 0 bis 1. Weiß bedeutet behalten, Schwarz bedeutet Hintergrund. Die U²-Net-Modellfamilie wird ebenfalls unterstützt. Andere Modelle mit mehreren Klassen oder zusätzlichen Zustandseingängen benötigen einen eigenen Adapter.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -61,7 +66,7 @@ struct ConfigurationView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 560, height: 570)
+        .frame(width: 580, height: 680)
         .navigationTitle("Konfiguration")
         .fileImporter(isPresented: $choosingModel, allowedContentTypes: [.item, .folder]) { result in
             switch result {
@@ -71,10 +76,16 @@ struct ConfigurationView: View {
         }
     }
 
-    private var provider: Binding<SegmentationProvider> {
-        Binding(get: { settings.configuration.provider }, set: { selected in
-            if selected == .custom && settings.configuration.customModelURL == nil { choosingModel = true }
-            else { settings.select(selected) }
+    private var selectedModel: Binding<String> {
+        Binding(get: {
+            guard settings.configuration.provider == .custom else { return "apple" }
+            let installed = settings.installedModels.first { $0.modelURL == settings.configuration.customModelURL }
+            return installed?.catalogID ?? installed?.id ?? "import"
+        }, set: { selected in
+            if selected == "apple" { settings.select(.apple) }
+            else if selected == "import" { choosingModel = true }
+            else if let model = SegmentationModelCatalog.models.first(where: { $0.id == selected }) { settings.use(model) }
+            else if let model = settings.installedModels.first(where: { $0.id == selected }) { settings.select(model) }
         })
     }
 }

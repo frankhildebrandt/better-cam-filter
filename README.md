@@ -150,13 +150,36 @@ experimentell. Protokollgrundlage: [offizielle OpenAI-Dokumentation zum Codex Ap
 
 **Konfiguration …** in der Seitenleiste oder **BetterCam → Einstellungen …** (`⌘,`)
 öffnet die native Konfigurationsseite. Unter **Bilderkennung → Modell** stehen
-**Apple Vision** und **Custom-Modell** zur Auswahl. Die Auswahl gilt für Vorschau
+**Apple Vision**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
 und virtuelle Kamera und bleibt nach einem Neustart erhalten.
 
-Apple Vision ist der Standard und benötigt keinen Download. **Modell importieren …**
+Apple Vision ist der Standard und benötigt keinen Download. **U²-NetP** ist die
+empfohlene kleine Alternative für einen ersten Live-Versuch; **U²-Net** ist die größere
+Variante für einen Qualitätsvergleich. Die Auswahl eines noch nicht installierten
+Modells oder **Herunterladen und verwenden** startet den Download mit Fortschritt und
+Abbruchmöglichkeit. Erst nach Größen-/SHA-256-Prüfung, Kompilierung und erfolgreicher
+Testinferenz wird das neue Modell aktiviert. Währenddessen bleibt die bisherige
+Auswahl erhalten. Fehler und Abbrechen ändern sie nicht. Bereits heruntergeladene
+Modelle bleiben gespeichert und lassen sich ohne erneuten Download auswählen.
+
+Die Core-ML-Konvertierungen stammen aus [john-rocky/CoreML-Models](https://github.com/john-rocky/CoreML-Models#u2net),
+das von den [U²-Net-Autoren](https://github.com/xuebinqin/U-2-Net) verlinkt wird. Beide
+Modelle stehen unter [Apache-2.0](https://github.com/xuebinqin/U-2-Net/blob/master/LICENSE).
+Die Modellkarte zeigt Dateigröße, Lizenz und Quelle. Downloads erfolgen direkt vom
+verlinkten Google-Drive-Host; Kamerabilder werden nicht hochgeladen. Der Katalog enthält
+feste Dateigrößen und Prüfsummen in `SegmentationModelCatalog.swift`.
+
+Beide Modelle segmentieren allgemeine Vordergrundobjekte bildweise und besitzen
+keine Videoverfolgung. Auf dem bereitgestellten Testbild bleiben Person und Mikrofon
+erhalten; Stuhl und Mikrofonarm werden teilweise entfernt. Eine vollständige Erhaltung
+dieser Gegenstände oder flackerfreie Masken ist damit nicht zugesagt. Schutzmarkierungen
+bleiben verfügbar. Die Ausgabe ist weiterhin Full HD; die Modellanalyse erfolgt bei
+320 × 320 Pixeln. Die Bildrate hängt vom Mac und der gesamten Verarbeitung ab.
+
+**Modell importieren …**
 übernimmt ein eigenes Core-ML-Modell (`.mlmodel`, `.mlpackage` oder `.mlmodelc`),
 prüft seine Schnittstelle und aktiviert es nach erfolgreichem Import. Ohne importiertes
-Modell öffnet die Auswahl **Custom-Modell** zuerst den Importdialog. Abbrechen und
+Modell öffnet die Auswahl **Eigenes Modell importieren …** den Importdialog. Abbrechen und
 fehlgeschlagene Importe behalten die bisherige Auswahl bei. Ein bereits importiertes
 Modell lässt sich jederzeit wieder auswählen; Apple Vision bleibt parallel verfügbar.
 
@@ -166,8 +189,9 @@ oder `[1, 1, H, W]` und Werten von 0 bis 1. Weiß beziehungsweise 1 bedeutet beh
 Schwarz beziehungsweise 0 bedeutet Hintergrund. Das gesamte Kamerabild wird auf den
 Modelleingang skaliert; die Maske wird anschließend auf dieselben Bildkoordinaten
 abgebildet. Modelle mit mehreren Klassen, Bildprompts oder zusätzlichen Zuständen
-benötigen einen eigenen Adapter. Beliebige SAM-/PyTorch-Gewichte können nicht direkt
-importiert werden. Es ist kein eigenes trainiertes Modell enthalten.
+benötigen einen eigenen Adapter. Für die sieben bekannten U²-Net-Ausgänge wird gezielt
+die kombinierte Maske `out_p0` verwendet. Beliebige SAM-/PyTorch-Gewichte können nicht direkt
+importiert werden. Die App enthält keine Modellgewichte; Katalogmodelle werden auf Wunsch geladen.
 
 Kompilierung und Prüfung laufen außerhalb des UI-Threads. BetterCam speichert eigene
 kompilierte Modellkopien unter `Application Support/BetterCam/Segmentation`; die
@@ -291,9 +315,13 @@ xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
 swift test
 
 # Vergleich aus einem lokalen Kamerabild (optional: Screenshot-Crop in Pixeln ab links oben):
-swiftc -O -swift-version 6 Shared/*.swift Tools/InspectMask.swift -o /tmp/inspect-mask
+swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Tools/InspectMask.swift -o /tmp/inspect-mask
 /tmp/inspect-mask /path/to/camera.png build/mask-evaluation
 # /tmp/inspect-mask /path/to/window.png build/mask-evaluation 336 136 681 383
+
+# Optionaler echter Netzwerk-/Modelltest (lädt beide Katalogmodelle, etwa 181 MB):
+swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Tools/VerifyModelCatalog.swift -o /tmp/verify-model-catalog
+/tmp/verify-model-catalog build/catalog-verification --all
 ```
 
 Das Diagnosewerkzeug erzeugt `before.png`, `after.png` und `mask.png` lokal und
