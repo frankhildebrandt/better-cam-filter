@@ -18,6 +18,7 @@ final class CameraModel: ObservableObject {
         }
     }
     @Published private(set) var preview: CGImage?
+    @Published private(set) var outputPreview: CGImage?
     @Published private(set) var isRunning = false
     @Published private(set) var isBusy = false
     @Published private(set) var outputConnected = false
@@ -26,6 +27,16 @@ final class CameraModel: ObservableObject {
     @Published private(set) var backgroundLibraryID: UUID?
     @Published private(set) var inputResolution = "–"
     @Published private(set) var framesPerSecond = 0
+    @Published private(set) var detectedGesture: GestureKind?
+    @Published private(set) var gestureError: String?
+    @Published var gestureConfiguration = GestureSettingsStore.load() {
+        didSet {
+            GestureSettingsStore.save(gestureConfiguration)
+            engine.setGestureConfiguration(gestureConfiguration)
+            detectedGesture = nil
+            gestureError = nil
+        }
+    }
     @Published var outputConfiguration: OutputConfiguration = {
         guard let data = UserDefaults.standard.data(forKey: "outputConfiguration"),
               let saved = try? JSONDecoder().decode(OutputConfiguration.self, from: data) else {
@@ -78,10 +89,13 @@ final class CameraModel: ObservableObject {
         Task { @MainActor [weak self] in
             guard let self, self.isRunning else { return }
             self.preview = update.preview
+            self.outputPreview = update.outputPreview
             self.outputConnected = update.outputConnected
             self.error = update.error
             self.inputResolution = update.inputResolution
             self.framesPerSecond = update.framesPerSecond
+            self.detectedGesture = update.detectedGesture
+            self.gestureError = update.gestureError
         }
     }
 
@@ -112,6 +126,7 @@ final class CameraModel: ObservableObject {
         }
         do {
             engine.setPreviewMask(previewMask)
+            engine.setGestureConfiguration(gestureConfiguration)
             try await engine.start(deviceID: selectedCameraID, configuration: outputConfiguration)
             isRunning = true
         } catch { self.error = error.localizedDescription }
@@ -123,8 +138,11 @@ final class CameraModel: ObservableObject {
         isRunning = false
         isEditingKeepMask = false
         preview = nil
+        outputPreview = nil
         outputConnected = false
         framesPerSecond = 0
+        detectedGesture = nil
+        gestureError = nil
         await engine.stop()
         isBusy = false
     }
@@ -149,6 +167,15 @@ final class CameraModel: ObservableObject {
     }
 
     func reportError(_ message: String) { error = message }
+
+    func assignReaction(_ reaction: ReactionKind?, to gesture: GestureKind) {
+        gestureConfiguration.assign(reaction, to: gesture)
+    }
+
+    func previewReaction(for gesture: GestureKind) {
+        guard isRunning, let reaction = gestureConfiguration.reaction(for: gesture) else { return }
+        engine.previewReaction(reaction, for: gesture)
+    }
 
     func setSegmentationConfiguration(_ configuration: SegmentationConfiguration) {
         engine.setSegmentationConfiguration(configuration)

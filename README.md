@@ -217,11 +217,57 @@ experimentell. Protokollgrundlage: [offizielle OpenAI-Dokumentation zum Codex Ap
 
 - **Kamera:** gespeicherte Kameraquelle und aktueller Eingangsstatus.
 - **Ausgabe:** Auflösung, Bildrate und Aktivierung der virtuellen Kamera.
+- **Gesten:** lokale Handerkennung, gespeicherte Reaction-Zuordnungen und Live-Tests.
 - **Bilderkennung:** aktives Modell, Ausführungsparameter, Maskenoptimierung und Maskenvorschau.
 - **Modelle:** Download-Katalog und Import eigener Core-ML-Modelle.
 - **Hintergründe:** Generierungsprofile, Referenzbilder und Server-Verbindung.
 
 Im Hauptfenster bleiben Start/Stopp, Hintergrundauswahl und Schutzmarkierungen direkt erreichbar.
+
+### Gesten-Reactions
+
+Unter **Einstellungen → Gesten** lassen sich zwölf Handgesten konfigurieren. Die
+Gestenerkennung ist zunächst ausgeschaltet und lässt sich dort aktivieren. Halte
+eine Geste etwa 0,6 Sekunden ruhig und senke die Hand anschließend kurz, bevor du
+erneut auslöst. Eine gehaltene Geste startet ihre Reaction nur einmal. Pro Slot
+stehen **Keine Reaction** und die jeweils passenden Animationen zur Auswahl;
+Zuordnungen und Aktivierung werden automatisch gespeichert.
+
+Sechs eigene Animationen sind enthalten:
+
+| Geste | Standard-Reaction |
+| --- | --- |
+| Peace-Zeichen | **Bunny Peek:** neugieriges Häschen mit wackelnden Ohren |
+| Daumen hoch | **Good Bean:** hüpfender Buddy mit goldenen Sternen |
+| Offene Hand | **Paw Five:** High Five von einer Katzenpfote |
+| Herzhände | **Love Puff:** rosa Herz mit Gesicht und aufsteigenden Herzchen |
+| Zwei offene Hände | **Rainbow Yay:** Pastellregenbogen mit Wolken hinter der Person |
+| Fingerherz | **Tiny Love:** pulsierendes kleines Herz an den Fingern |
+
+Zweimal Daumen hoch und doppeltes Peace unterstützen ebenfalls passende Reactions,
+sind zunächst aber unbelegt. Daumen runter, zweimal Daumen runter, Faust und
+Zeigefinger hoch werden erkannt und angezeigt, haben derzeit jedoch keine passende
+Reaction. Die Einstellungsseite zeigt auch diese Slots ausdrücklich an.
+
+Starte die Kamera für die Live-Erkennung und die **Testen**-Buttons. Testbuttons
+spielen die zugeordnete Animation auch bei ausgeschalteter Gestenerkennung direkt
+im Kamera-Ausgang ab. Reactions erscheinen in der normalen Vorschau und in allen
+Video-Apps, die **BetterCam** als Kamera verwenden. Ein Ersatzhintergrund ist nicht
+erforderlich. Die vorhandene Vordergrundmaske hält den Regenbogen hinter der Person;
+die übrigen Animationen liegen vor dem Kamerabild. Original- und Maskenvorschau
+behalten ihren jeweiligen Vorschauzweck bei.
+
+Die Erkennung verwendet Apple Vision lokal und analysiert höchstens zwei Hände auf
+verkleinerten Bildern mit maximal zehn Analysen pro Sekunde. Es gibt nur einen
+gleichzeitig laufenden Analyseauftrag; Kamerabilder werden nicht hochgeladen.
+Herzhände und Fingerherzen sind experimentell. Verdeckte Hände, Bewegungsunschärfe
+und ungünstige Kamerawinkel können die Erkennung verhindern. Bei zwei sichtbaren
+Händen lösen nur unterstützte Zwei-Hand-Gesten aus. Für erneutes Auslösen die Hände
+kurz senken. Apples eigene Reactions können im macOS-Videomenü zusätzlich aktiv sein
+und dort bei Bedarf ausgeschaltet werden.
+
+### Bilderkennungsmodelle
+
 Unter **Bilderkennung → Modell** stehen
 **Apple Vision**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
 und virtuelle Kamera und bleibt nach einem Neustart erhalten.
