@@ -78,6 +78,19 @@ Vordergrundobjekte, damit beispielsweise Mikrofon und Stuhl erhalten bleiben kö
 Das Modell kann Gegenstände übersehen oder zusätzliche Objekte als Vordergrund werten.
 **Nur Person** verwendet die genauere Qualitätsstufe der Personenmaske.
 
+**Stuhl & Mikrofon ergänzen** ist im Objektmodus standardmäßig aktiv. Ein lokaler
+Algorithmus sucht zusammenhängende dunkle, wenig gesättigte Flächen nahe der bereits
+erkannten Person. Schmale farbige Komponenten ergänzen beispielsweise ein Kabel;
+kurze Verbindungsstücke überbrücken helle Metallteile. Die Maske wird für jedes
+Kamerabild neu berechnet. Es werden keine Koordinaten oder Farben aus dem Testfoto
+als feste Maske übernommen.
+
+Die Ergänzung ist eine Erscheinungsheuristik, keine semantische Stuhl- oder
+Mikrofonerkennung. Große zusätzliche Flächen und Verbindungen zum oberen Bildrand
+werden verworfen; dennoch können kleine nahe dunkle Raumobjekte mit aufgenommen
+werden. Bei dunklem Hintergrund den Schalter ausschalten oder auf **Nur Person**
+mit gezielten Schutzmarkierungen wechseln.
+
 Falls ein Gegenstand verschwindet: **Bereiche behalten** einschalten und im
 Originalbild mit dem Pinsel darübermalen. **Pinselgröße**, **Rückgängig** und
 **Löschen** korrigieren die Markierung. Anschließend den Bearbeitungsmodus ausschalten;
@@ -90,7 +103,7 @@ Die Statuszeile zeigt die tatsächliche Eingangsauflösung und die gemessene
 Verarbeitungsbildrate. Wenn die Kamera Full HD nicht unterstützt, wird eine verfügbare
 Auflösung verwendet und für die Ausgabe auf Full HD skaliert.
 
-Nach einem Update von 0.1 auf 0.2 die App neu starten und eine bereits installierte
+Nach dem Update von 720p auf Full HD die App neu starten und eine bereits installierte
 Kameraerweiterung erneut aktivieren, damit auch sie das neue Full-HD-Format bereitstellt.
 
 ## Architektur
@@ -115,6 +128,9 @@ AVCaptureDevice → AVCaptureVideoDataOutput
 - **Shared:** Ausgabeformat, Seitenverhältnis, Vision-Segmentierung, Schutzmaske,
   Masken-Compositing und Sample-Puffer. Masken werden in normalisierten Koordinaten
   auf das bereits zugeschnittene Kamerabild abgebildet, ohne erneuten Aspect-Fill-Crop.
+  `AccessoryMaskRefiner` analysiert Bild und Maske bei 512 Pixeln Breite.
+  `AccessoryRegions` ergänzt begrenzt verbundene Komponenten; nur tatsächliche
+  Alpha-Zunahmen werden mit der hochauflösenden Vision-Maske vereinigt.
   Weitere Filter werden vor dem Rendern in `FrameProcessor` ergänzt und gelten
   damit gleichzeitig für Vorschau und virtuelle Kamera.
 
@@ -135,7 +151,18 @@ xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
 
 # Tests für Masken-Ausrichtung, Schutzpinsel, Full-HD-Format, Zeitstempel und Pool-Limit:
 swift test
+
+# Vergleich aus einem lokalen Kamerabild (optional: Screenshot-Crop in Pixeln ab links oben):
+swiftc -O -swift-version 6 Shared/*.swift Tools/InspectMask.swift -o /tmp/inspect-mask
+/tmp/inspect-mask /path/to/camera.png build/mask-evaluation
+# /tmp/inspect-mask /path/to/window.png build/mask-evaluation 336 136 681 383
 ```
+
+Das Diagnosewerkzeug erzeugt `before.png`, `after.png` und `mask.png` lokal und
+schaltet keine Kamera ein. Eigene Kamerabilder gehören nicht ins Git-Repository;
+der Ausgabeordner `build/` ist ignoriert. Die Tests decken unter anderem Stuhl,
+Arm, farbiges Kabel, kurze Verbinder, unveränderte weiche Personenränder und
+abgelehnte dunkle Hintergrundflächen ab.
 
 Ein erfolgreicher Build und diese Tests ersetzen keinen Installationstest. Für den
 End-to-End-Test auf einem Mac: signieren und installieren, BetterCam beispielsweise

@@ -27,6 +27,9 @@ final class CameraModel: ObservableObject {
     @Published var segmentationMode = SegmentationMode.foregroundObjects {
         didSet { engine.setSegmentationMode(segmentationMode) }
     }
+    @Published var accessoriesEnabled = true {
+        didSet { engine.setAccessoriesEnabled(accessoriesEnabled) }
+    }
     @Published var isEditingKeepMask = false {
         didSet { engine.setPreviewOriginal(isEditingKeepMask) }
     }

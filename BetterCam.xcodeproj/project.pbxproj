@@ -27,9 +27,11 @@
 		A20674BB1B01B1D44A730768 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
 		C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
 		D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
+		D99A786205144DB8BB7A476F /* AccessoryMaskRefiner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A4B48121E6510E42E6BD9 /* AccessoryMaskRefiner.swift */; };
 		DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */; };
 		E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */; };
+		E74BAF580CBAAA61610B3BB5 /* AccessoryRegions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */; };
 		F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -63,6 +65,8 @@
 		349A4555FCEC89B9CD2D3F7F /* de.bettercam.camera.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = de.bettercam.camera.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		3BF7C97635A1CE2903C68CBD /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
+		41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryRegions.swift; sourceTree = "<group>"; };
+		455A4B48121E6510E42E6BD9 /* AccessoryMaskRefiner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryMaskRefiner.swift; sourceTree = "<group>"; };
 		4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraProvider.swift; sourceTree = "<group>"; };
 		5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMIOProperties.swift; sourceTree = "<group>"; };
 		5ED6BCE480775BAD10C84692 /* CameraStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStream.swift; sourceTree = "<group>"; };
@@ -148,6 +152,8 @@
 		CD95B18F5C23F0D54D0CFB6E /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				455A4B48121E6510E42E6BD9 /* AccessoryMaskRefiner.swift */,
+				41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */,
 				3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */,
 				CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */,
 				DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */,
@@ -264,6 +270,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D99A786205144DB8BB7A476F /* AccessoryMaskRefiner.swift in Sources */,
+				E74BAF580CBAAA61610B3BB5 /* AccessoryRegions.swift in Sources */,
 				58D7A02CFD0FC4143E5DDCFC /* BackgroundControls.swift in Sources */,
 				419AAFDEC15A312ACEDBCFB4 /* BetterCamApp.swift in Sources */,
 				52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */,
@@ -349,7 +357,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -363,7 +371,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -410,7 +418,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -430,7 +438,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

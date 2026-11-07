@@ -62,6 +62,10 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         queue.async { self.processor.segmentationMode = mode }
     }
 
+    func setAccessoriesEnabled(_ enabled: Bool) {
+        queue.async { self.processor.accessoriesEnabled = enabled }
+    }
+
     func setKeepMask(_ image: CGImage?) {
         queue.async { self.processor.keepMask = image.map { CIImage(cgImage: $0) } }
     }
