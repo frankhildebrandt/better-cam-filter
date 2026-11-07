@@ -14,6 +14,24 @@ von 16 bis 1024 Pixeln. Xcode erzeugt daraus das Dock-/Finder-Icon; der App-Kopf
 dasselbe Icon. Der Entwurf wurde mit dem integrierten Imagegen-Werkzeug erstellt;
 der vollständige Prompt steht in [`assets/bettercam-icon-prompt.txt`](assets/bettercam-icon-prompt.txt).
 
+## Lizenz
+
+BetterCam steht unter der [MIT-Lizenz](LICENSE), Copyright © 2026 Frank Hildebrandt.
+
+Das Projekt bindet keine externen Bibliotheken ein; es verwendet die mit macOS
+gelieferten Apple-Frameworks. Für diese gelten weiterhin Apples Lizenzbedingungen.
+
+Die optional herunterladbaren **U²-Net- und U²-NetP-Modelle** sind nicht im Repository
+oder App-Bundle enthalten und behalten ihre eigene
+[Apache-2.0-Lizenz](https://github.com/xuebinqin/U-2-Net/blob/master/LICENSE).
+Die [Core-ML-Konvertierungen](https://github.com/john-rocky/CoreML-Models#u2net)
+werden ebenfalls mit dieser Lizenz ausgewiesen. Sie erfordern keine Änderung der
+MIT-Lizenz von BetterCam. Bei einer Weiterverteilung der Modelle müssen die
+[Apache-2.0-Bedingungen](https://www.apache.org/licenses/LICENSE-2.0#redistribution)
+eingehalten werden, insbesondere die Beigabe des Lizenztexts und die Beibehaltung
+der einschlägigen Urheberrechts- und gegebenenfalls NOTICE-Hinweise. Für selbst
+importierte Modelle gelten die jeweiligen Lizenzen ihrer Anbieter.
+
 ## Voraussetzungen
 
 - macOS 14+, Xcode mit Swift 6 und Command Line Tools.
