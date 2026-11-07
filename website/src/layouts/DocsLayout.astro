@@ -1,0 +1,29 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { docs, repository, url } from '../lib/site';
+interface Props { frontmatter: { title: string; description: string; generated?: boolean }; headings?: { depth: number; slug: string; text: string }[] }
+const { frontmatter, headings = [] } = Astro.props;
+const sections = headings.filter(h => h.depth === 2 || h.depth === 3);
+---
+<BaseLayout title={frontmatter.title} description={frontmatter.description}>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <details open>
+        <summary>Dokumentation <span aria-hidden="true">⌄</span></summary>
+        <nav aria-label="Dokumentation">
+          {docs.map((doc, i) => <a href={url(`docs/${doc.slug ? `${doc.slug}/` : ''}`)} aria-current={Astro.url.pathname === url(`docs/${doc.slug ? `${doc.slug}/` : ''}`) ? 'page' : undefined}><span class="nav-number">{String(i + 1).padStart(2, '0')}</span>{doc.title}</a>)}
+        </nav>
+      </details>
+      <p class="sidebar-note">Nativ für macOS 14+<br />SwiftUI · CoreMediaIO · Vision</p>
+    </aside>
+    <main id="main" class="doc-content">
+      <p class="eyebrow">BETTERCAM / DOKUMENTATION</p>
+      <h1>{frontmatter.title}</h1>
+      <p class="doc-lead">{frontmatter.description}</p>
+      {frontmatter.generated && <p class="source-note">Aus der <a href={`${repository}/blob/main/README.md`}>Projekt-README</a> beim Website-Build übernommen.</p>}
+      <article class="prose"><slot /></article>
+      <a class="doc-edit" href={`${repository}/blob/main/${frontmatter.generated ? 'README.md' : 'website/src/pages/docs'}`}>Quelltext auf GitHub ansehen ↗</a>
+    </main>
+    {sections.length > 0 && <aside class="doc-toc"><p>Auf dieser Seite</p><nav aria-label="Inhaltsverzeichnis">{sections.map(h => <a class:list={{ nested: h.depth === 3 }} href={`#${h.slug}`}>{h.text}</a>)}</nav></aside>}
+  </div>
+</BaseLayout>

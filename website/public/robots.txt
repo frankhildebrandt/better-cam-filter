@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://frankhildebrandt.github.io/better-cam-filter/sitemap-index.xml

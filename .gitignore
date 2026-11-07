@@ -4,3 +4,6 @@ build/
 xcuserdata/
 *.xcuserstate
 Config/Local.xcconfig
+website/node_modules/
+website/dist/
+website/.astro/

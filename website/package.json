@@ -1,0 +1,26 @@
+{
+  "name": "bettercam-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "docs:sync": "node scripts/sync-docs.mjs",
+    "assets": "node scripts/build-assets.mjs",
+    "check": "astro check",
+    "build": "npm run docs:sync && npm run assets && astro build && node scripts/check-links.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "7.4.7",
+    "@astrojs/sitemap": "3.7.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "sharp": "0.35.5",
+    "typescript": "~5.9.3"
+  }
+}

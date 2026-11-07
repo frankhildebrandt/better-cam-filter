@@ -2,6 +2,14 @@
 
 # BetterCam
 
+[Website & Dokumentation](https://frankhildebrandt.github.io/better-cam-filter/) ·
+[Build-Anleitung](https://frankhildebrandt.github.io/better-cam-filter/docs/build/) ·
+[Media Kit](https://frankhildebrandt.github.io/better-cam-filter/marketing/)
+
+Die Astro-Website liegt unter [`website/`](website/README.md). Der
+[Pages-Workflow](.github/workflows/pages.yml) prüft Pull Requests und veröffentlicht
+Änderungen auf `main`; die technische Web-Dokumentation wird aus dieser README übernommen.
+
 Native macOS-Webcam-App in SwiftUI mit Kameraauswahl, verarbeiteter Live-Vorschau
 und einer CoreMediaIO Camera Extension als virtuelle Kamera **BetterCam**.
 Optional ersetzt Apple Vision oder ein importiertes Core-ML-Modell den Hintergrund

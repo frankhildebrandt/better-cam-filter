@@ -1,0 +1,7 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/site';
+---
+<BaseLayout title="Seite nicht gefunden" description="Diese Seite ist nicht verfügbar. Zurück zur BetterCam-Startseite oder Dokumentation." noindex>
+  <main id="main" class="container error-page"><p class="eyebrow">404 / KEIN SIGNAL</p><h1>Hier fehlt das Bild.</h1><p>Diese Seite gibt es nicht. Die Dokumentation hilft dir weiter.</p><div class="actions"><a class="button primary" href={url()}>Zur Startseite ↗</a><a class="button secondary" href={url('docs/')}>Dokumentation</a></div></main>
+</BaseLayout>

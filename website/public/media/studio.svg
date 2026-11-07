@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="740" viewBox="0 0 900 740" role="img" aria-labelledby="title desc">
+  <title id="title">Deine Bühne mit BetterCam</title><desc id="desc">Stilisierte Person mit Mikrofon vor einem ruhigen grünen Studio mit Pflanzen, Rundbogen und warmem Licht. Produktillustration.</desc>
+  <defs>
+    <linearGradient id="wall" x2="1" y2="1"><stop stop-color="#b2bfa3"/><stop offset="1" stop-color="#647d64"/></linearGradient>
+    <linearGradient id="arch" x2="0" y2="1"><stop stop-color="#728c73"/><stop offset="1" stop-color="#3d5c4c"/></linearGradient>
+    <linearGradient id="shirt" x2="1" y2="1"><stop stop-color="#2f4944"/><stop offset="1" stop-color="#132e2b"/></linearGradient>
+    <linearGradient id="skin" x2="1" y2="1"><stop stop-color="#dca980"/><stop offset="1" stop-color="#bc805f"/></linearGradient>
+    <radialGradient id="light"><stop stop-color="#fff2c2" stop-opacity=".5"/><stop offset="1" stop-color="#fff2c2" stop-opacity="0"/></radialGradient>
+    <pattern id="texture" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".45" fill="#fff" opacity=".08"/></pattern>
+  </defs>
+  <path fill="url(#wall)" d="M0 0h900v740H0z"/><circle cx="760" cy="90" r="440" fill="url(#light)"/>
+  <path d="M70 600V258a150 150 0 0 1 300 0v342" fill="url(#arch)"/>
+  <path d="M92 600V258a128 128 0 0 1 256 0v342" fill="none" stroke="#a2b294" stroke-width="2"/>
+  <path d="M220 136v455M92 368h256" stroke="#b9c0a0" stroke-width="7" opacity=".33"/>
+  <path d="M670 120h164v250H670z" fill="#c4c5a7"/><path d="M683 133h138v224H683z" fill="#a4ad8d"/>
+  <path d="M700 320c-10-90 90-120 100-160-40 85 10 100-35 160z" fill="#738b69"/>
+  <path d="M0 575h900v165H0z" fill="#4b6350"/><path d="M0 575h900" stroke="#b7c1a0" stroke-width="2" opacity=".3"/>
+  <path d="M58 561c25-72 52-160 26-232M84 447c-70-34-62-79-60-90 56 0 75 45 60 90M94 403c73-51 58-109 48-126-42 33-55 80-48 126M72 503c-61-16-61-50-65-71 41-3 70 31 65 71M80 478c75-25 91-68 86-92-51 9-79 48-86 92" fill="#335d42" stroke="#476b46" stroke-width="4"/>
+  <path d="M32 542h107l-14 76H47z" fill="#b98965"/><path d="M31 542h109v13H31z" fill="#d1a381"/>
+  <path d="M756 557V430" stroke="#d7c9a1" stroke-width="6"/><path d="M704 446l24-101h65l24 101z" fill="#ddd1ab"/><ellipse cx="761" cy="446" rx="57" ry="9" fill="#f2e0b6"/><ellipse cx="756" cy="559" rx="31" ry="5" fill="#c1b894"/>
+  <path d="M262 740V549a170 170 0 0 1 340 0v191" fill="#283f36"/><path d="M280 739V550a152 152 0 0 1 304 0v189" fill="#526956"/>
+  <path d="M263 740l9-192c5-87 55-127 119-142h114c74 18 117 56 125 142l13 192z" fill="url(#shirt)"/>
+  <path d="M399 371v65c30 31 65 32 95-1v-68" fill="url(#skin)"/><path d="M399 387c21 16 62 29 95 2v-22h-95z" fill="#b77e5f"/>
+  <path d="M354 262c-15-33-15-82 17-112 43-39 110-40 150-3 31 30 37 75 17 119l-19 15H373z" fill="#25312a"/>
+  <ellipse cx="365" cy="291" rx="17" ry="29" fill="#c38c66"/><ellipse cx="529" cy="291" rx="16" ry="29" fill="#be855f"/>
+  <path d="M367 238c9-55 145-83 159 3v77c-2 58-40 93-80 93s-75-34-79-91z" fill="url(#skin)"/>
+  <path d="M359 264c-15-31-6-80 13-95 29-25 80-39 121-13 31-5 57 37 45 91-19-7-25-40-35-46-38 35-83 37-128 34l-9 41z" fill="#25312a"/>
+  <path d="M390 274q15-7 30-1m55 0q15-7 28 1" fill="none" stroke="#4d3b2d" stroke-linecap="round" stroke-width="5"/>
+  <ellipse cx="407" cy="289" rx="4" ry="5" fill="#25312a"/><ellipse cx="487" cy="289" rx="4" ry="5" fill="#25312a"/>
+  <path d="M445 289l-6 35 13 3" fill="none" stroke="#b47959" stroke-linecap="round" stroke-width="3"/>
+  <path d="M419 351q27 22 55-2" fill="none" stroke="#77503c" stroke-width="5" stroke-linecap="round"/>
+  <path d="M407 409q40 47 80 0" fill="none" stroke="#77917b" stroke-width="4"/>
+  <path d="M324 507l-14 182m270-182 19 182" fill="none" stroke="#547265" stroke-opacity=".4" stroke-width="3"/>
+  <path d="M655 740l-17-116 97-94" fill="none" stroke="#172c28" stroke-linejoin="round" stroke-width="14"/><path d="M652 740l-17-116 97-94" fill="none" stroke="#4b6256" stroke-width="3"/>
+  <g transform="translate(626 447) rotate(22)"><rect x="0" y="0" width="55" height="112" rx="27" fill="#192d29"/><rect x="6" y="7" width="43" height="75" rx="21" fill="#354b40"/><path d="M13 24h30m-33 12h36M10 48h36M11 60h34" stroke="#758673" stroke-opacity=".5" stroke-width="2"/><path d="M-9 65v27a36 36 0 0 0 73 0V65M27 129v20" fill="none" stroke="#182d28" stroke-width="7"/></g>
+  <path d="M0 0h900v740H0z" fill="url(#texture)"/>
+</svg>

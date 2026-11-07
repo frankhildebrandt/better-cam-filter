@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { repository, url } from '../lib/site';
+---
+<BaseLayout title="BetterCam" description="Dein Bild. Dein Hintergrund. BetterCam ist deine native macOS-Kamera mit lokaler Hintergrundersetzung, konfigurierbarer Ausgabe bis 4K und offenem Swift-Quellcode.">
+  <main id="main">
+    <section class="hero container">
+      <div class="hero-copy">
+        <a class="release-pill" href={url('docs/build/')}><span class="status-dot"></span> OPEN SOURCE · NATIV FÜR macOS <span aria-hidden="true">↗</span></a>
+        <h1>Dein Bild.<br />Dein <em>Hintergrund.</em></h1>
+        <p class="hero-description">Mach deine Kamera zu deiner Kamera. Ersetze den Hintergrund, behalte das Wesentliche und bring dein Bild in deine Video-Apps. Direkt auf deinem Mac.</p>
+        <div class="actions"><a class="button primary" href={url('docs/build/')}>BetterCam selbst bauen <span aria-hidden="true">↗</span></a><a class="button text-button" href={repository}>Quellcode ansehen <span aria-hidden="true">↗</span></a></div>
+        <p class="hero-footnote">macOS 14+ · SwiftUI · MIT-Lizenz<br />Quellcode-Projekt · Apple-Signierung für die virtuelle Kamera erforderlich</p>
+      </div>
+      <figure class="hero-visual">
+        <div class="visual-topline"><span>DEIN MAC. DEINE BÜHNE.</span><span>01 — BETTERCAM</span></div>
+        <div class="scene-frame">
+          <img class="scene" src={url('media/studio.svg')} width="900" height="740" alt="Illustration einer Person mit Mikrofon vor einem gestalteten grünen Studiohintergrund" fetchpriority="high" />
+          <div class="scene-label"><span class="status-dot"></span> Hintergrund nach deinem Geschmack</div>
+          <div class="output-chip"><span class="mini-camera" aria-hidden="true"></span><div>BetterCam<span>Dein virtueller Kamera-Ausgang</span></div><span aria-hidden="true">↗</span></div>
+        </div>
+        <figcaption>Produktillustration · keine App-Bildschirmaufnahme</figcaption>
+      </figure>
+    </section>
+
+    <div class="spec-strip"><div class="container spec-grid"><p><strong>HD → 4K</strong><span>Wählbares Ausgabeformat</span></p><p><strong>Auf deinem Mac</strong><span>Lokale Kameraverarbeitung</span></p><p><strong>Swift. Offen.</strong><span>Native App, MIT-lizenziert</span></p><a href={url('docs/')}>Entdecke, wie es funktioniert <span aria-hidden="true">↓</span></a></div></div>
+
+    <section class="container story-section" id="funktionen">
+      <div class="section-heading"><p class="eyebrow">01 / WENIGER RAUM. MEHR DU.</p><h2>Der Hintergrund wechselt.<br />Du bleibst im Bild.</h2><p>Vom eigenen Bild bis zur präzisen Maske: Stell dir dein Setup so zusammen, wie es zu dir passt.</p></div>
+      <div class="feature-grid">
+        <a class="feature feature-main" href={url('docs/backgrounds/')}><div class="swatches" aria-hidden="true"><span class="swatch moss"></span><span class="swatch terracotta"></span><span class="swatch midnight"></span><span class="swatch paper"></span></div><p class="eyebrow">DEIN LOOK</p><h3>Ein anderer Raum.<br />Ein Klick in der Mediathek.</h3><p>Importiere eigene Hintergründe oder wähle ein vorhandenes Bild. Die Sidebar zeigt die acht neuesten Bilder; deine Mediathek bleibt gespeichert.</p><span class="feature-link">Hintergründe entdecken ↗</span></a>
+        <a class="feature" href={url('docs/models/')}><span class="feature-symbol" aria-hidden="true">◌</span><p class="eyebrow">DEINE ERKENNUNG</p><h3>Vision an Bord.<br />Modelle nach Wahl.</h3><p>Starte mit Apple Vision. Probiere U²-NetP oder U²-Net aus oder importiere dein eigenes Core-ML-Modell.</p><span class="feature-link">Modelle verstehen ↗</span></a>
+        <a class="feature" href={url('docs/camera/')}><span class="feature-symbol brush-symbol" aria-hidden="true">⌁</span><p class="eyebrow">DEINE DETAILS</p><h3>Dein Mikrofon<br />darf bleiben.</h3><p>Ergänze Zubehör nahe der Person oder markiere mit dem Schutzpinsel feste Bereiche, die sichtbar bleiben sollen.</p><span class="feature-link">Schutzbereiche einrichten ↗</span></a>
+      </div>
+    </section>
+
+    <section class="workflow-section"><div class="container workflow-grid"><div><p class="eyebrow">02 / EIN AUSGANG. DEIN WORKFLOW.</p><h2>Einrichten.<br />Auswählen.<br /><em>Im Bild sein.</em></h2><p>BetterCam verbindet deine Kamera mit deinen Video-Apps über eine native CoreMediaIO Camera Extension.</p><a class="inline-link" href={url('docs/build/')}>Zur vollständigen Einrichtung ↗</a></div><ol class="steps"><li><span class="step-number">01</span><div><h3>Auf deinem Mac einrichten</h3><p>App selbst bauen und nach /Applications kopieren. Unter Einstellungen → Ausgabe die signierte virtuelle Kamera aktivieren und in macOS erlauben.</p></div></li><li><span class="step-number">02</span><div><h3>Dein Bild gestalten</h3><p>Unter Einstellungen → Kamera die Quelle wählen. Im Hauptfenster Kamera starten und über Importieren … ein Hintergrundbild hinzufügen.</p></div></li><li><span class="step-number">03</span><div><h3>In deiner Video-App auswählen</h3><p>BetterCam als Kamera wählen. Auflösung und Zielbildrate lassen sich bei gestoppter Kamera unter Einstellungen → Ausgabe ändern.</p></div></li></ol></div></section>
+
+    <section class="container privacy-section"><div class="privacy-art" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><img src={url('media/icon-128.png')} width="112" height="112" alt="" loading="lazy" /><span class="local-label">LOKAL AUF DEINEM MAC</span></div><div><p class="eyebrow">03 / KLARE GRENZEN. OFFENER CODE.</p><h2>Deine Kamera<br />bleibt bei dir.</h2><p>Die Kameraverarbeitung läuft lokal. Keine laufenden Kamerabilder werden für die optionale Hintergrundgenerierung verwendet.</p><p class="muted">Du kannst mit Codex neue Hintergrundbilder erzeugen. Dabei werden Prompt, Zusatzkontext und Referenzbilder über Codex an OpenAI übertragen. Dafür benötigst du ein angemeldetes Konto mit Bildgenerierung.</p><a class="inline-link" href={url('docs/backgrounds/')}>Mehr über die optionale Generierung ↗</a></div></section>
+
+    <section class="container faq-section"><div class="section-heading"><p class="eyebrow">GUT ZU WISSEN</p><h2>Vor dem ersten Bild.</h2></div><div class="faq-list">
+      <details><summary>Kann ich BetterCam direkt herunterladen?</summary><p>Hier findest du den Quellcode und die vollständige Build-Anleitung. Ein fertig signiertes App-Paket wird auf dieser Website nicht angeboten. Für die virtuelle Kamera sind Apple-Signierung und passende Profile erforderlich; bei einem Developer-ID-Build zusätzlich die Notarisierung.</p></details>
+      <details><summary>Welche Auflösung und Bildrate sind möglich?</summary><p>Du kannst HD, Full HD, QHD oder 4K sowie 15, 24, 25, 30 oder 60 FPS wählen. Full HD mit 30 FPS ist der Standard. Das sind Ausgabeformate; die tatsächliche Leistung hängt von Kamera, Mac und Modell ab. Die UI-Vorschau ist auf maximal 15 FPS begrenzt.</p></details>
+      <details><summary>Brauche ich Codex oder zusätzliche Modelle?</summary><p>Für die Kameraverarbeitung mit Apple Vision und eigene Hintergrundbilder brauchst du beides nicht. Zusätzliche Modelle und die Codex-Bildgenerierung sind optional. Die herunterladbaren Modelle haben eigene Lizenzen.</p></details>
+      <details><summary>Wie zuverlässig bleiben Haare, Stuhl und Mikrofon erhalten?</summary><p>Segmentierung kann bei feinen Kanten, schlechtem Licht und Bewegung Fehler zeigen. Die Zubehör-Ergänzung ist eine Heuristik. Schutzmarkierungen helfen bei festen Bildbereichen, folgen aber keinen bewegten Objekten. Du kannst Modell und Maske in den Einstellungen anpassen.</p></details>
+    </div></section>
+
+    <section class="container final-cta"><div><p class="eyebrow">DEIN NÄCHSTER AUFTRITT</p><h2>Mach den Hintergrund<br />zu deiner Sache.</h2></div><div><a class="button primary" href={url('docs/build/')}>Mit BetterCam starten ↗</a><a class="inline-link" href={url('marketing/')}>Texte & Grafiken zum Teilen ↗</a></div></section>
+  </main>
+</BaseLayout>
