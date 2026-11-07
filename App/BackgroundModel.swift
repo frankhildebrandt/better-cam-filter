@@ -10,6 +10,9 @@ final class BackgroundModel: ObservableObject {
         didSet { UserDefaults.standard.set(selectedProfileID?.uuidString, forKey: "backgroundProfileID") }
     }
     @Published var context = ""
+    @Published var automaticallyStartServer = UserDefaults.standard.object(forKey: "codexAutomaticallyStartServer") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(automaticallyStartServer, forKey: "codexAutomaticallyStartServer") }
+    }
     @Published var serverAddress = UserDefaults.standard.string(forKey: "codexServerAddress") ?? "ws://127.0.0.1:4500" {
         didSet { UserDefaults.standard.set(serverAddress, forKey: "codexServerAddress") }
     }
@@ -17,7 +20,10 @@ final class BackgroundModel: ObservableObject {
     @Published private(set) var status = ""
     @Published private(set) var error: String?
     @Published private(set) var generatedImage: NSImage?
+    @Published private(set) var library: [GeneratedBackground] = []
+    @Published private(set) var libraryError: String?
     private let store = BackgroundProfileStore.applicationStore
+    private let libraryStore = BackgroundLibraryStore(directory: BackgroundProfileStore.applicationStore.directory)
     private let client = CodexBackgroundClient()
     private var generation: Task<Void, Never>?
 
@@ -29,6 +35,20 @@ final class BackgroundModel: ObservableObject {
             let saved = UserDefaults.standard.string(forKey: "backgroundProfileID").flatMap(UUID.init(uuidString:))
             selectedProfileID = profiles.first(where: { $0.id == saved })?.id ?? profiles.first?.id
         } catch { self.error = "Profile konnten nicht geladen werden: \(error.localizedDescription)" }
+        do { library = try libraryStore.load() }
+        catch { libraryError = "Mediathek konnte nicht geladen werden: \(error.localizedDescription)" }
+    }
+
+    func imageURL(_ entry: GeneratedBackground) -> URL { libraryStore.imageURL(entry) }
+
+    func select(_ entry: GeneratedBackground, camera: CameraModel) {
+        guard let image = NSImage(contentsOf: imageURL(entry)),
+              let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            libraryError = "„\(entry.name)“ konnte nicht geöffnet werden."
+            return
+        }
+        camera.applyBackground(cgImage, name: entry.name, libraryID: entry.id)
+        libraryError = nil
     }
 
     func save(_ profile: BackgroundProfile, imports: [BackgroundAssetImport]) throws {
@@ -50,26 +70,28 @@ final class BackgroundModel: ObservableObject {
         guard let profile = selectedProfile, !isGenerating else { return }
         let context = context
         let address = serverAddress
+        let automaticallyStartServer = automaticallyStartServer
         error = nil
         isGenerating = true
         generation = Task {
             defer { isGenerating = false; generation = nil }
             do {
-                let data = try await client.generate(profile: profile, context: context, store: store, address: address) { self.status = $0 }
+                let data = try await client.generate(profile: profile, context: context, store: store,
+                                                     address: address, automaticallyStartServer: automaticallyStartServer) { self.status = $0 }
                 try Task.checkCancellation()
                 guard let image = NSImage(data: data),
                       let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
                     throw BackgroundError.message("Das erzeugte Bild konnte nicht geöffnet werden.")
                 }
-                let destination = store.directory.appendingPathComponent("last-background.png")
                 let bitmap = NSBitmapImageRep(cgImage: cgImage)
                 guard let png = bitmap.representation(using: .png, properties: [:]) else {
                     throw BackgroundError.message("Der Hintergrund konnte nicht gespeichert werden.")
                 }
-                try png.write(to: destination, options: .atomic)
+                library = try libraryStore.save(png, name: "\(profile.name) · generiert")
+                libraryError = nil
                 generatedImage = image
-                camera.applyBackground(cgImage, name: "\(profile.name) · generiert")
-                status = "Hintergrund erzeugt und aktiviert."
+                camera.applyBackground(cgImage, name: "\(profile.name) · generiert", libraryID: library.first?.id)
+                status = "In der Mediathek gespeichert und aktiviert."
             } catch {
                 if Task.isCancelled { status = "Generierung abgebrochen." }
                 else { self.error = "Hintergrund konnte nicht erzeugt werden: \(error.localizedDescription)"; status = "" }
@@ -82,7 +104,7 @@ final class BackgroundModel: ObservableObject {
         generation?.cancel()
     }
 
-    func shutdown() { generation?.cancel() }
+    func shutdown() { generation?.cancel(); client.shutdown() }
 
     static func importAssets(_ urls: [URL]) throws -> [BackgroundAssetImport] {
         try urls.map { url in

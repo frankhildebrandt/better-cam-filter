@@ -4,6 +4,20 @@ import Testing
 
 @MainActor
 struct CodexBackgroundClientTests {
+    @Test func automaticModeUsesOwnedConnectionAndManualModeUsesConfiguredEndpoint() async throws {
+        let store = temporaryStore()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        var endpoints: [URL?] = []
+        let client = CodexBackgroundClient(connect: { endpoints.append($0); return MockCodexConnection() })
+        _ = try await client.generate(profile: BackgroundProfile(name: "Studio"), context: "", store: store,
+                                      address: "invalid-unused-address", status: { _ in })
+        _ = try await client.generate(profile: BackgroundProfile(name: "Studio"), context: "", store: store,
+                                      address: "ws://localhost:9876", automaticallyStartServer: false, status: { _ in })
+        #expect(endpoints.count == 2)
+        #expect(endpoints[0] == nil)
+        #expect(endpoints[1]?.absoluteString == "ws://localhost:9876")
+    }
+
     @Test func sendsEveryAssetAndCombinesFixedAndAdditionalContext() async throws {
         let store = temporaryStore()
         defer { try? FileManager.default.removeItem(at: store.directory) }

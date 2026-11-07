@@ -9,6 +9,7 @@ struct ContentView: View {
     @ObservedObject var backgrounds: BackgroundModel
     @State private var choosingBackground = false
     @State private var showingGenerator = false
+    @State private var showingLibrary = false
 
     var body: some View {
         NavigationSplitView {
@@ -25,7 +26,8 @@ struct ContentView: View {
                     cameraControls
                     Divider()
                     BackgroundControls(camera: camera, backgrounds: backgrounds,
-                                       choosingBackground: $choosingBackground, showingGenerator: $showingGenerator)
+                                       choosingBackground: $choosingBackground, showingGenerator: $showingGenerator,
+                                       showingLibrary: $showingLibrary)
                     Divider()
                     extensionControls
                 }
@@ -81,6 +83,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingGenerator) {
             BackgroundGeneratorView(model: backgrounds, camera: camera)
+        }
+        .sheet(isPresented: $showingLibrary) {
+            BackgroundLibraryView(model: backgrounds, camera: camera)
         }
         .task { camera.refreshCameras() }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)) { _ in camera.refreshCameras() }
