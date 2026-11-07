@@ -8,23 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		18B469165AAA90749154BAB2 /* FrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8568133F76938204D3BD452B /* FrameProcessor.swift */; };
-		2864D0E15444DFFED67DDDB9 /* BetterCamCamera.systemextension in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 5BF204A04213445EE86C2E1C /* BetterCamCamera.systemextension */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		29AA684525025A5D3389309D /* CameraStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED6BCE480775BAD10C84692 /* CameraStream.swift */; };
 		311965863F06070D8905A988 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36C7AB8A905DDE72735ED2 /* ContentView.swift */; };
 		343D7B5201CF9597EB984196 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C36F03963DB0C71698755D0 /* main.swift */; };
 		346B1B1E658B526FC925D16D /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
+		39BF0E5448AE890723558CDF /* KeepMaskOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5FDD570EC4F192E5E1FCEB /* KeepMaskOverlay.swift */; };
 		3A968138547AE595434B894A /* CameraDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05F5E661B236F149157C273 /* CameraDevice.swift */; };
 		419AAFDEC15A312ACEDBCFB4 /* BetterCamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */; };
 		41F6E8EED77B9DC8C98D548F /* CameraProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */; };
 		52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */; };
 		5704B831F951F648489B9D5D /* VirtualCameraOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2343611B51258CA358E6DB1C /* VirtualCameraOutput.swift */; };
+		58D7A02CFD0FC4143E5DDCFC /* BackgroundControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70182A4C24CB8B5B7C0946C8 /* BackgroundControls.swift */; };
 		7A2DA8FF1B2BD747E921C57D /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
 		846A8E747D998B89FCE29153 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF7C97635A1CE2903C68CBD /* CameraModel.swift */; };
 		8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0972352CB0F20374B164A /* PreviewView.swift */; };
+		9745B9A90A7998C9D939CEA3 /* de.bettercam.camera.systemextension in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 349A4555FCEC89B9CD2D3F7F /* de.bettercam.camera.systemextension */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		97E9CA6EB06681E1882EE2E4 /* KeepMask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A71751C24D16B99F017B8FF /* KeepMask.swift */; };
 		A20674BB1B01B1D44A730768 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
 		C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
 		D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
+		E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */; };
 		E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */; };
 		F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */; };
 /* End PBXBuildFile section */
@@ -46,7 +50,7 @@
 			dstPath = Contents/Library/SystemExtensions;
 			dstSubfolderSpec = 1;
 			files = (
-				2864D0E15444DFFED67DDDB9 /* BetterCamCamera.systemextension in Embed Dependencies */,
+				9745B9A90A7998C9D939CEA3 /* de.bettercam.camera.systemextension in Embed Dependencies */,
 			);
 			name = "Embed Dependencies";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -56,18 +60,22 @@
 /* Begin PBXFileReference section */
 		0A36C7AB8A905DDE72735ED2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2343611B51258CA358E6DB1C /* VirtualCameraOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualCameraOutput.swift; sourceTree = "<group>"; };
+		349A4555FCEC89B9CD2D3F7F /* de.bettercam.camera.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = de.bettercam.camera.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		3BF7C97635A1CE2903C68CBD /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
 		4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraProvider.swift; sourceTree = "<group>"; };
 		5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMIOProperties.swift; sourceTree = "<group>"; };
-		5BF204A04213445EE86C2E1C /* BetterCamCamera.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = BetterCamCamera.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		5ED6BCE480775BAD10C84692 /* CameraStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStream.swift; sourceTree = "<group>"; };
 		61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionManager.swift; sourceTree = "<group>"; };
 		6AC2F1453FF2775E12223786 /* VideoBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoBuffers.swift; sourceTree = "<group>"; };
+		70182A4C24CB8B5B7C0946C8 /* BackgroundControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundControls.swift; sourceTree = "<group>"; };
+		7A71751C24D16B99F017B8FF /* KeepMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepMask.swift; sourceTree = "<group>"; };
 		8568133F76938204D3BD452B /* FrameProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameProcessor.swift; sourceTree = "<group>"; };
+		8A5FDD570EC4F192E5E1FCEB /* KeepMaskOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepMaskOverlay.swift; sourceTree = "<group>"; };
 		8C36F03963DB0C71698755D0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterCamApp.swift; sourceTree = "<group>"; };
 		C05F5E661B236F149157C273 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
+		CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundSegmenter.swift; sourceTree = "<group>"; };
 		D067C0D4AD0B8B4569702957 /* BetterCam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC64A35D8EB89D159E1A1967 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameComposition.swift; sourceTree = "<group>"; };
@@ -102,7 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				D067C0D4AD0B8B4569702957 /* BetterCam.app */,
-				5BF204A04213445EE86C2E1C /* BetterCamCamera.systemextension */,
+				349A4555FCEC89B9CD2D3F7F /* de.bettercam.camera.systemextension */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -129,7 +137,9 @@
 		BE132CDAE912145BECC6C7AA /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				70182A4C24CB8B5B7C0946C8 /* BackgroundControls.swift */,
 				0A36C7AB8A905DDE72735ED2 /* ContentView.swift */,
+				8A5FDD570EC4F192E5E1FCEB /* KeepMaskOverlay.swift */,
 				F5E0972352CB0F20374B164A /* PreviewView.swift */,
 			);
 			path = Views;
@@ -139,7 +149,9 @@
 			isa = PBXGroup;
 			children = (
 				3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */,
+				CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */,
 				DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */,
+				7A71751C24D16B99F017B8FF /* KeepMask.swift */,
 				6AC2F1453FF2775E12223786 /* VideoBuffers.swift */,
 			);
 			path = Shared;
@@ -174,7 +186,7 @@
 			packageProductDependencies = (
 			);
 			productName = BetterCamCamera;
-			productReference = 5BF204A04213445EE86C2E1C /* BetterCamCamera.systemextension */;
+			productReference = 349A4555FCEC89B9CD2D3F7F /* de.bettercam.camera.systemextension */;
 			productType = "com.apple.product-type.system-extension";
 		};
 		D0253DB42ABB15F36603E5F8 /* BetterCam */ = {
@@ -252,6 +264,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58D7A02CFD0FC4143E5DDCFC /* BackgroundControls.swift in Sources */,
 				419AAFDEC15A312ACEDBCFB4 /* BetterCamApp.swift in Sources */,
 				52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */,
 				7A2DA8FF1B2BD747E921C57D /* CameraConfiguration.swift in Sources */,
@@ -259,8 +272,11 @@
 				E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */,
 				311965863F06070D8905A988 /* ContentView.swift in Sources */,
 				F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */,
+				E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */,
 				DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */,
 				18B469165AAA90749154BAB2 /* FrameProcessor.swift in Sources */,
+				97E9CA6EB06681E1882EE2E4 /* KeepMask.swift in Sources */,
+				39BF0E5448AE890723558CDF /* KeepMaskOverlay.swift in Sources */,
 				8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */,
 				346B1B1E658B526FC925D16D /* VideoBuffers.swift in Sources */,
 				5704B831F951F648489B9D5D /* VirtualCameraOutput.swift in Sources */,
@@ -289,6 +305,9 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.bettercam.camera;
+				PRODUCT_MODULE_NAME = BetterCamCamera;
+				PRODUCT_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(BETTERCAM_CAMERA_PROFILE)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -329,9 +348,8 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -345,7 +363,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -391,9 +409,8 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -413,7 +430,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -437,6 +454,9 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.bettercam.camera;
+				PRODUCT_MODULE_NAME = BetterCamCamera;
+				PRODUCT_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(BETTERCAM_CAMERA_PROFILE)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -455,6 +475,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.bettercam.app;
+				PROVISIONING_PROFILE_SPECIFIER = "$(BETTERCAM_APP_PROFILE)";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -471,6 +492,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.bettercam.app;
+				PROVISIONING_PROFILE_SPECIFIER = "$(BETTERCAM_APP_PROFILE)";
 				SDKROOT = macosx;
 			};
 			name = Debug;

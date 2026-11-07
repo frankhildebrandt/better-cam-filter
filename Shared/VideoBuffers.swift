@@ -57,7 +57,7 @@ enum VideoError: LocalizedError {
         switch self {
         case .allocation: "Videopuffer konnte nicht erstellt werden."
         case .status(let code): "Video-Fehler (\(code))."
-        case .segmentation: "Personensegmentierung fehlgeschlagen. Bitte Hintergrund deaktivieren oder erneut versuchen."
+        case .segmentation: "Vordergrunderkennung fehlgeschlagen. Bitte Erkennungsmodus wechseln oder den Hintergrund deaktivieren."
         }
     }
 }
