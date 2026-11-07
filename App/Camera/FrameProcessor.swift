@@ -8,6 +8,13 @@ final class FrameProcessor {
     private let accessoryRefiner: AccessoryMaskRefiner
     private var pool: CVPixelBufferPool?
     private var inputSize = CGSize.zero
+    var outputConfiguration = OutputConfiguration() {
+        didSet {
+            guard outputConfiguration != oldValue else { return }
+            pool = nil
+            resetSegmentation()
+        }
+    }
     var background: CIImage? { didSet { resetSegmentation() } }
     var segmentationMode = SegmentationMode.foregroundObjects { didSet { resetSegmentation() } }
     var segmentationConfiguration = SegmentationConfiguration() {
@@ -34,9 +41,9 @@ final class FrameProcessor {
             resetSegmentation()
             inputSize = size
         }
-        if pool == nil { pool = try VideoBuffers.makePool() }
+        if pool == nil { pool = try VideoBuffers.makePool(configuration: outputConfiguration) }
         guard let pool else { throw VideoError.allocation }
-        let foreground = FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: CameraConfiguration.bounds)
+        let foreground = FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
         let outputImage: CIImage
         if let background {
             let mask: CIImage
@@ -56,8 +63,8 @@ final class FrameProcessor {
             outputImage = foreground
         }
         let buffer = try VideoBuffers.makePixelBuffer(from: pool)
-        context.render(outputImage, to: buffer, bounds: CameraConfiguration.bounds,
+        context.render(outputImage, to: buffer, bounds: outputConfiguration.bounds,
                        colorSpace: CGColorSpaceCreateDeviceRGB())
-        return try VideoBuffers.makeSampleBuffer(buffer, at: time)
+        return try VideoBuffers.makeSampleBuffer(buffer, at: time, duration: outputConfiguration.frameDuration)
     }
 }

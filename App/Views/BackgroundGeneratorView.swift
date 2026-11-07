@@ -4,9 +4,8 @@ struct BackgroundGeneratorView: View {
     @ObservedObject var model: BackgroundModel
     @ObservedObject var camera: CameraModel
     @Environment(\.dismiss) private var dismiss
-    @State private var editingProfile: BackgroundProfile?
-    @State private var confirmingDelete = false
-    @State private var showingConnection = false
+    @Environment(\.openSettings) private var openSettings
+    @AppStorage("settingsCategory") private var settingsCategory = SettingsCategory.camera.rawValue
     @State private var showingLibrary = false
 
     var body: some View {
@@ -24,11 +23,10 @@ struct BackgroundGeneratorView: View {
                     Text("Profil auswählen").tag(UUID?.none)
                     ForEach(model.profiles) { Text($0.name).tag(Optional($0.id)) }
                 }
-                Button("Neu", systemImage: "plus") { editingProfile = BackgroundProfile() }
-                Button { editingProfile = model.selectedProfile } label: { Image(systemName: "pencil") }
-                    .help("Profil bearbeiten").disabled(model.selectedProfile == nil)
-                Button(role: .destructive) { confirmingDelete = true } label: { Image(systemName: "trash") }
-                    .help("Profil löschen").disabled(model.selectedProfile == nil)
+                Button("Profile verwalten …", systemImage: "gearshape") {
+                    settingsCategory = SettingsCategory.backgrounds.rawValue
+                    openSettings()
+                }
             }
             .disabled(model.isGenerating)
             if let profile = model.selectedProfile {
@@ -42,7 +40,7 @@ struct BackgroundGeneratorView: View {
                 .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                 .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
             } else {
-                Text("Lege ein Profil mit deinen festen Vorgaben und optionalen Referenzbildern an.")
+                Text("Lege unter „Profile verwalten“ ein Profil mit deinen Vorgaben und optionalen Referenzbildern an.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 8) {
@@ -52,21 +50,6 @@ struct BackgroundGeneratorView: View {
                     .disabled(model.isGenerating)
                 Text("Optional. Pre-Prompt und Assets aus dem Profil sind immer dabei.")
                     .font(.caption).foregroundStyle(.secondary)
-            }
-            DisclosureGroup("Codex App Server", isExpanded: $showingConnection) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Toggle("Codex automatisch bei Bedarf starten", isOn: $model.automaticallyStartServer)
-                        .disabled(model.isGenerating)
-                    if model.automaticallyStartServer {
-                        Text("BetterCam startet Codex beim Generieren und beendet den Prozess anschließend. Codex muss installiert und einmal mit „codex login“ angemeldet sein.")
-                    } else {
-                        TextField("Server-Adresse", text: $model.serverAddress).textFieldStyle(.roundedBorder)
-                            .disabled(model.isGenerating)
-                        Text("Starte den App Server auf diesem Mac mit angemeldetem Codex-Konto:")
-                        Text("codex app-server --listen ws://127.0.0.1:4500")
-                            .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
-                    }
-                }.font(.caption).padding(.top, 8)
             }
             Text("Zur Generierung werden Pre-Prompt, Kontext und alle Profilbilder über Codex an OpenAI übertragen.")
                 .font(.caption).foregroundStyle(.secondary)
@@ -94,19 +77,13 @@ struct BackgroundGeneratorView: View {
         .padding(24)
         }
         .frame(width: 640).frame(minHeight: 520, idealHeight: 680, maxHeight: 720)
-        .sheet(item: $editingProfile) { profile in
-            BackgroundProfileEditor(profile: profile) { draft, imports in try model.save(draft, imports: imports) }
-        }
         .sheet(isPresented: $showingLibrary) {
             BackgroundLibraryView(model: model, camera: camera)
         }
-        .confirmationDialog("Profil „\(model.selectedProfile?.name ?? "")“ löschen?", isPresented: $confirmingDelete) {
-            Button("Profil löschen", role: .destructive) { model.deleteSelectedProfile() }
-        } message: { Text("Der Pre-Prompt und die gespeicherten Referenzbilder werden entfernt.") }
     }
 }
 
-private struct BackgroundProfileEditor: View {
+struct BackgroundProfileEditor: View {
     @State var profile: BackgroundProfile
     var save: (BackgroundProfile, [BackgroundAssetImport]) throws -> Void
     @Environment(\.dismiss) private var dismiss

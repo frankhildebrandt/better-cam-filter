@@ -16,7 +16,7 @@ struct PreviewView: View {
                         .font(.system(size: 38, weight: .light))
                     Text(isRunning ? "Warte auf Kamerabild …" : "Dein Bild beginnt hier")
                         .font(.headline)
-                    Text(isRunning ? "Die Kamera wird vorbereitet." : "Wähle eine Kamera und starte die Vorschau.")
+                    Text(isRunning ? "Die Kamera wird vorbereitet." : "Starte deine Kamera in der Seitenleiste.")
                         .font(.callout).foregroundStyle(.white.opacity(0.5))
                 }
                 .foregroundStyle(.white.opacity(0.8))

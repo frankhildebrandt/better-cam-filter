@@ -5,7 +5,7 @@
 Native macOS-Webcam-App in SwiftUI mit Kameraauswahl, verarbeiteter Live-Vorschau
 und einer CoreMediaIO Camera Extension als virtuelle Kamera **BetterCam**.
 Optional ersetzt Apple Vision oder ein importiertes Core-ML-Modell den Hintergrund
-durch ein eigenes Bild. Die Ausgabe erfolgt in Full HD (1920 × 1080).
+durch ein eigenes Bild. Die Ausgabe lässt sich von HD (1280 × 720) bis 4K (3840 × 2160) und mit 15 bis 60 FPS konfigurieren; Standard ist Full HD mit 30 FPS.
 Die Kameraverarbeitung läuft lokal. Optional lassen sich neue Hintergrundbilder
 über einen lokalen Codex App Server erzeugen.
 
@@ -121,18 +121,18 @@ Grundlage: [Apple: System Extensions and DriverKit](https://developer.apple.com/
 
 1. Schema **BetterCam**, Ziel **My Mac**, bauen.
 2. `BetterCam.app` aus dem Build-Verzeichnis nach **/Applications** kopieren.
-3. App von dort öffnen und **Virtuelle Kamera aktivieren** klicken.
+3. App von dort öffnen und unter **Einstellungen → Ausgabe** auf **Virtuelle Kamera aktivieren** klicken.
 4. Die Kameraerweiterung in den Systemeinstellungen erlauben. Je nach macOS-Version
    unter **Allgemein → Anmeldeobjekte & Erweiterungen → Kameraerweiterungen** oder
    **Datenschutz & Sicherheit**. macOS kann einen Neustart verlangen.
-5. Quelle auswählen, **Kamera starten**, Kamerazugriff erlauben.
+5. Unter **Einstellungen → Kamera** die Quelle auswählen, im Hauptfenster **Kamera starten** und den Kamerazugriff erlauben.
 6. In der Video-App **BetterCam** als Kamera wählen. Bereits geöffnete Video-Apps
    gegebenenfalls neu starten, damit sie das neue Gerät entdecken.
 
-**Bild auswählen …** lädt einen Hintergrund und aktiviert den Filter. Der Schalter
+**Importieren …** speichert einen Hintergrund in der Mediathek und aktiviert den Filter. Der Schalter
 stellt auf das unveränderte Kamerabild zurück. Kamera stoppen gibt die Hardware frei;
 die installierte virtuelle Kamera bleibt verfügbar und liefert Schwarz. Zum Wechseln
-der Quelle erst stoppen. Das Hintergrundbild wird nur für die laufende Sitzung gehalten.
+der Quelle erst stoppen. Die Bilddatei bleibt in der Mediathek gespeichert; der aktive Hintergrund wird pro Sitzung gesetzt.
 
 ## Hintergründe mit Codex erzeugen
 
@@ -149,22 +149,22 @@ App. Ein offenes Terminal oder ein vorab gestarteter Server ist nicht erforderli
 Die App sucht Codex im `PATH`, in den üblichen Homebrew-Verzeichnissen, unter
 `~/.npm-global/bin` und `~/.local/bin` sowie im installierten Codex-App-Bundle.
 
-1. Unter **Hintergrund → Hintergrund erzeugen …** auf **Neu** klicken.
+1. Unter **Einstellungen → Hintergründe** auf **Neues Profil …** klicken; der Generator verlinkt diesen Bereich über **Profile verwalten …**.
 2. Einen Profilnamen und den **Pre-Prompt** mit den festen Vorgaben eintragen,
    beispielsweise Raumstil, Farben oder Markenregeln.
 3. Optional über **Bilder hinzufügen …** Logos, Stilvorlagen und andere
    Referenzbilder importieren. BetterCam speichert eigene PNG-Kopien; die
    ursprünglichen Dateien müssen anschließend nicht mehr verfügbar sein.
-4. **Profil speichern**, das Profil auswählen und bei Bedarf im Feld
+4. **Profil speichern**, im Hauptfenster **Hintergrund erzeugen …** öffnen, das Profil auswählen und bei Bedarf im Feld
    **Zusätzlicher Kontext** die Wünsche für dieses einzelne Bild ergänzen.
 5. **Hintergrund erzeugen** klicken. Das fertige Bild wird als Kamerahintergrund
    aktiviert. Die Kamera muss zum Generieren nicht laufen.
 
 Pre-Prompt und **alle** Profilbilder werden bei jeder Generierung erneut
-übergeben. Der Zusatzkontext kann leer bleiben. Profile können über die
-Stift-Schaltfläche bearbeitet oder über den Papierkorb gelöscht werden.
-Über **Hintergrund → Mediathek …** oder **Mediathek öffnen …** im Generator lassen
-sich alle erzeugten Bilder anhand ihrer Vorschau auswählen. Ein Klick aktiviert
+übergeben. Der Zusatzkontext kann leer bleiben. Profile können unter
+**Einstellungen → Hintergründe** bearbeitet oder gelöscht werden.
+Die Sidebar zeigt die acht neuesten Mediathek-Bilder als Miniaturen. Über **Alle Bilder …**
+oder **Mediathek öffnen …** im Generator lassen sich alle importierten und erzeugten Bilder auswählen. Ein Klick aktiviert
 das Bild als Kamerahintergrund; das aktive Bild ist markiert. Neue Bilder werden
 automatisch dauerhaft gespeichert, die neuesten stehen zuerst. Sie bleiben auch
 nach einem App-Neustart und nach dem Löschen des zugehörigen Profils verfügbar.
@@ -175,7 +175,7 @@ Application-Support-Verzeichnis der App unter `BetterCam/Backgrounds`.
 Das ausgewählte Profil und die Codex-Verbindungseinstellungen bleiben nach einem Neustart erhalten;
 der aktive Kamerahintergrund wird weiterhin pro Sitzung gesetzt.
 
-Unter **Codex App Server** ist **Codex automatisch bei Bedarf starten** standardmäßig
+Unter **Einstellungen → Hintergründe → Verbindung** ist **Codex automatisch bei Bedarf starten** standardmäßig
 aktiviert. Ein eingebetteter, separat signierter XPC-Dienst startet
 `codex app-server --listen stdio://` und transportiert dessen JSON-RPC-Nachrichten
 über Pipes. Der Hilfsdienst läuft außerhalb der App-Sandbox, damit Codex auf seine
@@ -199,10 +199,19 @@ Bildgenerierung muss vom verwendeten Codex-Konto unterstützt werden; BetterCam
 zeigt Fehler des Servers an. Der optionale WebSocket-Transport des App Servers ist
 experimentell. Protokollgrundlage: [offizielle OpenAI-Dokumentation zum Codex App Server](https://learn.chatgpt.com/docs/app-server).
 
-## Konfiguration und Modellauswahl
+## Einstellungen und Modellauswahl
 
-**Konfiguration …** in der Seitenleiste oder **BetterCam → Einstellungen …** (`⌘,`)
-öffnet die native Konfigurationsseite. Unter **Bilderkennung → Modell** stehen
+**Einstellungen …** unten in der Seitenleiste oder **BetterCam → Einstellungen …** (`⌘,`)
+öffnet ein Fenster im Stil der macOS-Systemeinstellungen mit Kategorien und gruppierten Formularen:
+
+- **Kamera:** gespeicherte Kameraquelle und aktueller Eingangsstatus.
+- **Ausgabe:** Auflösung, Bildrate und Aktivierung der virtuellen Kamera.
+- **Bilderkennung:** aktives Modell, Ausführungsparameter, Maskenoptimierung und Maskenvorschau.
+- **Modelle:** Download-Katalog und Import eigener Core-ML-Modelle.
+- **Hintergründe:** Generierungsprofile, Referenzbilder und Server-Verbindung.
+
+Im Hauptfenster bleiben Start/Stopp, Hintergrundauswahl und Schutzmarkierungen direkt erreichbar.
+Unter **Bilderkennung → Modell** stehen
 **Apple Vision**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
 und virtuelle Kamera und bleibt nach einem Neustart erhalten.
 
@@ -226,7 +235,7 @@ Beide Modelle segmentieren allgemeine Vordergrundobjekte bildweise und besitzen
 keine Videoverfolgung. Auf dem bereitgestellten Testbild bleiben Person und Mikrofon
 erhalten; Stuhl und Mikrofonarm werden teilweise entfernt. Eine vollständige Erhaltung
 dieser Gegenstände oder flackerfreie Masken ist damit nicht zugesagt. Schutzmarkierungen
-bleiben verfügbar. Die Ausgabe ist weiterhin Full HD; die Modellanalyse erfolgt bei
+bleiben verfügbar. Die Ausgabeauflösung wird separat gewählt; die Modellanalyse erfolgt bei
 320 × 320 Pixeln. Die Bildrate hängt vom Mac und der gesamten Verarbeitung ab.
 
 **Modell importieren …**
@@ -252,15 +261,24 @@ ursprüngliche Datei muss danach nicht mehr verfügbar sein. Die Verarbeitung l�
 lokal. Bei einem Fehler während der Modellanwendung erscheint die Fehlermeldung im
 Kamerafenster; es erfolgt kein stiller Wechsel zu Apple Vision.
 
-Bei Apple Vision lassen sich auf derselben Konfigurationsseite die Erkennung und die
-Zubehör-Ergänzung einstellen. Diese Einstellungen bleiben ebenfalls gespeichert.
+Bei Apple Vision lassen sich unter **Bilderkennung** Qualität (schnell, ausgewogen, präzise),
+Analysebreite (256 bis 3840 Pixel oder volle Ausgabeauflösung), unterstützte Vision-Version
+und bevorzugte Hintergrundverarbeitung einstellen. Hinzu kommen Erkennungsmodus und
+Zubehör-Ergänzung. Diese Einstellungen bleiben gespeichert. Die Apple-Parameter gelten
+auch für die optionale zusätzliche Personenerkennung bei eigenen Modellen.
+
+Bei Core-ML-Modellen stehen pro Modell Recheneinheiten (automatisch, CPU, CPU/GPU oder
+CPU/Neural Engine) und Eingangs-Skalierung (strecken, einpassen, ausfüllen) zur Verfügung.
+Die Eingangsgröße und die Maskenausgänge sind durch die jeweilige Modelldatei vorgegeben.
+Einpassen verwendet schwarze Ränder; Ausfüllen beschneidet den Eingang. Die Maske wird
+mit der passenden inversen Transformation auf das Kamerabild zurückgeführt.
 Die automatische Apple-Zubehör-Heuristik ist beim Custom-Modell ausgeschaltet.
 Explizite Schutzmarkierungen gelten weiterhin für beide Varianten.
 
-### Custom-Masken einstellen
+### Masken einstellen
 
-Seit Version 0.7 gibt es unter **Maske optimieren** gespeicherte Einstellungen pro
-installiertem Modell. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
+Unter **Bilderkennung → Maske optimieren** gibt es gespeicherte Einstellungen pro
+Modell, einschließlich Apple Vision. Apple beginnt mit **Unverändert**, um das bisherige Verhalten beizubehalten. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
 nutzt **Mehr Vordergrund**, weil es auf dem lokalen Testbild andernfalls auch im
 Pullover deutlich durchsichtige Bereiche erzeugt. Neu manuell importierte Modelle
 beginnen mit **Unverändert**, damit fertige Matting-Modelle ihre eigenen weichen
@@ -296,7 +314,7 @@ nun sauber freigestellt werden; dafür ist eine neue Live-Prüfung erforderlich.
 
 ## Vordergrund und Schutzbereiche
 
-**Konfiguration → Erkennung → Person + Zubehör** ist bei Apple Vision der Standard. Die genaue Vision-Personenmaske
+**Einstellungen → Bilderkennung → Zubehör → Person + Zubehör** ist bei Apple Vision der Standard. Die genaue Vision-Personenmaske
 bildet die Basis; daran wird Zubehör gezielt ergänzt. Allgemeine Vision-Instanzen
 werden nicht mehr pauschal übernommen, damit Tür oder Whiteboard bei wechselnder
 Erkennung nicht als neue Vordergrundobjekte erscheinen. **Nur Person** verwendet
@@ -350,12 +368,23 @@ weiter das gefilterte Bild. Schutzbereiche sind feste Bildbereiche und folgen ke
 Objekten: Darin bleibt das gesamte Original sichtbar, einschließlich Raumhintergrund.
 Nach einem Kameraschwenk die Markierungen korrigieren; ein Wechsel der Kamera löscht sie.
 
-Die Statuszeile zeigt die tatsächliche Eingangsauflösung und die gemessene
-Verarbeitungsbildrate. Wenn die Kamera Full HD nicht unterstützt, wird eine verfügbare
-Auflösung verwendet und für die Ausgabe auf Full HD skaliert.
+Die Statuszeile zeigt das gewählte Ausgabeformat, die tatsächliche Eingangsauflösung
+und die gemessene Verarbeitungsbildrate getrennt an.
 
-Nach dem Update von 720p auf Full HD die App neu starten und eine bereits installierte
-Kameraerweiterung erneut aktivieren, damit auch sie das neue Full-HD-Format bereitstellt.
+### Auflösung und FPS
+
+Unter **Einstellungen → Ausgabe** stehen 1280 × 720, 1920 × 1080, 2560 × 1440 und
+3840 × 2160 sowie 15, 24, 25, 30 und 60 FPS zur Auswahl. Änderungen sind bei gestoppter
+Kamera möglich und bleiben gespeichert. Die App wählt ein passendes Hardwareformat;
+bei einer kleineren Kamera wird das Bild auf das gewählte Ausgabeformat skaliert.
+Die tatsächlich erreichbare Bildrate hängt von Kamera, Modell und Mac ab. Die UI-Vorschau
+bleibt zur Entlastung auf höchstens 15 FPS begrenzt.
+
+Die Kameraerweiterung meldet alle unterstützten Formate und Bildraten an Video-Apps.
+Der Producer setzt das bevorzugte Format. Video-Apps können ihr eigenes Empfangsformat
+aushandeln; die Erweiterung skaliert bei Bedarf. Nach einem Formatwechsel die Kamera
+in der Video-App gegebenenfalls neu öffnen. Eine bereits installierte Erweiterung nach
+diesem Update erneut aktivieren, damit sie die zusätzlichen Formate bereitstellt.
 
 ## Architektur
 
@@ -368,7 +397,7 @@ AVCaptureDevice → AVCaptureVideoDataOutput
 ```
 
 - **App/Camera:** Capture und Verarbeitung auf einer seriellen Queue, veraltete
-  Eingangsframes werden verworfen. Ausgabe in 1920 × 1080 BGRA, bis zu 30 FPS,
+  Eingangsframes werden verworfen. Ausgabe in konfigurierbarem BGRA-Format bis 4K und 60 FPS,
   mit IOSurface-Puffern und begrenztem Pool. Die Extension wird bei Bedarf alle
   zwei Sekunden erneut gesucht, sodass die Vorschau auch ohne Installation läuft.
 - **CameraExtension:** stabiles Geräte-/Stream-UUID-Paar und Source-/Sink-Streams.
@@ -389,7 +418,7 @@ AVCaptureDevice → AVCaptureVideoDataOutput
 1080p/30 ist das Ausgabeformat, keine garantierte Verarbeitungsleistung. Vision und
 Kamerahardware bestimmen die effektive Bildrate; die Extension wiederholt bei kurzen
 Lücken den letzten Frame. Die Vision-Analyse arbeitet auf einem verkleinerten Bild
-mit maximal 768 Pixeln Breite; die Komposition rendert in Full HD. Segmentierung kann
+standardmäßig mit maximal 768 Pixeln Breite; Analysebreite und Ausgabeformat sind einstellbar. Segmentierung kann
 an Haaren, schnellen Bewegungen oder bei schlechtem Licht sichtbare Kanten erzeugen.
 Audio und Aufnahme sind nicht Teil dieses Bootstraps. Für die Aktivierung eines
 Developer-ID-Builds der virtuellen Kamera ist der oben beschriebene Notarisierungsweg erforderlich.

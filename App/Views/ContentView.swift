@@ -14,30 +14,37 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    HStack(spacing: 8) {
-                        Image(nsImage: NSApplication.shared.applicationIconImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                            .accessibilityHidden(true)
-                        Text("BetterCam").font(.title2.bold())
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        HStack(spacing: 10) {
+                            Image(nsImage: NSApplication.shared.applicationIconImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 36, height: 36)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("BetterCam").font(.headline)
+                                Text("Dein Bild. Dein Hintergrund.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        cameraControls
+                        Divider()
+                        BackgroundControls(camera: camera, backgrounds: backgrounds,
+                                           choosingBackground: $choosingBackground, showingGenerator: $showingGenerator,
+                                           showingLibrary: $showingLibrary)
                     }
-                    cameraControls
-                    Divider()
-                    BackgroundControls(camera: camera, backgrounds: backgrounds,
-                                       segmentationSettings: segmentationSettings,
-                                       choosingBackground: $choosingBackground, showingGenerator: $showingGenerator,
-                                       showingLibrary: $showingLibrary)
-                    Divider()
-                    extensionControls
-                    Divider()
-                    SettingsLink { Label("Konfiguration …", systemImage: "gearshape") }
+                    .padding(20)
                 }
-                .padding(20)
+                Divider()
+                SettingsLink { Label("Einstellungen …", systemImage: "gearshape") }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20).padding(.vertical, 16)
+                    .help("Kamera, Bilderkennung und Ausgabe konfigurieren (⌘,)")
             }
-            .navigationSplitViewColumnWidth(min: 280, ideal: 300, max: 340)
+            .navigationSplitViewColumnWidth(min: 260, ideal: 290, max: 340)
         } detail: {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
@@ -59,9 +66,10 @@ struct ContentView: View {
                         }
                     }
                 HStack {
-                    Label("1920 × 1080 · \(camera.framesPerSecond) FPS", systemImage: "video")
+                    Label(camera.outputConfiguration.summary, systemImage: "video")
                     Spacer()
-                    Text("Ausgang: BetterCam")
+                    Text(camera.isRunning ? "Aktuell \(camera.framesPerSecond) FPS · BetterCam" : "Ausgang: BetterCam")
+                        .monospacedDigit()
                 }
                 .font(.caption).foregroundStyle(.secondary)
                 if camera.isEditingKeepMask {
@@ -85,7 +93,7 @@ struct ContentView: View {
         }
         .fileImporter(isPresented: $choosingBackground, allowedContentTypes: [.image]) { result in
             switch result {
-            case .success(let url): camera.loadBackground(url)
+            case .success(let url): backgrounds.importBackground(url, camera: camera)
             case .failure(let error): camera.reportError(error.localizedDescription)
             }
         }
@@ -108,35 +116,24 @@ struct ContentView: View {
 
     private var cameraControls: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("KAMERA").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            Picker("Quelle", selection: $camera.selectedCameraID) {
-                if camera.cameras.isEmpty { Text("Keine Kamera gefunden").tag("") }
-                ForEach(camera.cameras) { Text($0.name).tag($0.id) }
+            HStack(spacing: 8) {
+                Image(systemName: "video.fill").foregroundStyle(.secondary)
+                Text(camera.cameras.first(where: { $0.id == camera.selectedCameraID })?.name ?? "Keine Kamera gefunden")
+                    .font(.callout.weight(.medium)).lineLimit(2)
             }
-            .labelsHidden()
-            .disabled(camera.isRunning || camera.isBusy)
             Button {
                 Task { if camera.isRunning { await camera.stop() } else { await camera.start() } }
             } label: {
-                Label(camera.isRunning ? "Kamera stoppen" : "Kamera starten",
-                      systemImage: camera.isRunning ? "stop.fill" : "play.fill")
-                    .frame(maxWidth: .infinity)
+                HStack {
+                    if camera.isBusy { ProgressView().controlSize(.small) }
+                    Label(camera.isRunning ? "Kamera stoppen" : "Kamera starten",
+                          systemImage: camera.isRunning ? "stop.fill" : "play.fill")
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 3)
             }
             .buttonStyle(.borderedProminent)
             .disabled(camera.isBusy || camera.selectedCameraID.isEmpty)
-            Text("Zum Wechseln der Quelle die Kamera kurz stoppen.")
-                .font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    private var extensionControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("Virtuelle Kamera", systemImage: "puzzlepiece.extension")
-                .font(.headline)
-            Text(extensionManager.status).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-            Button("Virtuelle Kamera aktivieren") { extensionManager.activate() }
-                .disabled(extensionManager.isBusy)
-            if extensionManager.isBusy { ProgressView().controlSize(.small) }
         }
     }
 
@@ -144,7 +141,7 @@ struct ContentView: View {
         Label {
             Text(camera.outputConnected
                  ? "Verbunden. Wähle „BetterCam“ in deiner Video-App."
-                 : "Vorschau ist unabhängig verfügbar. Für andere Apps die virtuelle Kamera aktivieren.")
+                 : "Für andere Apps die virtuelle Kamera unter Einstellungen → Ausgabe aktivieren.")
         } icon: {
             Image(systemName: camera.outputConnected ? "checkmark.circle.fill" : "info.circle")
                 .foregroundStyle(camera.outputConnected ? .green : .secondary)

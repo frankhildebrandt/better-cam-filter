@@ -21,7 +21,7 @@ struct BackgroundLibraryView: View {
             }
             if model.library.isEmpty {
                 ContentUnavailableView("Noch keine Bilder", systemImage: "photo.on.rectangle", description:
-                    Text("Erzeugte Hintergründe werden hier automatisch gespeichert und bleiben nach einem Neustart verfügbar."))
+                    Text("Importierte und erzeugte Hintergründe werden hier gespeichert und bleiben nach einem Neustart verfügbar."))
             } else {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 16)], spacing: 16) {
@@ -61,21 +61,23 @@ struct BackgroundLibraryView: View {
     }
 }
 
-private struct BackgroundThumbnail: View {
+struct BackgroundThumbnail: View {
     let url: URL
+    var height: CGFloat = 112
     @State private var image: NSImage?
 
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.12)
-            if let image {
-                Image(nsImage: image).resizable().scaledToFit()
-            } else {
-                Image(systemName: "photo").font(.largeTitle).foregroundStyle(.secondary)
+        Color.black.opacity(0.12)
+            .overlay {
+                if let image {
+                    Image(nsImage: image).resizable().scaledToFill()
+                } else {
+                    Image(systemName: "photo").font(.title2).foregroundStyle(.secondary)
+                }
             }
-        }
-        .frame(height: 112).clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(height: height).clipShape(RoundedRectangle(cornerRadius: 8))
         .task(id: url) {
+            image = nil
             // Downsample previews so browsing does not retain every full-resolution image.
             let options: [CFString: Any] = [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,

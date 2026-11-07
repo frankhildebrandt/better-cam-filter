@@ -41,6 +41,22 @@ final class BackgroundModel: ObservableObject {
 
     func imageURL(_ entry: GeneratedBackground) -> URL { libraryStore.imageURL(entry) }
 
+    func importBackground(_ url: URL, camera: CameraModel) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        do {
+            guard let image = NSImage(contentsOf: url),
+                  let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+                  let png = NSBitmapImageRep(cgImage: cgImage).representation(using: .png, properties: [:]) else {
+                throw BackgroundError.message("Das Hintergrundbild konnte nicht geöffnet werden.")
+            }
+            library = try libraryStore.save(png, name: url.deletingPathExtension().lastPathComponent)
+            camera.applyBackground(cgImage, name: url.deletingPathExtension().lastPathComponent,
+                                   libraryID: library.first?.id)
+            libraryError = nil
+        } catch { libraryError = error.localizedDescription }
+    }
+
     func select(_ entry: GeneratedBackground, camera: CameraModel) {
         guard let image = NSImage(contentsOf: imageURL(entry)),
               let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {

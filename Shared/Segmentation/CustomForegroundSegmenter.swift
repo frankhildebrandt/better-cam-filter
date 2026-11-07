@@ -9,10 +9,17 @@ final class CustomForegroundSegmenter {
     private let input: MLImageConstraint
     private let context = CIContext(options: [.cacheIntermediates: false])
     private var inputBuffer: CVPixelBuffer?
+    private let settings: ModelInferenceSettings
 
-    init(modelURL: URL) throws {
+    init(modelURL: URL, settings: ModelInferenceSettings = .init()) throws {
+        self.settings = settings
         let configuration = MLModelConfiguration()
-        configuration.computeUnits = .all
+        switch settings.computeUnits {
+        case .all: configuration.computeUnits = .all
+        case .cpuOnly: configuration.computeUnits = .cpuOnly
+        case .cpuAndGPU: configuration.computeUnits = .cpuAndGPU
+        case .cpuAndNeuralEngine: configuration.computeUnits = .cpuAndNeuralEngine
+        }
         model = try MLModel(contentsOf: modelURL, configuration: configuration)
         let description = model.modelDescription
         guard description.inputDescriptionsByName.count == 1,
@@ -73,7 +80,11 @@ final class CustomForegroundSegmenter {
             }
         }
         guard let inputBuffer else { throw VideoError.allocation }
-        context.render(aligned(image, to: bounds), to: inputBuffer,
+        let mapping = ModelInputMapping(source: image.extent, destination: bounds, scaling: settings.inputScaling)
+        let prepared = image.clampedToExtent().transformed(by: mapping.transform)
+            .cropped(to: mapping.imageBounds)
+            .composited(over: CIImage(color: .black).cropped(to: bounds)).cropped(to: bounds)
+        context.render(prepared, to: inputBuffer,
                        bounds: bounds, colorSpace: CGColorSpace(name: CGColorSpace.sRGB))
         let features = try MLDictionaryFeatureProvider(dictionary: [inputName: MLFeatureValue(pixelBuffer: inputBuffer)])
         let prediction = try model.prediction(from: features)
@@ -84,7 +95,8 @@ final class CustomForegroundSegmenter {
         } else if let values = output.multiArrayValue {
             mask = try CustomMaskDecoder.image(from: values)
         } else { throw CustomSegmentationError.unsupportedOutput }
-        return aligned(mask, to: image.extent)
+        return aligned(mask, to: bounds).transformed(by: mapping.transform.inverted())
+            .composited(over: CIImage(color: .black).cropped(to: image.extent)).cropped(to: image.extent)
     }
 
     /// Stretch the full frame, clamping the boundary to avoid transparent interpolation into its edges.
@@ -105,5 +117,29 @@ final class CustomForegroundSegmenter {
                        bounds: image.extent, format: .Lf, colorSpace: nil)
         guard values.allSatisfy({ $0.isFinite && $0 >= 0 && $0 <= 1 }) else { throw CustomSegmentationError.invalidMask }
         return image
+    }
+}
+
+/// The inverse transform restores model coordinates, including padding or a central crop.
+struct ModelInputMapping {
+    let transform: CGAffineTransform
+    let imageBounds: CGRect
+
+    init(source: CGRect, destination: CGRect, scaling: ModelInputScaling) {
+        let horizontal = destination.width / source.width
+        let vertical = destination.height / source.height
+        let xScale: CGFloat
+        let yScale: CGFloat
+        switch scaling {
+        case .stretch: xScale = horizontal; yScale = vertical
+        case .aspectFit: xScale = min(horizontal, vertical); yScale = xScale
+        case .aspectFill: xScale = max(horizontal, vertical); yScale = xScale
+        }
+        let offsetX = destination.minX + (destination.width - source.width * xScale) / 2
+        let offsetY = destination.minY + (destination.height - source.height * yScale) / 2
+        transform = CGAffineTransform(translationX: -source.minX, y: -source.minY)
+            .concatenating(CGAffineTransform(scaleX: xScale, y: yScale))
+            .concatenating(CGAffineTransform(translationX: offsetX, y: offsetY))
+        imageBounds = source.applying(transform).intersection(destination)
     }
 }

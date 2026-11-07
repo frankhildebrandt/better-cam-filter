@@ -17,23 +17,32 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     private var generation = 0
     private var latestBuffer: CVPixelBuffer?
     private var lastReceived: Double = 0
-    private let black: CVPixelBuffer
+    private var black: CVPixelBuffer
+    private var outputPool: CVPixelBufferPool
+    private let context = CIContext(options: [.cacheIntermediates: false])
 
     init(localizedName: String) throws {
-        let pool = try VideoBuffers.makePool()
-        black = try VideoBuffers.makePixelBuffer(from: pool)
+        outputPool = try VideoBuffers.makePool()
+        black = try VideoBuffers.makePixelBuffer(from: outputPool)
         CIContext().render(CIImage(color: .black).cropped(to: CameraConfiguration.bounds), to: black)
         super.init()
         device = CMIOExtensionDevice(localizedName: localizedName,
                                      deviceID: CameraConfiguration.deviceID, legacyDeviceID: nil, source: self)
-        let sample = try VideoBuffers.makeSampleBuffer(black, at: .zero)
-        guard let description = sample.formatDescription else { throw VideoError.allocation }
-        let format = CMIOExtensionStreamFormat(formatDescription: description,
-                                               maxFrameDuration: CameraConfiguration.frameDuration,
-                                               minFrameDuration: CameraConfiguration.frameDuration,
-                                               validFrameDurations: nil)
-        source = CameraStream(direction: .source, format: format, camera: self)
-        sink = CameraStream(direction: .sink, format: format, camera: self)
+        let formats = try OutputResolution.allCases.map { resolution in
+            var description: CMVideoFormatDescription?
+            try VideoBuffers.check(CMVideoFormatDescriptionCreate(allocator: kCFAllocatorDefault,
+                codecType: kCVPixelFormatType_32BGRA, width: Int32(resolution.width), height: Int32(resolution.height),
+                extensions: nil, formatDescriptionOut: &description))
+            guard let description else { throw VideoError.allocation }
+            return CMIOExtensionStreamFormat(formatDescription: description,
+                maxFrameDuration: CMTime(value: 1, timescale: 15),
+                minFrameDuration: CMTime(value: 1, timescale: 60),
+                validFrameDurations: OutputConfiguration.frameRates.map {
+                    CMTime(value: 1, timescale: $0)
+                })
+        }
+        source = CameraStream(direction: .source, formats: formats, camera: self)
+        sink = CameraStream(direction: .sink, formats: formats, camera: self)
         try device.addStream(source.stream)
         try device.addStream(sink.stream)
     }
@@ -48,6 +57,20 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     }
 
     func setDeviceProperties(_ deviceProperties: CMIOExtensionDeviceProperties) throws {}
+
+    func configure(_ configuration: OutputConfiguration, for direction: CMIOExtensionStream.Direction) throws {
+        if configuration.resolution != source.configuration.resolution {
+            let pool = try VideoBuffers.makePool(configuration: configuration)
+            let buffer = try VideoBuffers.makePixelBuffer(from: pool)
+            context.render(CIImage(color: .black).cropped(to: configuration.bounds), to: buffer)
+            outputPool = pool
+            black = buffer
+        }
+        // A producer establishes the preferred output; clients may negotiate their own source format.
+        if direction == .sink { sink.apply(configuration) }
+        source.apply(configuration)
+        timer?.schedule(deadline: .now(), repeating: 1.0 / Double(configuration.frameRate), leeway: .milliseconds(1))
+    }
 
     func authorizeProducer(_ client: CMIOExtensionClient) -> Bool {
         guard client.signingID == "de.bettercam.app" else { return false }
@@ -90,7 +113,7 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
         }
         guard timer == nil else { return }
         let timer = DispatchSource.makeTimerSource(queue: queue)
-        timer.schedule(deadline: .now(), repeating: 1.0 / Double(CameraConfiguration.frameRate), leeway: .milliseconds(2))
+        timer.schedule(deadline: .now(), repeating: 1.0 / Double(source.configuration.frameRate), leeway: .milliseconds(1))
         timer.setEventHandler { [weak self] in self?.tick() }
         self.timer = timer
         timer.resume()
@@ -101,8 +124,14 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
         guard sourceClients > 0 else { return }
         let now = CMClockGetTime(CMClockGetHostTimeClock())
         // Never freeze the last camera frame after a stop, crash, or stalled producer.
-        let buffer = sinkRunning && now.seconds - lastReceived < 0.5 ? (latestBuffer ?? black) : black
-        guard let sample = try? VideoBuffers.makeSampleBuffer(buffer, at: now) else { return }
+        var buffer = sinkRunning && now.seconds - lastReceived < 0.5 ? (latestBuffer ?? black) : black
+        let configuration = source.configuration
+        if CVPixelBufferGetWidth(buffer) != configuration.width || CVPixelBufferGetHeight(buffer) != configuration.height {
+            guard let resized = try? VideoBuffers.makePixelBuffer(from: outputPool) else { return }
+            context.render(FrameComposition.aspectFill(CIImage(cvPixelBuffer: buffer), in: configuration.bounds), to: resized)
+            buffer = resized
+        }
+        guard let sample = try? VideoBuffers.makeSampleBuffer(buffer, at: now, duration: configuration.frameDuration) else { return }
         source.stream.send(sample, discontinuity: [], hostTimeInNanoseconds: UInt64(now.seconds * 1_000_000_000))
     }
 
@@ -124,8 +153,8 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
         guard sinkRunning, !delivery.failed, let sample = delivery.sample else { return }
         let now = CMClockGetTime(CMClockGetHostTimeClock())
         if let buffer = sample.imageBuffer,
-           CVPixelBufferGetWidth(buffer) == CameraConfiguration.width,
-           CVPixelBufferGetHeight(buffer) == CameraConfiguration.height,
+           CVPixelBufferGetWidth(buffer) == sink.configuration.width,
+           CVPixelBufferGetHeight(buffer) == sink.configuration.height,
            CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA {
             latestBuffer = buffer
             lastReceived = now.seconds

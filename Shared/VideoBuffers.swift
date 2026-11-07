@@ -3,11 +3,11 @@ import CoreVideo
 import Foundation
 
 enum VideoBuffers {
-    static func makePool() throws -> CVPixelBufferPool {
+    static func makePool(configuration: OutputConfiguration = OutputConfiguration()) throws -> CVPixelBufferPool {
         var pool: CVPixelBufferPool?
         let attributes: [String: Any] = [
-            kCVPixelBufferWidthKey as String: CameraConfiguration.width,
-            kCVPixelBufferHeightKey as String: CameraConfiguration.height,
+            kCVPixelBufferWidthKey as String: configuration.width,
+            kCVPixelBufferHeightKey as String: configuration.height,
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
             kCVPixelBufferIOSurfacePropertiesKey as String: [:],
             kCVPixelBufferMetalCompatibilityKey as String: true
@@ -25,13 +25,14 @@ enum VideoBuffers {
         return buffer
     }
 
-    static func makeSampleBuffer(_ buffer: CVPixelBuffer, at time: CMTime) throws -> CMSampleBuffer {
+    static func makeSampleBuffer(_ buffer: CVPixelBuffer, at time: CMTime,
+                                 duration: CMTime = CameraConfiguration.frameDuration) throws -> CMSampleBuffer {
         var format: CMVideoFormatDescription?
         try check(CMVideoFormatDescriptionCreateForImageBuffer(
             allocator: kCFAllocatorDefault, imageBuffer: buffer, formatDescriptionOut: &format
         ))
         guard let format else { throw VideoError.allocation }
-        var timing = CMSampleTimingInfo(duration: CameraConfiguration.frameDuration,
+        var timing = CMSampleTimingInfo(duration: duration,
                                         presentationTimeStamp: time, decodeTimeStamp: .invalid)
         var sample: CMSampleBuffer?
         try check(CMSampleBufferCreateForImageBuffer(
@@ -52,12 +53,14 @@ enum VideoError: LocalizedError {
     case allocation
     case status(OSStatus)
     case segmentation
+    case unsupportedOutput
 
     var errorDescription: String? {
         switch self {
         case .allocation: "Videopuffer konnte nicht erstellt werden."
         case .status(let code): "Video-Fehler (\(code))."
         case .segmentation: "Vordergrunderkennung fehlgeschlagen. Bitte Erkennungsmodus wechseln oder den Hintergrund deaktivieren."
+        case .unsupportedOutput: "Die virtuelle Kamera unterstützt dieses Ausgabeformat noch nicht. Bitte die virtuelle Kamera in den Einstellungen aktualisieren."
         }
     }
 }
