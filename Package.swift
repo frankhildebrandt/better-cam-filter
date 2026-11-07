@@ -8,6 +8,7 @@ let package = Package(
     targets: [
         .target(name: "BetterCamCore", path: "Shared"),
         .target(name: "BackgroundKit", path: "Backgrounds"),
-        .testTarget(name: "BetterCamCoreTests", dependencies: ["BetterCamCore", "BackgroundKit"], path: "Tests")
+        .target(name: "CodexServerKit", path: "CodexServerKit"),
+        .testTarget(name: "BetterCamCoreTests", dependencies: ["BetterCamCore", "BackgroundKit", "CodexServerKit"], path: "Tests")
     ]
 )

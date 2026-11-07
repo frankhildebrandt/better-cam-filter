@@ -55,11 +55,17 @@ struct BackgroundGeneratorView: View {
             }
             DisclosureGroup("Codex App Server", isExpanded: $showingConnection) {
                 VStack(alignment: .leading, spacing: 8) {
-                    TextField("Server-Adresse", text: $model.serverAddress).textFieldStyle(.roundedBorder)
+                    Toggle("Codex automatisch bei Bedarf starten", isOn: $model.automaticallyStartServer)
                         .disabled(model.isGenerating)
-                    Text("Starte den App Server auf diesem Mac mit angemeldetem Codex-Konto:")
-                    Text("codex app-server --listen ws://127.0.0.1:4500")
-                        .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                    if model.automaticallyStartServer {
+                        Text("BetterCam startet Codex beim Generieren und beendet den Prozess anschließend. Codex muss installiert und einmal mit „codex login“ angemeldet sein.")
+                    } else {
+                        TextField("Server-Adresse", text: $model.serverAddress).textFieldStyle(.roundedBorder)
+                            .disabled(model.isGenerating)
+                        Text("Starte den App Server auf diesem Mac mit angemeldetem Codex-Konto:")
+                        Text("codex app-server --listen ws://127.0.0.1:4500")
+                            .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                    }
                 }.font(.caption).padding(.top, 8)
             }
             Text("Zur Generierung werden Pre-Prompt, Kontext und alle Profilbilder über Codex an OpenAI übertragen.")

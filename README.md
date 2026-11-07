@@ -24,14 +24,14 @@ xcodegen generate
 open BetterCam.xcodeproj
 ```
 
-In Xcode für **beide Targets** dasselbe Development Team wählen. Alternativ eine
+In Xcode für **alle Targets** dasselbe Development Team wählen. Alternativ eine
 nicht eingecheckte `Config/Local.xcconfig` anlegen:
 
 ```xcconfig
 DEVELOPMENT_TEAM = YOUR_TEAM_ID
 ```
 
-Um ein vorhandenes **Developer ID Application**-Zertifikat für beide Targets zu
+Um ein vorhandenes **Developer ID Application**-Zertifikat für alle Targets zu
 verwenden, zusätzlich in derselben Datei eintragen:
 
 ```xcconfig
@@ -53,7 +53,9 @@ Developer-ID-Builds enthalten keine Debugger-Berechtigung (`get-task-allow`). F�
 eine Debugger-Sitzung stattdessen ein Development-Zertifikat und Development-Profile
 verwenden und die lokale Einstellung `CODE_SIGN_INJECT_BASE_ENTITLEMENTS` entfernen.
 
-Die Bundle IDs sind `de.bettercam.app` und `de.bettercam.camera`. Falls sie im
+Die Bundle IDs sind `de.bettercam.app`, `de.bettercam.camera` und
+`de.bettercam.CodexServer` (eingebetteter XPC-Dienst). Der XPC-Dienst benötigt kein
+eigenes Provisioning-Profil. Falls die App- oder Kamera-ID im
 Developer Account nicht verfügbar sind, in `project.yml` ändern und die IDs in
 `CameraConfiguration.swift`, `CameraDevice.authorizeProducer`, der App Group und
 `CMIOExtensionMachServiceName` entsprechend angleichen. Die gemeinsame App Group
@@ -76,13 +78,18 @@ der Quelle erst stoppen. Das Hintergrundbild wird nur für die laufende Sitzung 
 
 ## Hintergründe mit Codex erzeugen
 
-Voraussetzung ist eine aktuelle Codex CLI mit angemeldetem Konto und verfügbarer
-Bildgenerierung. Den App Server auf **demselben Mac** starten:
+Voraussetzung ist eine aktuelle Codex CLI auf **demselben Mac** mit angemeldetem
+Konto und verfügbarer Bildgenerierung. Einmalig im Terminal anmelden:
 
 ```sh
 codex login
-codex app-server --listen ws://127.0.0.1:4500
 ```
+
+BetterCam startet den App Server beim Klick auf **Hintergrund erzeugen** automatisch
+und beendet den eigenen Prozess nach Erfolg, Fehler, Abbruch oder beim Beenden der
+App. Ein offenes Terminal oder ein vorab gestarteter Server ist nicht erforderlich.
+Die App sucht Codex im `PATH`, in den üblichen Homebrew-Verzeichnissen, unter
+`~/.npm-global/bin` und `~/.local/bin` sowie im installierten Codex-App-Bundle.
 
 1. Unter **Hintergrund → Hintergrund erzeugen …** auf **Neu** klicken.
 2. Einen Profilnamen und den **Pre-Prompt** mit den festen Vorgaben eintragen,
@@ -107,13 +114,22 @@ Ein bereits vorhandenes `last-background.png` wird einmalig in die Mediathek üb
 
 Profile, importierte Bilder und die Mediathek liegen im
 Application-Support-Verzeichnis der App unter `BetterCam/Backgrounds`.
-Das ausgewählte Profil und die Server-Adresse bleiben nach einem Neustart erhalten;
+Das ausgewählte Profil und die Codex-Verbindungseinstellungen bleiben nach einem Neustart erhalten;
 der aktive Kamerahintergrund wird weiterhin pro Sitzung gesetzt.
 
-Unter **Codex App Server** lässt sich die lokale WebSocket-Adresse anpassen.
-Die App akzeptiert ausschließlich Loopback-Adressen und behält ihre macOS-Sandbox;
-die Kameraerweiterung erhält keinen Netzwerkzugriff. Es wird kein API-Key in
-BetterCam gespeichert. Codex verwendet seine bestehende Anmeldung und Konfiguration.
+Unter **Codex App Server** ist **Codex automatisch bei Bedarf starten** standardmäßig
+aktiviert. Ein eingebetteter, separat signierter XPC-Dienst startet
+`codex app-server --listen stdio://` und transportiert dessen JSON-RPC-Nachrichten
+über Pipes. Der Hilfsdienst läuft außerhalb der App-Sandbox, damit Codex auf seine
+bestehende Anmeldung und Konfiguration zugreifen kann. BetterCam selbst und die
+Kameraerweiterung behalten ihre macOS-Sandbox; die Kameraerweiterung erhält keinen
+Netzwerkzugriff. Es wird kein API-Key in BetterCam gespeichert.
+
+Wer einen eigenen App Server verwenden möchte, deaktiviert den automatischen Start
+und trägt eine lokale WebSocket-Adresse ein, beispielsweise `ws://127.0.0.1:4500`.
+Diesen Server mit `codex app-server --listen ws://127.0.0.1:4500` selbst starten.
+Die App akzeptiert ausschließlich Loopback-Adressen und beendet extern gestartete
+Server nicht.
 Für jede Generierung wird ein eigener temporärer Thread mit `workspace-write` und
 `approvalPolicy: never` angelegt. Interaktive Freigabeanfragen werden abgelehnt.
 **Abbrechen** unterbricht den laufenden Turn. Bei Fehlern bleibt das bisherige
@@ -122,7 +138,7 @@ Kamerahintergrundbild aktiv.
 Zur Bildgenerierung werden Pre-Prompt, Zusatzkontext und Profilbilder über Codex
 an OpenAI übertragen. Die laufenden Kamerabilder werden dafür nicht verwendet.
 Bildgenerierung muss vom verwendeten Codex-Konto unterstützt werden; BetterCam
-zeigt Fehler des Servers an. Der WebSocket-Transport des App Servers ist
+zeigt Fehler des Servers an. Der optionale WebSocket-Transport des App Servers ist
 experimentell. Protokollgrundlage: [offizielle OpenAI-Dokumentation zum Codex App Server](https://learn.chatgpt.com/docs/app-server).
 
 ## Vordergrund und Schutzbereiche
@@ -182,11 +198,11 @@ Audio, Aufnahme und Distribution/Notarisierung sind nicht Teil dieses Bootstraps
 ## Prüfen
 
 ```sh
-# Kompiliert App und eingebettete Extension ohne Apple-Signierung:
+# Kompiliert App, eingebettete Extension und Codex-XPC-Dienst ohne Apple-Signierung:
 xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
   -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 
-# Tests für Bildverarbeitung, Schutzpinsel, Full HD, Profile, Assets, Mediathek und Codex-JSON-RPC:
+# Tests für Bildverarbeitung, Profile, Mediathek, Codex-JSON-RPC und Prozesslebenszyklus:
 swift test
 ```
 

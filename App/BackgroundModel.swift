@@ -10,6 +10,9 @@ final class BackgroundModel: ObservableObject {
         didSet { UserDefaults.standard.set(selectedProfileID?.uuidString, forKey: "backgroundProfileID") }
     }
     @Published var context = ""
+    @Published var automaticallyStartServer = UserDefaults.standard.object(forKey: "codexAutomaticallyStartServer") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(automaticallyStartServer, forKey: "codexAutomaticallyStartServer") }
+    }
     @Published var serverAddress = UserDefaults.standard.string(forKey: "codexServerAddress") ?? "ws://127.0.0.1:4500" {
         didSet { UserDefaults.standard.set(serverAddress, forKey: "codexServerAddress") }
     }
@@ -67,12 +70,14 @@ final class BackgroundModel: ObservableObject {
         guard let profile = selectedProfile, !isGenerating else { return }
         let context = context
         let address = serverAddress
+        let automaticallyStartServer = automaticallyStartServer
         error = nil
         isGenerating = true
         generation = Task {
             defer { isGenerating = false; generation = nil }
             do {
-                let data = try await client.generate(profile: profile, context: context, store: store, address: address) { self.status = $0 }
+                let data = try await client.generate(profile: profile, context: context, store: store,
+                                                     address: address, automaticallyStartServer: automaticallyStartServer) { self.status = $0 }
                 try Task.checkCancellation()
                 guard let image = NSImage(data: data),
                       let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
@@ -99,7 +104,7 @@ final class BackgroundModel: ObservableObject {
         generation?.cancel()
     }
 
-    func shutdown() { generation?.cancel() }
+    func shutdown() { generation?.cancel(); client.shutdown() }
 
     static func importAssets(_ urls: [URL]) throws -> [BackgroundAssetImport] {
         try urls.map { url in
