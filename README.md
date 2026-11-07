@@ -10,6 +10,9 @@ Die Astro-Website liegt unter [`website/`](website/README.md). Der
 [Pages-Workflow](.github/workflows/pages.yml) prüft Pull Requests und veröffentlicht
 Änderungen auf `main`; die technische Web-Dokumentation wird aus dieser README übernommen.
 
+GitHub-Releases werden mit dem Workflow **Release macOS** gebaut, signiert und
+notarisiert. Einmaliges Secret-Setup und Release-Ablauf: [docs/releases.md](docs/releases.md).
+
 Native macOS-Webcam-App in SwiftUI mit Kameraauswahl, verarbeiteter Live-Vorschau
 und einer CoreMediaIO Camera Extension als virtuelle Kamera **BetterCam**.
 Optional ersetzt Apple Vision oder ein importiertes Core-ML-Modell den Hintergrund

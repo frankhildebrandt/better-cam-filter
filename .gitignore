@@ -7,3 +7,8 @@ Config/Local.xcconfig
 website/node_modules/
 website/dist/
 website/.astro/
+*.p12
+*.p8
+*.provisionprofile
+*.mobileprovision
+__pycache__/

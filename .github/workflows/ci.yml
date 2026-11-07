@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: brew install xcodegen
+      - run: python3 -m unittest discover -s Tools/ci -p 'test_*.py'
+      - run: swift test
+      - run: |
+          xcodegen generate
+          xcodebuild -project BetterCam.xcodeproj -scheme BetterCam -configuration Release \
+            -derivedDataPath build/ci CODE_SIGNING_ALLOWED=NO build
