@@ -83,7 +83,7 @@ targets:
     sources:
       - CameraExtension
       - path: Shared
-        excludes: [Segmentation, ForegroundSegmenter.swift, KeepMask.swift, AccessoryMaskRefiner.swift, AccessoryRegions.swift, AccessoryTemporalFilter.swift, AccessoryMotionSupport.swift, AccessorySceneHistory.swift, PixelComponents.swift]
+        excludes: [Segmentation, Gestures, Reactions, GestureReactionPlayback.swift, GestureSettingsStore.swift, ForegroundSegmenter.swift, KeepMask.swift, AccessoryMaskRefiner.swift, AccessoryRegions.swift, AccessoryTemporalFilter.swift, AccessoryMotionSupport.swift, AccessorySceneHistory.swift, PixelComponents.swift]
     info:
       path: Config/Camera-Info.plist
       properties:

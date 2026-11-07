@@ -2,13 +2,14 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum SettingsCategory: String, CaseIterable, Identifiable {
-    case camera, output, recognition, models, backgrounds
+    case camera, output, gestures, recognition, models, backgrounds
 
     var id: String { rawValue }
     var title: String {
         switch self {
         case .camera: "Kamera"
         case .output: "Ausgabe"
+        case .gestures: "Gesten"
         case .recognition: "Bilderkennung"
         case .models: "Modelle"
         case .backgrounds: "Hintergründe"
@@ -18,6 +19,7 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         switch self {
         case .camera: "camera.fill"
         case .output: "video.fill"
+        case .gestures: "hand.wave.fill"
         case .recognition: "person.crop.rectangle"
         case .models: "square.stack.3d.up.fill"
         case .backgrounds: "photo.on.rectangle.angled"
@@ -27,6 +29,7 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         switch self {
         case .camera: .gray
         case .output: .blue
+        case .gestures: .pink
         case .recognition: .purple
         case .models: .orange
         case .backgrounds: .green
@@ -36,6 +39,7 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         switch self {
         case .camera: "Wähle die Kamera für dein Livebild."
         case .output: "Bildformat und virtuelle Kamera für deine Video-Apps."
+        case .gestures: "Wähle für jede Handgeste eine passende Reaction."
         case .recognition: "Passe Erkennung und Masken für jedes Modell an."
         case .models: "Verwalte lokale Modelle für die Bilderkennung."
         case .backgrounds: "Profile und Verbindung für die Hintergrundgenerierung."
@@ -89,6 +93,7 @@ struct ConfigurationView: View {
                     switch category {
                     case .camera: cameraSections
                     case .output: outputSections
+                    case .gestures: GestureSettingsSections(camera: camera)
                     case .recognition: recognitionSections
                     case .models: modelSections
                     case .backgrounds: backgroundSections

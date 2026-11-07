@@ -4,10 +4,13 @@ import Foundation
 
 struct CaptureUpdate: Sendable {
     let preview: CGImage?
+    let outputPreview: CGImage?
     let outputConnected: Bool
     let error: String?
     let inputResolution: String
     let framesPerSecond: Int
+    let detectedGesture: GestureKind?
+    let gestureError: String?
 }
 
 /// Session configuration, processing, and CMIO transport share one serial executor.
@@ -88,11 +91,23 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         queue.async { self.previewMask = enabled }
     }
 
+    func setGestureConfiguration(_ configuration: GestureConfiguration) {
+        queue.async { self.processor.gestureConfiguration = configuration }
+    }
+
+    func previewReaction(_ reaction: ReactionKind, for gesture: GestureKind) {
+        queue.async {
+            guard self.session.isRunning else { return }
+            self.processor.previewReaction(reaction, for: gesture, at: CMClockGetTime(CMClockGetHostTimeClock()).seconds)
+        }
+    }
+
     func shutdown() { queue.sync { stopOnQueue() } }
 
     private func stopOnQueue() {
         session.stopRunning()
         processor.resetSegmentation()
+        processor.resetGestures()
         output.disconnect()
         nextFrame = 0
         nextPreview = 0
@@ -179,15 +194,18 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
                 ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
                 : (previewMask ? processor.previewMask : nil) ?? CIImage(cvPixelBuffer: buffer)
             let image = processor.context.createCGImage(previewImage, from: outputConfiguration.bounds)
-            onUpdate(CaptureUpdate(preview: image, outputConnected: connected, error: outputError,
+            let outputImage = previewOriginal || previewMask
+                ? processor.context.createCGImage(CIImage(cvPixelBuffer: buffer), from: outputConfiguration.bounds) : image
+            onUpdate(CaptureUpdate(preview: image, outputPreview: outputImage, outputConnected: connected, error: outputError,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
-                                   framesPerSecond: framesPerSecond))
+                                   framesPerSecond: framesPerSecond, detectedGesture: processor.detectedGesture,
+                                   gestureError: processor.gestureError))
         } catch {
             guard now >= nextPreview else { return }
             nextPreview = now + 1
-            onUpdate(CaptureUpdate(preview: nil, outputConnected: false, error: error.localizedDescription,
+            onUpdate(CaptureUpdate(preview: nil, outputPreview: nil, outputConnected: false, error: error.localizedDescription,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
-                                   framesPerSecond: 0))
+                                   framesPerSecond: 0, detectedGesture: nil, gestureError: processor.gestureError))
         }
     }
 }

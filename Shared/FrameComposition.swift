@@ -24,10 +24,12 @@ enum FrameComposition {
         )).cropped(to: bounds)
     }
 
-    static func replaceBackground(foreground: CIImage, background: CIImage, mask: CIImage) -> CIImage {
+    static func replaceBackground(foreground: CIImage, background: CIImage, mask: CIImage,
+                                  backgroundReaction: CIImage? = nil) -> CIImage {
         let bounds = foreground.extent
+        let backdrop = aspectFill(background, in: bounds)
         return foreground.applyingFilter("CIBlendWithMask", parameters: [
-            kCIInputBackgroundImageKey: aspectFill(background, in: bounds),
+            kCIInputBackgroundImageKey: backgroundReaction?.composited(over: backdrop) ?? backdrop,
             kCIInputMaskImageKey: alignMask(mask, to: bounds)
         ]).cropped(to: bounds)
     }
@@ -37,5 +39,19 @@ enum FrameComposition {
         return mask.applyingFilter("CIMaximumCompositing", parameters: [
             kCIInputBackgroundImageKey: alignMask(keepMask, to: mask.extent)
         ]).cropped(to: mask.extent)
+    }
+
+    /// Rear effects use the existing person mask; front effects are part of the exported video.
+    static func compositeReactions(over image: CIImage, foreground: CIImage?, background: CIImage?,
+                                   personMask: CIImage?) -> CIImage {
+        var result = image
+        if let background, let personMask {
+            result = image.applyingFilter("CIBlendWithMask", parameters: [
+                kCIInputBackgroundImageKey: background.composited(over: image),
+                kCIInputMaskImageKey: alignMask(personMask, to: image.extent)
+            ])
+        }
+        if let foreground { result = foreground.composited(over: result) }
+        return result.cropped(to: image.extent)
     }
 }

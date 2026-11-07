@@ -42,7 +42,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20).padding(.vertical, 16)
-                    .help("Kamera, Bilderkennung und Ausgabe konfigurieren (⌘,)")
+                    .help("Kamera, Gesten, Bilderkennung und Ausgabe konfigurieren (⌘,)")
             }
             .navigationSplitViewColumnWidth(min: 260, ideal: 290, max: 340)
         } detail: {
