@@ -100,8 +100,12 @@ final class CameraModel: ObservableObject {
             error = "Das Hintergrundbild konnte nicht geöffnet werden."
             return
         }
-        backgroundImage = cgImage
-        backgroundName = url.lastPathComponent
+        applyBackground(cgImage, name: url.lastPathComponent)
+    }
+
+    func applyBackground(_ image: CGImage, name: String) {
+        backgroundImage = image
+        backgroundName = name
         backgroundEnabled = true
         error = nil
     }
