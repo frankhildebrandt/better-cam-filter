@@ -6,11 +6,12 @@ struct BetterCamApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var camera = CameraModel()
     @StateObject private var extensionManager = ExtensionManager()
+    @StateObject private var backgrounds = BackgroundModel()
 
     var body: some Scene {
         WindowGroup {
-            ContentView(camera: camera, extensionManager: extensionManager)
-                .onAppear { delegate.onTerminate = { camera.shutdown() } }
+            ContentView(camera: camera, extensionManager: extensionManager, backgrounds: backgrounds)
+                .onAppear { delegate.onTerminate = { camera.shutdown(); backgrounds.shutdown() } }
         }
         .defaultSize(width: 1080, height: 680)
         .windowResizability(.contentMinSize)

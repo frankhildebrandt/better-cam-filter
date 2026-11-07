@@ -5,7 +5,9 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @ObservedObject var camera: CameraModel
     @ObservedObject var extensionManager: ExtensionManager
+    @ObservedObject var backgrounds: BackgroundModel
     @State private var choosingBackground = false
+    @State private var showingGenerator = false
 
     var body: some View {
         NavigationSplitView {
@@ -15,7 +17,8 @@ struct ContentView: View {
                         .font(.title2.bold())
                     cameraControls
                     Divider()
-                    BackgroundControls(camera: camera, choosingBackground: $choosingBackground)
+                    BackgroundControls(camera: camera, backgrounds: backgrounds,
+                                       choosingBackground: $choosingBackground, showingGenerator: $showingGenerator)
                     Divider()
                     extensionControls
                 }
@@ -68,6 +71,9 @@ struct ContentView: View {
             case .success(let url): camera.loadBackground(url)
             case .failure(let error): camera.reportError(error.localizedDescription)
             }
+        }
+        .sheet(isPresented: $showingGenerator) {
+            BackgroundGeneratorView(model: backgrounds, camera: camera)
         }
         .task { camera.refreshCameras() }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)) { _ in camera.refreshCameras() }

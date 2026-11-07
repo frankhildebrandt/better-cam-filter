@@ -7,6 +7,7 @@ let package = Package(
     products: [.library(name: "BetterCamCore", targets: ["BetterCamCore"])],
     targets: [
         .target(name: "BetterCamCore", path: "Shared"),
-        .testTarget(name: "BetterCamCoreTests", dependencies: ["BetterCamCore"], path: "Tests")
+        .target(name: "BackgroundKit", path: "Backgrounds"),
+        .testTarget(name: "BetterCamCoreTests", dependencies: ["BetterCamCore", "BackgroundKit"], path: "Tests")
     ]
 )

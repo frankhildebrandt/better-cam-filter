@@ -2,7 +2,9 @@ import SwiftUI
 
 struct BackgroundControls: View {
     @ObservedObject var camera: CameraModel
+    @ObservedObject var backgrounds: BackgroundModel
     @Binding var choosingBackground: Bool
+    @Binding var showingGenerator: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -10,6 +12,13 @@ struct BackgroundControls: View {
             Toggle("Durch Bild ersetzen", isOn: $camera.backgroundEnabled)
                 .disabled(camera.backgroundName == nil)
             Button("Bild auswählen …", systemImage: "photo") { choosingBackground = true }
+            Button("Hintergrund erzeugen …", systemImage: "sparkles") { showingGenerator = true }
+            if backgrounds.isGenerating {
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text(backgrounds.status).font(.caption).foregroundStyle(.secondary)
+                }
+            }
             if let name = camera.backgroundName {
                 Text(name).font(.caption).lineLimit(2).foregroundStyle(.secondary)
             }
