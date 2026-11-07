@@ -22,8 +22,13 @@ final class ForegroundSegmenter {
     }
     private var person = ForegroundSegmenter.makeRequest()
     private var custom: CustomForegroundSegmenter?
+    private let maskRefiner = CustomMaskRefiner()
+    private let maskTemporal = CustomMaskTemporalFilter()
 
-    func reset() { person = Self.makeRequest() }
+    func reset() {
+        person = Self.makeRequest()
+        maskTemporal.reset()
+    }
 
     private static func makeRequest() -> VNGeneratePersonSegmentationRequest {
         let request = VNGeneratePersonSegmentationRequest()
@@ -33,13 +38,24 @@ final class ForegroundSegmenter {
     }
 
     /// Analyze the already cropped camera image, then map the full mask back without a second crop.
-    func mask(for image: CIImage) throws -> CIImage {
+    func mask(for image: CIImage, time: Double = ProcessInfo.processInfo.systemUptime) throws -> CIImage {
         if configuration.provider == .custom {
             guard let url = configuration.customModelURL else { throw CustomSegmentationError.missingModel }
             if custom == nil { custom = try CustomForegroundSegmenter(modelURL: url) }
             guard let custom else { throw CustomSegmentationError.missingModel }
-            return try custom.mask(for: image)
+            let settings = configuration.maskSettings
+            var mask = try custom.mask(for: image)
+            guard settings.enabled else { return mask }
+            if settings.personSupport {
+                mask = FrameComposition.preserving(try personMask(for: image), in: mask)
+            }
+            mask = maskRefiner.refine(mask, settings: settings)
+            return maskTemporal.filter(mask: mask, image: image, time: time, strength: settings.temporalStrength)
         }
+        return try personMask(for: image)
+    }
+
+    private func personMask(for image: CIImage) throws -> CIImage {
         let scale = min(1, 768 / image.extent.width)
         let analysis = image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         let handler = VNImageRequestHandler(ciImage: analysis, orientation: .up)

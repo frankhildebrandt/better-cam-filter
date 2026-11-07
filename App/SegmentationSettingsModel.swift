@@ -21,6 +21,11 @@ final class SegmentationSettingsModel: ObservableObject {
             do { configuration = try store.load() }
             catch { self.error = error.localizedDescription }
             installedModels = try store.installedModels()
+            if !configuration.hasMaskSettings,
+               let model = installedModels.first(where: { $0.modelURL == configuration.customModelURL }) {
+                configuration.maskSettings = SegmentationModelCatalog.defaultMaskSettings(for: model.catalogID)
+                try store.save(configuration)
+            }
         } catch { self.error = error.localizedDescription }
     }
 
@@ -52,6 +57,17 @@ final class SegmentationSettingsModel: ObservableObject {
         guard !isBusy, let store else { return }
         do {
             configuration = try store.select(model)
+            error = nil
+        } catch { self.error = error.localizedDescription }
+    }
+
+    func updateMaskSettings(_ settings: CustomMaskSettings) {
+        guard !isBusy, let store else { return }
+        var updated = configuration
+        updated.maskSettings = settings
+        do {
+            try store.save(updated)
+            configuration = updated
             error = nil
         } catch { self.error = error.localizedDescription }
     }

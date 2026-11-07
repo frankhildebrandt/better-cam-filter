@@ -26,6 +26,17 @@ struct ConfigurationView: View {
                 Text("Die Modellauswahl wird gespeichert und gilt für Vorschau und virtuelle Kamera.")
             }
 
+            if settings.configuration.provider == .custom {
+                CustomMaskControls(settings: settings)
+            }
+
+            Section("Maskenvorschau") {
+                Toggle("Maske nur in Vorschau anzeigen", isOn: $camera.previewMask)
+                    .disabled(!camera.backgroundEnabled)
+                Text("Weiß bleibt erhalten, Schwarz wird ersetzt. Graue Bereiche sind durchsichtig. Die virtuelle Kamera erhält weiterhin das gefilterte Farbbild.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
             ModelCatalogSection(settings: settings)
 
             Section("Custom-Modell") {

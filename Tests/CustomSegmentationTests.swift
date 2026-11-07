@@ -4,6 +4,31 @@ import Testing
 @testable import BetterCamCore
 
 struct CustomSegmentationTests {
+    @Test func configuredPostprocessingChangesTheActualRouterMaskAndCanBeBypassed() throws {
+        let fixture = try CustomModelFixture.make(imageOutput: true)
+        defer { fixture.remove() }
+        let bytes = Data(repeating: 128, count: 16)
+        let image = CIImage(bitmapData: bytes, bytesPerRow: 4, size: CGSize(width: 4, height: 4),
+                            format: .L8, colorSpace: nil)
+        let segmenter = ForegroundSegmenter()
+        var configuration = SegmentationConfiguration(provider: .custom, customModelURL: fixture.compiled)
+        configuration.maskSettings = .original
+        segmenter.configuration = configuration
+        let raw = value(try segmenter.mask(for: image, time: 0), x: 2, y: 2)
+        #expect(raw > 0.15 && raw < 0.85)
+
+        configuration.maskSettings = CustomMaskSettings(threshold: Double(raw) - 0.1, transition: 0.04,
+                                                        edgeInset: 0, temporalStrength: 0)
+        segmenter.configuration = configuration
+        #expect(value(try segmenter.mask(for: image, time: 0.04), x: 2, y: 2) > 0.99)
+        configuration.maskSettings.threshold = Double(raw) + 0.1
+        segmenter.configuration = configuration
+        #expect(value(try segmenter.mask(for: image, time: 0.08), x: 2, y: 2) < 0.01)
+        configuration.maskSettings = .original
+        segmenter.configuration = configuration
+        #expect(abs(value(try segmenter.mask(for: image, time: 0.12), x: 2, y: 2) - raw) < 0.001)
+    }
+
     @Test func customModelActuallyPredictsAndPreservesWholeImageCoordinates() throws {
         let fixture = try CustomModelFixture.make()
         defer { fixture.remove() }
@@ -140,7 +165,7 @@ struct CustomModelFixture {
         }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let source = directory.appendingPathComponent("IdentityAlpha.mlmodel")
+        let source = directory.appendingPathComponent("IdentityAlpha-\(directory.lastPathComponent).mlmodel")
         try Data(base64Encoded: data)!.write(to: source)
         do { return try Self(directory: directory, source: source, compiled: MLModel.compileModel(at: source)) }
         catch { try? FileManager.default.removeItem(at: directory); throw error }

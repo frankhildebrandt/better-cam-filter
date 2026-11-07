@@ -18,12 +18,14 @@ final class FrameProcessor {
     }
     var keepMask: CIImage?
     var accessoriesEnabled = true { didSet { resetSegmentation() } }
+    private(set) var previewMask: CIImage?
 
     init() { accessoryRefiner = AccessoryMaskRefiner(context: context) }
 
     func resetSegmentation() {
         segmentation.reset()
         accessoryRefiner.reset()
+        previewMask = nil
     }
 
     func process(_ input: CVPixelBuffer, at time: CMTime) throws -> CMSampleBuffer {
@@ -39,7 +41,7 @@ final class FrameProcessor {
         if let background {
             let mask: CIImage
             do {
-                let automatic = try segmentation.mask(for: foreground)
+                let automatic = try segmentation.mask(for: foreground, time: time.seconds)
                 mask = segmentationConfiguration.provider == .apple && accessoriesEnabled && segmentationMode == .foregroundObjects
                     ? accessoryRefiner.refine(mask: automatic, image: foreground, time: time.seconds) : automatic
             } catch {
@@ -47,8 +49,10 @@ final class FrameProcessor {
                 throw error
             }
             let preserved = FrameComposition.preserving(keepMask, in: mask)
+            previewMask = preserved
             outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background, mask: preserved)
         } else {
+            previewMask = nil
             outputImage = foreground
         }
         let buffer = try VideoBuffers.makePixelBuffer(from: pool)

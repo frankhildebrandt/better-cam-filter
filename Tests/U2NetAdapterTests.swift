@@ -30,7 +30,7 @@ struct U2NetAdapterTests {
         let incomplete = "CAQSiwEKEQoFaW1hZ2UaCCIGCAQQBBgKUhIKBm91dF9wMBoIIgYIBBAEGApSEgoGb3V0X3AxGggiBggEEAQYClISCgZvdXRfcDIaCCIGCAQQBBgKUhIKBm91dF9wMxoIIgYIBBAEGApSEgoGb3V0X3A0GggiBggEEAQYClISCgZvdXRfcDUaCCIGCAQQBBgKoh/MAQogCgVoZWFkMBIFaW1hZ2UaBm91dF9wMJIIByoFDQAAgD8KIAoFaGVhZDESBWltYWdlGgZvdXRfcDGSCAcqBQ0AAAAACiAKBWhlYWQyEgVpbWFnZRoGb3V0X3AykggHKgUNAAAAAAogCgVoZWFkMxIFaW1hZ2UaBm91dF9wM5IIByoFDQAAAAAKIAoFaGVhZDQSBWltYWdlGgZvdXRfcDSSCAcqBQ0AAAAACiAKBWhlYWQ1EgVpbWFnZRoGb3V0X3A1kggHKgUNAAAAAA=="
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let source = directory.appendingPathComponent("SyntheticHeads.mlmodel")
+        let source = directory.appendingPathComponent("SyntheticHeads-\(directory.lastPathComponent).mlmodel")
         try Data(base64Encoded: heads == 7 ? complete : incomplete)!.write(to: source)
         do {
             return try CustomModelFixture(directory: directory, source: source, compiled: MLModel.compileModel(at: source))

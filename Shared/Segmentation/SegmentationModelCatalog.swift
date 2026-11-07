@@ -2,6 +2,14 @@ import Foundation
 
 /// Fixed Core ML conversions linked by U²-Net's authors; verify every asset before installation.
 enum SegmentationModelCatalog {
+    static func defaultMaskSettings(for catalogID: String?) -> CustomMaskSettings {
+        switch catalogID {
+        case "u2netp": .detailed
+        case "u2net": .balanced
+        default: .original
+        }
+    }
+
     static let recommendedID = "u2netp"
     static let models: [DownloadableSegmentationModel] = [
         DownloadableSegmentationModel(

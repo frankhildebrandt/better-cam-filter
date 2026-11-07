@@ -25,6 +25,9 @@ final class CameraModel: ObservableObject {
     @Published private(set) var framesPerSecond = 0
     @Published private(set) var keepStrokes: [KeepStroke] = []
     @Published var brushRadius = 0.025
+    @Published var previewMask = false {
+        didSet { engine.setPreviewMask(previewMask) }
+    }
     @Published var segmentationMode = SegmentationMode(
         rawValue: UserDefaults.standard.string(forKey: "segmentationMode") ?? ""
     ) ?? .foregroundObjects {

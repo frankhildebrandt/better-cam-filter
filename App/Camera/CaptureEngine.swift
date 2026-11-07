@@ -19,6 +19,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private var nextPreview: TimeInterval = 0
     private var nextFrame: TimeInterval = 0
     private var previewOriginal = false
+    private var previewMask = false
     private var statisticsStarted: TimeInterval = 0
     private var processedFrames = 0
     private var framesPerSecond = 0
@@ -76,6 +77,10 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
 
     func setPreviewOriginal(_ enabled: Bool) {
         queue.async { self.previewOriginal = enabled }
+    }
+
+    func setPreviewMask(_ enabled: Bool) {
+        queue.async { self.previewMask = enabled }
     }
 
     func shutdown() { queue.sync { stopOnQueue() } }
@@ -139,7 +144,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
             nextPreview = now + 1.0 / 15.0
             let previewImage = previewOriginal
                 ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: CameraConfiguration.bounds)
-                : CIImage(cvPixelBuffer: buffer)
+                : (previewMask ? processor.previewMask : nil) ?? CIImage(cvPixelBuffer: buffer)
             let image = processor.context.createCGImage(previewImage, from: CameraConfiguration.bounds)
             onUpdate(CaptureUpdate(preview: image, outputConnected: connected, error: nil,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",

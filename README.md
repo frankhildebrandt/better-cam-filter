@@ -66,6 +66,41 @@ Developer Account nicht verfügbar sind, in `project.yml` ändern und die IDs in
 `CMIOExtensionMachServiceName` entsprechend angleichen. Die gemeinsame App Group
 `$(TeamIdentifierPrefix)de.bettercam.camera` muss für beide Targets freigegeben sein.
 
+### Developer-ID-Build für die virtuelle Kamera notarisieren
+
+Eine gültige Developer-ID-Signatur allein reicht für die Systemerweiterung nicht.
+Apple verlangt zusätzlich eine Notarisierung. Andernfalls kann die Aktivierung mit
+**code signature invalid** scheitern, obwohl `codesign --verify` erfolgreich ist.
+Die lokale Vorschau kann dabei weiterhin funktionieren.
+
+Mit dem in Xcode angemeldeten Apple-Developer-Konto:
+
+```sh
+xcodebuild -project BetterCam.xcodeproj -scheme BetterCam -configuration Release \
+  -archivePath build/notarization/BetterCam.xcarchive archive
+xcodebuild -exportArchive -archivePath build/notarization/BetterCam.xcarchive \
+  -exportOptionsPlist Config/DeveloperID-Export.plist \
+  -exportPath build/notarization/upload -allowProvisioningUpdates
+# Nach erfolgreicher Notarisierung:
+xcodebuild -exportNotarizedApp -archivePath build/notarization/BetterCam.xcarchive \
+  -exportPath build/notarization/release
+codesign --verify --deep --strict build/notarization/release/BetterCam.app
+codesign --verify --strict build/notarization/release/BetterCam.app/Contents/Library/SystemExtensions/de.bettercam.camera.systemextension
+xcrun stapler validate build/notarization/release/BetterCam.app
+spctl --assess --type execute --verbose=4 build/notarization/release/BetterCam.app
+```
+
+`Config/DeveloperID-Export.plist` verwendet die oben beschriebenen manuellen
+Profilnamen und lädt ausschließlich zu Apples Notarisierungsdienst hoch. Es ist
+keine Veröffentlichung im App Store. Bei anderen Profilnamen die Zuordnung anpassen.
+Erst den erfolgreich notarisierten Export nach `/Applications` kopieren. Für eine
+Aktivierungsfreigabe müssen Signaturprüfung, Ticketprüfung und Gatekeeper-Prüfung
+erfolgreich sein; `spctl` sollte **Notarized Developer ID** ausgeben. Nach Änderungen
+am signierten Programm muss der neue Build erneut notarisiert werden.
+
+Grundlage: [Apple: System Extensions and DriverKit](https://developer.apple.com/videos/play/wwdc2019/702/?time=144),
+[Apple: macOS-App zur Notarisierung hochladen](https://help.apple.com/xcode/mac/current/en.lproj/dev88332a81e.html).
+
 1. Schema **BetterCam**, Ziel **My Mac**, bauen.
 2. `BetterCam.app` aus dem Build-Verzeichnis nach **/Applications** kopieren.
 3. App von dort öffnen und **Virtuelle Kamera aktivieren** klicken.
@@ -201,9 +236,45 @@ Kamerafenster; es erfolgt kein stiller Wechsel zu Apple Vision.
 
 Bei Apple Vision lassen sich auf derselben Konfigurationsseite die Erkennung und die
 Zubehör-Ergänzung einstellen. Diese Einstellungen bleiben ebenfalls gespeichert.
-Beim Custom-Modell wird dessen Maske direkt verwendet; die automatische
-Apple-Zubehör-Ergänzung ist dabei ausgeschaltet. Explizite Schutzmarkierungen gelten
-weiterhin für beide Varianten.
+Die automatische Apple-Zubehör-Heuristik ist beim Custom-Modell ausgeschaltet.
+Explizite Schutzmarkierungen gelten weiterhin für beide Varianten.
+
+### Custom-Masken einstellen
+
+Seit Version 0.7 gibt es unter **Maske optimieren** gespeicherte Einstellungen pro
+installiertem Modell. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
+nutzt **Mehr Vordergrund**, weil es auf dem lokalen Testbild andernfalls auch im
+Pullover deutlich durchsichtige Bereiche erzeugt. Neu manuell importierte Modelle
+beginnen mit **Unverändert**, damit fertige Matting-Modelle ihre eigenen weichen
+Alpha-Werte behalten. **Unverändert** schaltet Nachbearbeitung, zusätzliche
+Personenerkennung und Stabilisierung vollständig aus.
+
+- **Erkennungsschwelle:** Niedriger behält mehr schwach erkannte Arme und Zubehör,
+  kann aber auch Raumobjekte aufnehmen. Höher entfernt mehr unsichere Bereiche.
+- **Übergangsbreite:** Schmaler setzt erkannte Flächen früher auf vollständig opak;
+  breiter lässt weichere, durchsichtige Übergänge zu. Die Wahrscheinlichkeitswerte
+  werden zwischen `Schwelle − Breite/2` und `Schwelle + Breite/2` auf 0 bis 1 abgebildet.
+- **Kantenkorrektur:** Positive Werte verkleinern die Maske gegen helle Säume,
+  negative erweitern sie. Die Pixelangabe bezieht sich auf 1080 Pixel Ausgabehöhe.
+- **Flackern reduzieren:** Hält zuvor sicher erkannten Vordergrund kurz fest, wenn
+  die Bildfarbe am gleichen Ort weiterhin passt. Die Haltezeit beträgt höchstens
+  120 ms bei 100 %. Neue Vordergrundflächen erscheinen sofort; eigene gehaltene
+  Ausgaben verlängern die Historie nicht. Bei nachziehenden Konturen den Wert senken.
+- **Person zusätzlich mit Apple erkennen:** Vereinigt die aktuelle Vision-Personenmaske
+  mit der Objektmaske vor der Nachbearbeitung. Das kann fehlende Körperbereiche
+  ergänzen und benötigt zusätzliche Rechenzeit. Es ist optional und standardmäßig aus.
+
+**Maske nur in Vorschau anzeigen** zeigt Weiß für erhaltene Flächen, Schwarz für
+Hintergrund und Grau für Durchsichtigkeit. Dafür muss die Hintergrundersetzung aktiv
+sein. Die virtuelle Kamera bekommt weiterhin das gefilterte Farbbild. Der Schutzpinsel
+zeigt beim Bearbeiten weiterhin das Original und hat Vorrang vor der Maskenvorschau.
+
+Auf dem ursprünglichen, ungefilterten Testfoto reduzieren die neuen Vorgaben den
+hellen Saum und durchsichtige Kleidungsbereiche; Mikrofon-Schaumstoff bleibt erhalten,
+die geprüften Tür-/Whiteboardbereiche bleiben ausgeschlossen. Vollständig fehlende
+Stuhl-/Arm-/Metallteile lassen sich durch Schwellwerte nicht zurückholen. Die
+zusammengesetzte Bildschirmaufnahme liefert keinen Nachweis, dass schnelle Bewegungen
+nun sauber freigestellt werden; dafür ist eine neue Live-Prüfung erforderlich.
 
 ## Vordergrund und Schutzbereiche
 
@@ -302,7 +373,8 @@ Kamerahardware bestimmen die effektive Bildrate; die Extension wiederholt bei ku
 Lücken den letzten Frame. Die Vision-Analyse arbeitet auf einem verkleinerten Bild
 mit maximal 768 Pixeln Breite; die Komposition rendert in Full HD. Segmentierung kann
 an Haaren, schnellen Bewegungen oder bei schlechtem Licht sichtbare Kanten erzeugen.
-Audio, Aufnahme und Distribution/Notarisierung sind nicht Teil dieses Bootstraps.
+Audio und Aufnahme sind nicht Teil dieses Bootstraps. Für die Aktivierung eines
+Developer-ID-Builds der virtuellen Kamera ist der oben beschriebene Notarisierungsweg erforderlich.
 
 ## Prüfen
 

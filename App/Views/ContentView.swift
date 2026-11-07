@@ -42,7 +42,8 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Dein Kamera-Ausgang").font(.title2.bold())
+                        Text(camera.previewMask && camera.backgroundEnabled && !camera.isEditingKeepMask
+                             ? "Vorschau der Maske" : "Dein Kamera-Ausgang").font(.title2.bold())
                         Text("So wird dein Bild an andere Apps weitergegeben.")
                             .font(.callout).foregroundStyle(.secondary)
                     }
@@ -66,6 +67,9 @@ struct ContentView: View {
                 if camera.isEditingKeepMask {
                     Label("Original zum Markieren · der Kamera-Ausgang bleibt gefiltert", systemImage: "paintbrush.pointed")
                         .font(.caption).foregroundStyle(.cyan)
+                } else if camera.previewMask && camera.backgroundEnabled {
+                    Label("Weiß bleibt, Schwarz wird ersetzt · Kamera-Ausgang bleibt gefiltert", systemImage: "circle.lefthalf.filled")
+                        .font(.caption).foregroundStyle(.secondary)
                 } else if camera.isRunning {
                     Text("Kamera-Eingang: \(camera.inputResolution)").font(.caption).foregroundStyle(.secondary)
                 }

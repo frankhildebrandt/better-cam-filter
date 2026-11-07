@@ -71,8 +71,11 @@ struct SegmentationModelStore: Sendable {
     /// Select a validated owned model copy without downloading or recompiling it.
     func select(_ model: InstalledSegmentationModel) throws -> SegmentationConfiguration {
         try check(model)
-        let configuration = SegmentationConfiguration(provider: .custom, customModelURL: model.modelURL,
-                                                       customModelName: model.name)
+        var configuration = (try? load()) ?? SegmentationConfiguration()
+        configuration.provider = .custom
+        configuration.customModelURL = model.modelURL
+        configuration.customModelName = model.name
+        if !configuration.hasMaskSettings { configuration.maskSettings = SegmentationModelCatalog.defaultMaskSettings(for: model.catalogID) }
         try save(configuration)
         return configuration
     }
@@ -105,8 +108,11 @@ struct SegmentationModelStore: Sendable {
         let name = displayName ?? url.deletingPathExtension().lastPathComponent
         let installed = InstalledSegmentationModel(id: id, catalogID: catalogID, name: name, modelURL: destination)
         try JSONEncoder().encode(installed).write(to: sidecar, options: .atomic)
-        let configuration = SegmentationConfiguration(provider: .custom, customModelURL: destination,
-                                                       customModelName: name)
+        var configuration = (try? load()) ?? SegmentationConfiguration()
+        configuration.provider = .custom
+        configuration.customModelURL = destination
+        configuration.customModelName = name
+        configuration.maskSettings = SegmentationModelCatalog.defaultMaskSettings(for: catalogID)
         try save(configuration)
         committed = true
         return configuration
