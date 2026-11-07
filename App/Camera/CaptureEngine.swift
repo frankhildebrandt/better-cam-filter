@@ -6,6 +6,8 @@ struct CaptureUpdate: Sendable {
     let preview: CGImage?
     let outputConnected: Bool
     let error: String?
+    let inputResolution: String
+    let framesPerSecond: Int
 }
 
 /// Session configuration, processing, and CMIO transport share one serial executor.
@@ -16,6 +18,10 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private let output = VirtualCameraOutput()
     private var nextPreview: TimeInterval = 0
     private var nextFrame: TimeInterval = 0
+    private var previewOriginal = false
+    private var statisticsStarted: TimeInterval = 0
+    private var processedFrames = 0
+    private var framesPerSecond = 0
     private let onUpdate: @Sendable (CaptureUpdate) -> Void
 
     init(onUpdate: @escaping @Sendable (CaptureUpdate) -> Void) {
@@ -52,6 +58,18 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         queue.async { self.processor.background = image.map { CIImage(cgImage: $0) } }
     }
 
+    func setSegmentationMode(_ mode: SegmentationMode) {
+        queue.async { self.processor.segmentationMode = mode }
+    }
+
+    func setKeepMask(_ image: CGImage?) {
+        queue.async { self.processor.keepMask = image.map { CIImage(cgImage: $0) } }
+    }
+
+    func setPreviewOriginal(_ enabled: Bool) {
+        queue.async { self.previewOriginal = enabled }
+    }
+
     func shutdown() { queue.sync { stopOnQueue() } }
 
     private func stopOnQueue() {
@@ -59,6 +77,9 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         output.disconnect()
         nextFrame = 0
         nextPreview = 0
+        statisticsStarted = ProcessInfo.processInfo.systemUptime
+        processedFrames = 0
+        framesPerSecond = 0
     }
 
     private func configure(deviceID: String) throws {
@@ -68,10 +89,14 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         defer { session.commitConfiguration() }
         session.inputs.forEach(session.removeInput)
         session.outputs.forEach(session.removeOutput)
-        if session.canSetSessionPreset(.hd1280x720) { session.sessionPreset = .hd1280x720 }
         let input = try AVCaptureDeviceInput(device: device)
         guard session.canAddInput(input) else { throw CaptureError.missingCamera }
         session.addInput(input)
+        if session.canSetSessionPreset(.hd1920x1080) {
+            session.sessionPreset = .hd1920x1080
+        } else if session.canSetSessionPreset(.high) {
+            session.sessionPreset = .high
+        }
         let video = AVCaptureVideoDataOutput()
         video.alwaysDiscardsLateVideoFrames = true
         video.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
@@ -93,15 +118,29 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         nextFrame = now + 1.0 / 31.0
         do {
             let processed = try processor.process(input, at: CMClockGetTime(CMClockGetHostTimeClock()))
+            processedFrames += 1
+            let elapsed = ProcessInfo.processInfo.systemUptime - statisticsStarted
+            if elapsed >= 1 {
+                framesPerSecond = Int((Double(processedFrames) / elapsed).rounded())
+                statisticsStarted = ProcessInfo.processInfo.systemUptime
+                processedFrames = 0
+            }
             let connected = try self.output.send(processed)
             guard now >= nextPreview, let buffer = processed.imageBuffer else { return }
             nextPreview = now + 1.0 / 15.0
-            let image = processor.context.createCGImage(CIImage(cvPixelBuffer: buffer), from: CameraConfiguration.bounds)
-            onUpdate(CaptureUpdate(preview: image, outputConnected: connected, error: nil))
+            let previewImage = previewOriginal
+                ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: CameraConfiguration.bounds)
+                : CIImage(cvPixelBuffer: buffer)
+            let image = processor.context.createCGImage(previewImage, from: CameraConfiguration.bounds)
+            onUpdate(CaptureUpdate(preview: image, outputConnected: connected, error: nil,
+                                   inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
+                                   framesPerSecond: framesPerSecond))
         } catch {
             guard now >= nextPreview else { return }
             nextPreview = now + 1
-            onUpdate(CaptureUpdate(preview: nil, outputConnected: false, error: error.localizedDescription))
+            onUpdate(CaptureUpdate(preview: nil, outputConnected: false, error: error.localizedDescription,
+                                   inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
+                                   framesPerSecond: 0))
         }
     }
 }

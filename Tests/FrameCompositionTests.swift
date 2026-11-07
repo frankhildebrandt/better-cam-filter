@@ -3,6 +3,24 @@ import Testing
 @testable import BetterCamCore
 
 struct FrameCompositionTests {
+    @Test func squareVisionMaskKeepsNormalizedVerticalPositionInWidescreenVideo() {
+        let black = CIImage(color: .black).cropped(to: CGRect(x: 0, y: 0, width: 4, height: 4))
+        let mask = CIImage(color: .white).cropped(to: CGRect(x: 0, y: 3, width: 4, height: 1))
+            .composited(over: black)
+        let aligned = FrameComposition.alignMask(mask, to: CGRect(x: 0, y: 0, width: 8, height: 4))
+        #expect(pixel(aligned, x: 4, y: 3) == [255, 255, 255, 255])
+        #expect(pixel(aligned, x: 4, y: 1) == [0, 0, 0, 255])
+    }
+
+    @Test func maskAlignmentHandlesTranslatedOriginsAndOutputCrop() {
+        let mask = CIImage(color: .white).cropped(to: CGRect(x: 40, y: -20, width: 4, height: 4))
+        let bounds = CGRect(x: 12, y: 8, width: 16, height: 9)
+        let aligned = FrameComposition.alignMask(mask, to: bounds)
+        #expect(aligned.extent == bounds)
+        #expect(pixel(aligned, x: 12, y: 8) == [255, 255, 255, 255])
+        #expect(pixel(aligned, x: 27, y: 16) == [255, 255, 255, 255])
+    }
+
     @Test func aspectFillCropsTheCenterWithoutDistortion() {
         let red = CIImage(color: CIColor(red: 1, green: 0, blue: 0))
             .cropped(to: CGRect(x: 0, y: 0, width: 8, height: 2))

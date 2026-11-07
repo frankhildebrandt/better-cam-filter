@@ -13,9 +13,8 @@ configFiles:
 settings:
   base:
     SWIFT_VERSION: '6.0'
-    CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: '0.1.0'
-    CURRENT_PROJECT_VERSION: '1'
+    MARKETING_VERSION: '0.2.0'
+    CURRENT_PROJECT_VERSION: '2'
     ENABLE_HARDENED_RUNTIME: YES
     SWIFT_STRICT_CONCURRENCY: complete
 targets:
@@ -27,6 +26,7 @@ targets:
       path: Config/App-Info.plist
       properties:
         CFBundleDisplayName: BetterCam
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         NSCameraUsageDescription: BetterCam verwendet die ausgewählte Kamera für Vorschau und virtuelle Kamera.
         NSAppTransportSecurity:
@@ -46,6 +46,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.bettercam.app
+        PROVISIONING_PROFILE_SPECIFIER: $(BETTERCAM_APP_PROFILE)
     dependencies:
       - target: BetterCamCamera
         embed: true
@@ -55,12 +56,17 @@ targets:
           subpath: Contents/Library/SystemExtensions
   BetterCamCamera:
     type: system-extension
+    productName: de.bettercam.camera
     platform: macOS
-    sources: [CameraExtension, Shared]
+    sources:
+      - CameraExtension
+      - path: Shared
+        excludes: [ForegroundSegmenter.swift, KeepMask.swift]
     info:
       path: Config/Camera-Info.plist
       properties:
         CFBundleDisplayName: BetterCam Camera
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundlePackageType: SYSX
         CFBundleShortVersionString: $(MARKETING_VERSION)
         NSSystemExtensionUsageDescription: Stellt das verarbeitete Kamerabild als BetterCam für andere Apps bereit.
@@ -74,6 +80,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.bettercam.camera
+        PROVISIONING_PROFILE_SPECIFIER: $(BETTERCAM_CAMERA_PROFILE)
+        PRODUCT_NAME: $(PRODUCT_BUNDLE_IDENTIFIER)
+        PRODUCT_MODULE_NAME: BetterCamCamera
         REGISTER_APP_GROUPS: YES
         SKIP_INSTALL: YES
 schemes:

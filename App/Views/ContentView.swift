@@ -11,16 +11,19 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            VStack(alignment: .leading, spacing: 24) {
-                Label("BetterCam", systemImage: "camera.filters")
-                    .font(.title2.bold())
-                cameraControls
-                Divider()
-                backgroundControls
-                Spacer()
-                extensionControls
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Label("BetterCam", systemImage: "camera.filters")
+                        .font(.title2.bold())
+                    cameraControls
+                    Divider()
+                    BackgroundControls(camera: camera, backgrounds: backgrounds,
+                                       choosingBackground: $choosingBackground, showingGenerator: $showingGenerator)
+                    Divider()
+                    extensionControls
+                }
+                .padding(20)
             }
-            .padding(20)
             .navigationSplitViewColumnWidth(min: 280, ideal: 300, max: 340)
         } detail: {
             VStack(alignment: .leading, spacing: 16) {
@@ -36,12 +39,23 @@ struct ContentView: View {
                         .foregroundStyle(camera.isRunning ? .green : .secondary)
                 }
                 PreviewView(image: camera.preview, isRunning: camera.isRunning)
+                    .overlay {
+                        if camera.isEditingKeepMask {
+                            KeepMaskOverlay(camera: camera).clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                    }
                 HStack {
-                    Label("1280 × 720 · bis zu 30 FPS", systemImage: "video")
+                    Label("1920 × 1080 · \(camera.framesPerSecond) FPS", systemImage: "video")
                     Spacer()
                     Text("Ausgang: BetterCam")
                 }
                 .font(.caption).foregroundStyle(.secondary)
+                if camera.isEditingKeepMask {
+                    Label("Original zum Markieren · der Kamera-Ausgang bleibt gefiltert", systemImage: "paintbrush.pointed")
+                        .font(.caption).foregroundStyle(.cyan)
+                } else if camera.isRunning {
+                    Text("Kamera-Eingang: \(camera.inputResolution)").font(.caption).foregroundStyle(.secondary)
+                }
                 if let error = camera.error {
                     Label(error, systemImage: "exclamationmark.triangle")
                         .font(.callout).foregroundStyle(.orange).textSelection(.enabled)
@@ -88,27 +102,6 @@ struct ContentView: View {
             .buttonStyle(.borderedProminent)
             .disabled(camera.isBusy || camera.selectedCameraID.isEmpty)
             Text("Zum Wechseln der Quelle die Kamera kurz stoppen.")
-                .font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    private var backgroundControls: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("HINTERGRUND").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            Toggle("Durch Bild ersetzen", isOn: $camera.backgroundEnabled)
-                .disabled(camera.backgroundName == nil)
-            Button("Bild auswählen …", systemImage: "photo") { choosingBackground = true }
-            Button("Hintergrund erzeugen …", systemImage: "sparkles") { showingGenerator = true }
-            if backgrounds.isGenerating {
-                HStack {
-                    ProgressView().controlSize(.small)
-                    Text(backgrounds.status).font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            if let name = camera.backgroundName {
-                Text(name).font(.caption).lineLimit(2).foregroundStyle(.secondary)
-            }
-            Text("Personenerkennung läuft lokal auf deinem Mac.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }

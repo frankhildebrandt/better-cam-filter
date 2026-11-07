@@ -1,17 +1,14 @@
 import CoreImage
-import Vision
+import CoreMedia
 
 /// CaptureEngine owns this processor and calls it only on its serial frame queue.
 final class FrameProcessor {
     let context = CIContext(options: [.cacheIntermediates: false])
-    private let segmentation = VNGeneratePersonSegmentationRequest()
+    private let segmentation = ForegroundSegmenter()
     private var pool: CVPixelBufferPool?
     var background: CIImage?
-
-    init() {
-        segmentation.qualityLevel = .balanced
-        segmentation.outputPixelFormat = kCVPixelFormatType_OneComponent8
-    }
+    var segmentationMode = SegmentationMode.foregroundObjects
+    var keepMask: CIImage?
 
     func process(_ input: CVPixelBuffer, at time: CMTime) throws -> CMSampleBuffer {
         if pool == nil { pool = try VideoBuffers.makePool() }
@@ -19,11 +16,9 @@ final class FrameProcessor {
         let foreground = FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: CameraConfiguration.bounds)
         let outputImage: CIImage
         if let background {
-            try VNImageRequestHandler(cvPixelBuffer: input, orientation: .up).perform([segmentation])
-            guard let mask = segmentation.results?.first?.pixelBuffer else { throw VideoError.segmentation }
-            // Apply the same crop to the source and mask so their silhouettes stay aligned.
-            let alignedMask = FrameComposition.aspectFill(CIImage(cvPixelBuffer: mask), in: CameraConfiguration.bounds)
-            outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background, mask: alignedMask)
+            let mask = try segmentation.mask(for: foreground, mode: segmentationMode)
+            let preserved = FrameComposition.preserving(keepMask, in: mask)
+            outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background, mask: preserved)
         } else {
             outputImage = foreground
         }
