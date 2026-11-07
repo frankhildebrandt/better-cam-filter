@@ -48,12 +48,33 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: de.bettercam.app
         PROVISIONING_PROFILE_SPECIFIER: $(BETTERCAM_APP_PROFILE)
     dependencies:
+      - target: CodexServer
+        embed: true
+        codeSign: true
       - target: BetterCamCamera
         embed: true
         codeSign: true
         copy:
           destination: wrapper
           subpath: Contents/Library/SystemExtensions
+  CodexServer:
+    type: xpc-service
+    platform: macOS
+    sources:
+      - CodexServer
+      - CodexServerKit
+      - Backgrounds/CodexAppServerService.swift
+    info:
+      path: Config/CodexServer-Info.plist
+      properties:
+        CFBundleDisplayName: BetterCam Codex Server
+        XPCService:
+          ServiceType: Application
+          RunLoopType: NSRunLoop
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.bettercam.CodexServer
+        SKIP_INSTALL: YES
   BetterCamCamera:
     type: system-extension
     productName: de.bettercam.camera

@@ -41,13 +41,16 @@ private final class CodexWebSocketConnection: CodexConnection {
 @MainActor
 final class CodexBackgroundClient {
     private var connection: (any CodexConnection)?
-    private let connect: (URL) -> any CodexConnection
+    private let connect: (URL?) -> any CodexConnection
     private var nextID = 0
     private var buffered: [[String: Any]] = []
     private var threadID: String?
     private var turnID: String?
 
-    init(connect: @escaping (URL) -> any CodexConnection = { CodexWebSocketConnection(url: $0) }) {
+    init(connect: @escaping (URL?) -> any CodexConnection = { url in
+        if let url { return CodexWebSocketConnection(url: url) }
+        return CodexXPCConnection()
+    }) {
         self.connect = connect
     }
 
@@ -61,8 +64,8 @@ final class CodexBackgroundClient {
     }
 
     func generate(profile: BackgroundProfile, context: String, store: BackgroundProfileStore,
-                  address: String, status: (String) -> Void) async throws -> Data {
-        let url = try Self.endpoint(address)
+                  address: String, automaticallyStartServer: Bool = true, status: (String) -> Void) async throws -> Data {
+        let url = try automaticallyStartServer ? nil : Self.endpoint(address)
         let workspace = try store.generationDirectory()
         defer { try? FileManager.default.removeItem(at: workspace) }
         // Send all profile assets with every request; fail if one is missing instead of silently omitting it.
@@ -89,7 +92,7 @@ final class CodexBackgroundClient {
             self.connection = nil
         }
         return try await withTaskCancellationHandler {
-            status("Verbinde mit Codex …")
+            status(automaticallyStartServer ? "Starte Codex …" : "Verbinde mit Codex …")
             _ = try await request("initialize", params: [
                 "clientInfo": ["name": "bettercam", "title": "BetterCam", "version": "0.1.0"],
                 "capabilities": ["experimentalApi": true]
@@ -160,6 +163,9 @@ final class CodexBackgroundClient {
         nextID += 1
         try? await send(["id": nextID, "method": "turn/interrupt", "params": ["threadId": threadID, "turnId": turnID]])
     }
+
+    /// Synchronously invalidate XPC so the helper also stops during application termination.
+    func shutdown() { connection?.cancel() }
 
     static func imageData(_ encoded: String) -> Data? {
         let payload = encoded.hasPrefix("data:") ? encoded.components(separatedBy: ",").dropFirst().joined(separator: ",") : encoded
