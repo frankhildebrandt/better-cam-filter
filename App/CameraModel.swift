@@ -37,17 +37,21 @@ final class CameraModel: ObservableObject {
             gestureError = nil
         }
     }
-    @Published var outputConfiguration: OutputConfiguration = {
+    @Published private var storedOutputConfiguration: OutputConfiguration = {
         guard let data = UserDefaults.standard.data(forKey: "outputConfiguration"),
               let saved = try? JSONDecoder().decode(OutputConfiguration.self, from: data) else {
             return OutputConfiguration()
         }
         return saved.sanitized
-    }() {
-        didSet {
-            guard !isRunning, !isBusy else { outputConfiguration = oldValue; return }
-            outputConfiguration = outputConfiguration.sanitized
-            if let data = try? JSONEncoder().encode(outputConfiguration) {
+    }()
+    var outputConfiguration: OutputConfiguration {
+        get { storedOutputConfiguration }
+        set {
+            guard !isRunning, !isBusy else { return }
+            let configuration = newValue.sanitized
+            guard configuration != storedOutputConfiguration else { return }
+            storedOutputConfiguration = configuration
+            if let data = try? JSONEncoder().encode(configuration) {
                 UserDefaults.standard.set(data, forKey: "outputConfiguration")
             }
         }

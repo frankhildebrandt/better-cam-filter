@@ -2,6 +2,7 @@ import CoreImage
 import CoreMediaIO
 import Foundation
 import IOKit.audio
+import OSLog
 
 /// Provider callbacks and timer state are confined to `queue`.
 final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendable {
@@ -20,6 +21,8 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     private var black: CVPixelBuffer
     private var outputPool: CVPixelBufferPool
     private let context = CIContext(options: [.cacheIntermediates: false])
+    private let logger = Logger(subsystem: "de.bettercam.camera", category: "Transport")
+    private let producerAuthorization = ProducerAuthorization()
 
     init(localizedName: String) throws {
         outputPool = try VideoBuffers.makePool()
@@ -73,7 +76,12 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     }
 
     func authorizeProducer(_ client: CMIOExtensionClient) -> Bool {
-        guard client.signingID == "de.bettercam.app" else { return false }
+        logger.notice("Producer authorization: pid=\(client.pid) signingID=\(client.signingID ?? "nil", privacy: .public) ownerPID=\(self.producer?.pid ?? -1) sameClient=\(self.producer?.clientID == client.clientID)")
+        let status = producerAuthorization.validationStatus(processID: client.pid)
+        guard status == noErr else {
+            logger.error("Producer rejected: code validation status=\(status) expectedTeam=\(self.producerAuthorization.teamIdentifier ?? "nil", privacy: .public)")
+            return false
+        }
         guard producer == nil || producer?.clientID == client.clientID else { return false }
         producer = client
         return true
@@ -86,11 +94,13 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     }
 
     func start(_ direction: CMIOExtensionStream.Direction) {
+        logger.notice("Start stream direction=\(direction.rawValue)")
         if direction == .source { sourceClients += 1 } else { sinkRunning = true }
         updateTimer()
     }
 
     func stop(_ direction: CMIOExtensionStream.Direction) {
+        logger.notice("Stop stream direction=\(direction.rawValue)")
         if direction == .source { sourceClients = max(0, sourceClients - 1) } else { clearProducer() }
         updateTimer()
     }
