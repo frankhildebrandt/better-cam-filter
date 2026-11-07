@@ -14,6 +14,7 @@
 		18B469165AAA90749154BAB2 /* FrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8568133F76938204D3BD452B /* FrameProcessor.swift */; };
 		1E3B875B4A609E3731122E7F /* ModelCatalogSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124ACFFAE3571310A496DD82 /* ModelCatalogSection.swift */; };
 		1FD467C8B819F44D580A3A3B /* CustomForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5E3B8542031FEEC3B87D3EC /* CustomForegroundSegmenter.swift */; };
+		232C82B6D69CEEF57A9100B9 /* ProducerAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE6E1830E4F056F9CABE541 /* ProducerAuthorization.swift */; };
 		2515ADC2231AB4F4AF745F9D /* GestureConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8400120A4F4F62B7C02C75E6 /* GestureConfiguration.swift */; };
 		299F8E3CE0EAE3A27438B58C /* CustomMaskControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA4712B788C84CBEF265414 /* CustomMaskControls.swift */; };
 		29AA684525025A5D3389309D /* CameraStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED6BCE480775BAD10C84692 /* CameraStream.swift */; };
@@ -30,6 +31,7 @@
 		419AAFDEC15A312ACEDBCFB4 /* BetterCamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */; };
 		41F6E8EED77B9DC8C98D548F /* CameraProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */; };
 		44DA9868B27DDC1544AE386F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC24548297D6B472F820B7FE /* main.swift */; };
+		477D6481434F3C11151D1983 /* ProducerAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE6E1830E4F056F9CABE541 /* ProducerAuthorization.swift */; };
 		4E718B1D9079DD4B49EE8835 /* DownloadableSegmentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126A453F1A8E0088AE90DA78 /* DownloadableSegmentationModel.swift */; };
 		52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */; };
 		538F61977116B1EED2CA9183 /* SegmentationModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5414F1D449C9D0F50A1DCAEC /* SegmentationModelCatalog.swift */; };
@@ -184,6 +186,7 @@
 		B2DA8A951A08E49AA84F9E39 /* BackgroundLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLibraryStore.swift; sourceTree = "<group>"; };
 		BC66E128993CCB9462615491 /* PixelComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelComponents.swift; sourceTree = "<group>"; };
 		BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterCamApp.swift; sourceTree = "<group>"; };
+		BFE6E1830E4F056F9CABE541 /* ProducerAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProducerAuthorization.swift; sourceTree = "<group>"; };
 		C05F5E661B236F149157C273 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
 		CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundSegmenter.swift; sourceTree = "<group>"; };
 		D067C0D4AD0B8B4569702957 /* BetterCam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -362,6 +365,7 @@
 				5CC9AD4A67A8CEAD5ADA1D1D /* GestureSettingsStore.swift */,
 				7A71751C24D16B99F017B8FF /* KeepMask.swift */,
 				BC66E128993CCB9462615491 /* PixelComponents.swift */,
+				BFE6E1830E4F056F9CABE541 /* ProducerAuthorization.swift */,
 				6AC2F1453FF2775E12223786 /* VideoBuffers.swift */,
 				AC4582B54A6AD9DD150577DE /* Gestures */,
 				0F804A1CBADE2EA9E51A5180 /* Reactions */,
@@ -506,6 +510,7 @@
 				41F6E8EED77B9DC8C98D548F /* CameraProvider.swift in Sources */,
 				29AA684525025A5D3389309D /* CameraStream.swift in Sources */,
 				D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */,
+				477D6481434F3C11151D1983 /* ProducerAuthorization.swift in Sources */,
 				C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */,
 				343D7B5201CF9597EB984196 /* main.swift in Sources */,
 			);
@@ -575,6 +580,7 @@
 				1E3B875B4A609E3731122E7F /* ModelCatalogSection.swift in Sources */,
 				C64FA70D743DFB4D8FC104F8 /* PixelComponents.swift in Sources */,
 				8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */,
+				232C82B6D69CEEF57A9100B9 /* ProducerAuthorization.swift in Sources */,
 				BE0E952299C5E953B771754A /* ReactionCelebrations.swift in Sources */,
 				654B4863D184440D5C7EC7AC /* ReactionCharacterArt.swift in Sources */,
 				AC26E214442943187AAF4E90 /* ReactionRenderer.swift in Sources */,

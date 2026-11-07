@@ -85,7 +85,7 @@ Die Bundle IDs sind `de.bettercam.app`, `de.bettercam.camera` und
 `de.bettercam.CodexServer` (eingebetteter XPC-Dienst). Der XPC-Dienst benötigt kein
 eigenes Provisioning-Profil. Falls die App- oder Kamera-ID im
 Developer Account nicht verfügbar sind, in `project.yml` ändern und die IDs in
-`CameraConfiguration.swift`, `CameraDevice.authorizeProducer`, der App Group und
+`CameraConfiguration.swift`, `ProducerAuthorization.swift`, der App Group und
 `CMIOExtensionMachServiceName` entsprechend angleichen. Die gemeinsame App Group
 `$(TeamIdentifierPrefix)de.bettercam.camera` muss für beide Targets freigegeben sein.
 

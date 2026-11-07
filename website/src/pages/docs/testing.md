@@ -15,6 +15,13 @@ xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
 # Tests für Bildverarbeitung, Profile, Mediathek, Codex-JSON-RPC und Prozesslebenszyklus:
 swift test
 
+# Echter Kamera-Controller: SwiftUI-Ausgabewahl, 60 FPS und Speicherung ohne Kamera:
+python3 Tools/verify_camera_settings.py
+
+# Virtuellen Ausgang als separater Client prüfen (aktivierte Extension und laufende Kamera erforderlich):
+swiftc -swift-version 6 -parse-as-library Shared/CameraConfiguration.swift Shared/VideoBuffers.swift App/Camera/CMIOProperties.swift Tools/VerifyVirtualCamera.swift -o /tmp/verify-virtual-camera
+/tmp/verify-virtual-camera
+
 # Vergleich aus einem lokalen Kamerabild (optional: Screenshot-Crop in Pixeln ab links oben):
 swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Shared/Gestures/*.swift Shared/Reactions/*.swift Tools/InspectMask.swift -o /tmp/inspect-mask
 /tmp/inspect-mask /path/to/camera.png build/mask-evaluation
