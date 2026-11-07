@@ -87,8 +87,9 @@ Fehler. In Artefakten liegen nur das geprüfte App-ZIP und dessen Prüfsumme.
 Dieser Ablauf hängt Assets **nach** Veröffentlichung an: GitHubs optionale
 Release-Immutability darf dafür nicht aktiv sein. Für unveränderliche Releases
 zuerst ein Draft-Release mit Tag anlegen, den Workflow manuell für diesen Tag
-laufen lassen und erst nach den angehängten Assets veröffentlichen (den
-automatischen `published`-Trigger dann entfernen). Bestehende Assetnamen werden
+laufen lassen und erst nach den angehängten Assets veröffentlichen. Ist beim
+Veröffentlichen bereits das erwartete App-ZIP samt `SHA256SUMS.txt` angehängt, überspringt
+der automatische Workflow den erneuten Build. Ein manueller Start baut weiterhin erneut. Bestehende Assetnamen werden
 bei einem manuellen Wiederholungslauf ersetzt (`--clobber`).
 
 Notarisierung kann bei Apple länger dauern. Ein Timeout ist keine Freigabe; die
@@ -99,3 +100,16 @@ manuell zu veröffentlichen.
 
 Grundlagen: [GitHub Release-Events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#release),
 [Apple Notary-Workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
+
+## Lokal vorbereitetes erstes Release (0.1.0)
+
+0.1.0 wurde lokal mit den vorhandenen Developer-ID-Profilen archiviert und über
+Xcodes angemeldetes Developer-Konto notarisiert. Der Export wurde einschließlich
+Kameraerweiterung mit `codesign`, `stapler` und Gatekeeper geprüft und als Universal-ZIP
+zusammen mit `SHA256SUMS.txt` an ein Draft-Release angehängt. Erst anschließend wurde
+das Release veröffentlicht. Persönliche Hintergründe und Modelldownloads gehören
+nicht ins Release-Paket.
+
+Dieser Weg ersetzt nicht die noch nötigen CI-Zugangsdaten: Für künftige automatische
+Builds müssen P12-Identität samt Passwort und Notary-Team-API-Key in GitHub hinterlegt
+sein. Die beiden Provisioning-Profile und die Team-ID allein reichen nicht.

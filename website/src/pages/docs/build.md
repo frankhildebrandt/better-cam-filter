@@ -1,11 +1,43 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: "Build & Installation"
-description: "Vom Quellcode zur signierten und notarisierten macOS-App."
+title: "Download & Installation"
+description: "BetterCam herunterladen, die virtuelle Kamera aktivieren oder die App selbst bauen."
 generated: true
 ---
 
+## Download und Installation
+
+**[BetterCam 0.1.0 für macOS herunterladen](https://github.com/frankhildebrandt/better-cam-filter/releases/download/v0.1.0/BetterCam-v0.1.0-macos-universal.zip)** ·
+[Release-Notizen](https://github.com/frankhildebrandt/better-cam-filter/releases/tag/v0.1.0) ·
+[SHA-256-Prüfsumme](https://github.com/frankhildebrandt/better-cam-filter/releases/download/v0.1.0/SHA256SUMS.txt)
+
+Für **macOS 14 oder neuer**, als Universal-App für Apple Silicon und Intel.
+App, Kameraerweiterung und Hilfsdienst sind mit Developer ID signiert und von Apple
+notarisiert. Für die Nutzung des fertigen Pakets sind kein Xcode und kein eigenes
+Apple-Developer-Konto erforderlich. Der Download ist über das öffentliche GitHub-Release verfügbar.
+
+1. ZIP entpacken und **BetterCam.app nach /Applications (Programme)** kopieren.
+2. App dort öffnen. Unter **Einstellungen → Ausgabe → Virtuelle Kamera aktivieren**
+   die Erweiterung installieren und in den macOS-Systemeinstellungen erlauben.
+   Je nach macOS-Version unter **Allgemein → Anmeldeobjekte & Erweiterungen →
+   Kameraerweiterungen** oder **Datenschutz & Sicherheit**. macOS kann einen Neustart verlangen.
+3. Unter **Einstellungen → Kamera** deine Quelle wählen, im Hauptfenster **Kamera starten**
+   und den Kamerazugriff erlauben. In deiner Video-App **BetterCam** auswählen;
+   bereits geöffnete Video-Apps gegebenenfalls neu starten.
+
+Optional ZIP und `SHA256SUMS.txt` in denselben Ordner laden und dort prüfen:
+
+```sh
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+Persönliche Hintergrundbilder und Modellgewichte sind nicht im App-Paket enthalten.
+Eigene Bilder lassen sich importieren, optionale Modelle direkt in den Einstellungen laden.
+Die Vorschau funktioniert auch ohne aktivierte virtuelle Kamera.
+
 ## Voraussetzungen
+
+Die folgenden Voraussetzungen gelten nur für den Selbstbau.
 
 - macOS 14+, Xcode mit Swift 6 und Command Line Tools.
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) zum Neuerzeugen des mitgelieferten Xcode-Projekts (`brew install xcodegen`).

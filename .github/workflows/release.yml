@@ -19,6 +19,8 @@ concurrency:
 
 jobs:
   build:
+    # A manually prepared release may already contain the signed/notarized app.
+    if: github.event_name == 'workflow_dispatch' || !(contains(github.event.release.assets.*.name, format('BetterCam-{0}-macos-universal.zip', github.event.release.tag_name)) && contains(github.event.release.assets.*.name, 'SHA256SUMS.txt'))
     runs-on: macos-15
     timeout-minutes: 90
     env:

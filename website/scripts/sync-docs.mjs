@@ -12,9 +12,9 @@ const sections = new Map(parts.map(([, title, body]) => [title, body.trim()]));
 const pages = [
   [
     "build",
-    "Build & Installation",
-    "Vom Quellcode zur signierten und notarisierten macOS-App.",
-    ["Voraussetzungen", "Bauen und starten"],
+    "Download & Installation",
+    "BetterCam herunterladen, die virtuelle Kamera aktivieren oder die App selbst bauen.",
+    ["Download und Installation", "Voraussetzungen", "Bauen und starten"],
   ],
   [
     "backgrounds",

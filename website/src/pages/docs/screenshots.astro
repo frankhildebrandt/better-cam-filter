@@ -1,0 +1,11 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import ScreenshotGallery from '../../components/ScreenshotGallery.astro';
+import { releaseURL, url } from '../../lib/site';
+---
+<DocsLayout frontmatter={{ title: 'Screenshots', description: 'BetterCam 0.1.0: Hauptfenster, Kameraauswahl, Ausgabe, Gesten, Bilderkennung und Modellkatalog.' }}>
+  <p>Diese Aufnahmen stammen aus der aktuellen App bei gestoppter Kamera. Im Hauptfenster ist die Seitenleiste ausgeblendet. Persönliche Hintergründe, Mediathek-Miniaturen und Live-Kamerabilder sind nicht enthalten.</p>
+  <p>Ein Klick öffnet das jeweilige PNG in voller Größe. Die Bilder dokumentieren die Bedienoberfläche; sie zeigen keine Freistellungsqualität oder gemessene Bildrate.</p>
+  <ScreenshotGallery />
+  <p><a href={url('docs/build/')}>Download und Installation</a> · <a href={releaseURL}>Release 0.1.0 auf GitHub</a></p>
+</DocsLayout>

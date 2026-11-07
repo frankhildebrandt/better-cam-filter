@@ -25,14 +25,14 @@ reichen zwei negative Beobachtungen über mindestens 60 ms. Eine Wiedererkennung
 der Freigabe gilt sofort. Die Personenmaske selbst wird weder verzögert noch mit alten
 Kopfkonturen überblendet.
 
-Seit Version 0.4.2 übernehmen bewegte Komponenten die bestehende Bestätigung in einem
+Bewegte Komponenten übernehmen die bestehende Bestätigung in einem
 begrenzten Randbereich (2 % der Analysebreite), wenn mindestens 40 % der aktuellen
 Komponente mit farblich passenden bestätigten Pixeln überlappen. Unabhängige neue
 Bereiche durchlaufen weiterhin die anfängliche Mehrbildprüfung. Szenenwechsel werden
 an Hintergrundpixeln außerhalb der aktuellen und vorherigen Personenmaske sowie des
 Zubehörs gemessen, damit Personenbewegungen nicht die gesamte Zubehörhistorie löschen.
 
-Seit Version 0.4.1 bleibt die Zubehör-Bestätigung auch dann bestehen, wenn Vision
+Die Zubehör-Bestätigung bleibt auch dann bestehen, wenn Vision
 dasselbe Objekt zwischenzeitlich zur vollständig opaken Personenmaske zählt.
 Die akzeptierten Objektkomponenten liefern dafür eigene Evidenz unabhängig vom
 Personenalpha. Fällt etwa das Mikrofon später wieder aus der Personenmaske heraus,

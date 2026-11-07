@@ -377,6 +377,38 @@ figcaption {
 .story-section {
   padding-block: 100px;
 }
+.screenshots-section {
+  padding-bottom: 80px;
+}
+.screenshots-section > .inline-link {
+  margin-top: 28px;
+}
+.screenshot-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 32px;
+  margin-block: 36px;
+  align-items: start;
+}
+.screenshot-gallery img {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.screenshot-gallery figcaption {
+  text-align: left;
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.screenshot-gallery figcaption strong,
+.screenshot-gallery figcaption span {
+  display: block;
+}
+.screenshot-gallery figcaption strong {
+  color: var(--ink);
+  margin-bottom: 4px;
+}
 .section-heading {
   max-width: 680px;
 }

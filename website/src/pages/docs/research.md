@@ -9,7 +9,7 @@ generated: true
 
 - [Apples Foreground Instance Masks](https://developer.apple.com/videos/play/wwdc2023/10176/):
   native Segmentierung allgemeiner Vordergrundobjekte ab macOS 14. Diese Version
-  wurde zunächst als Basis verwendet. Seit Version 0.4 verwendet die App stattdessen
+  wurde zunächst als Basis verwendet. Inzwischen verwendet die App stattdessen
   die Personenmaske als festen semantischen Anker, weil wechselnde allgemeine Instanzen
   Raumobjekte freigeben konnten. Keine zusätzlichen Gewichte und keine Server erforderlich.
 - [Robust Video Matting (RVM)](https://github.com/PeterL1n/RobustVideoMatting):

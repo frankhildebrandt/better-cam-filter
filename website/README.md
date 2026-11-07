@@ -26,7 +26,7 @@ Sprungmarken und Assets im statischen Ergebnis unter `dist/`.
 
 Technische Inhalte in der **Projekt-README** bearbeiten; `npm run docs:sync`
 überschreibt die mit `generated: true` markierten Seiten. Überblick, Pages-Anleitung,
-Landingpage und Marketingseite werden direkt in `src/pages/` gepflegt.
+Screenshot-Galerie, Landingpage und Marketingseite werden direkt in `src/pages/` gepflegt.
 
 Der Workflow `.github/workflows/pages.yml` prüft Pull Requests und veröffentlicht
 Änderungen auf `main` über GitHub Actions. Im Repository muss **Settings → Pages →
@@ -42,3 +42,15 @@ Studiografik ist eine Illustration und wird auf der Seite entsprechend bezeichne
 `astro.config.mjs`, `scripts/check-links.mjs` und `scripts/build-assets.mjs` enthalten
 die GitHub-Pages-Domain und den Projektpfad. Bei einem Domain-/Repositorywechsel
 gemeinsam anpassen. Interne Links verwenden den zentralen `url()`-Helper.
+
+## App-Download und Screenshots
+
+Version und Release-/Download-URLs liegen zentral in `src/lib/site.ts`. Der Download
+führt zum öffentlichen GitHub-Release. Die Website verteilt selbst kein App-Paket.
+
+`public/media/screenshots/bettercam-0.1.0-*.png` enthält sechs echte Aufnahmen des
+0.1.0-Release-Builds. Kamera gestoppt, Hauptfenster-Seitenleiste ausgeblendet:
+Es sind keine persönlichen Hintergründe, Mediathek-Miniaturen oder Kamerabilder
+enthalten. Die Einstellungen zeigen Kamera, Ausgabe, Gesten, Bilderkennung und Modelle.
+Die Galerie dient der UI-Dokumentation, nicht als Leistungs- oder Qualitätsnachweis.
+Neue Screenshots vor dem Einchecken vollständig auf persönliche Bildinhalte prüfen.

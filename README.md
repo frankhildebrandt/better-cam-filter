@@ -3,7 +3,7 @@
 # BetterCam
 
 [Website & Dokumentation](https://frankhildebrandt.github.io/better-cam-filter/) ·
-[Build-Anleitung](https://frankhildebrandt.github.io/better-cam-filter/docs/build/) ·
+[Download & Installation](https://frankhildebrandt.github.io/better-cam-filter/docs/build/) ·
 [Media Kit](https://frankhildebrandt.github.io/better-cam-filter/marketing/)
 
 Die Astro-Website liegt unter [`website/`](website/README.md). Der
@@ -43,7 +43,54 @@ eingehalten werden, insbesondere die Beigabe des Lizenztexts und die Beibehaltun
 der einschlägigen Urheberrechts- und gegebenenfalls NOTICE-Hinweise. Für selbst
 importierte Modelle gelten die jeweiligen Lizenzen ihrer Anbieter.
 
+## Download und Installation
+
+**[BetterCam 0.1.0 für macOS herunterladen](https://github.com/frankhildebrandt/better-cam-filter/releases/download/v0.1.0/BetterCam-v0.1.0-macos-universal.zip)** ·
+[Release-Notizen](https://github.com/frankhildebrandt/better-cam-filter/releases/tag/v0.1.0) ·
+[SHA-256-Prüfsumme](https://github.com/frankhildebrandt/better-cam-filter/releases/download/v0.1.0/SHA256SUMS.txt)
+
+Für **macOS 14 oder neuer**, als Universal-App für Apple Silicon und Intel.
+App, Kameraerweiterung und Hilfsdienst sind mit Developer ID signiert und von Apple
+notarisiert. Für die Nutzung des fertigen Pakets sind kein Xcode und kein eigenes
+Apple-Developer-Konto erforderlich. Der Download ist über das öffentliche GitHub-Release verfügbar.
+
+1. ZIP entpacken und **BetterCam.app nach /Applications (Programme)** kopieren.
+2. App dort öffnen. Unter **Einstellungen → Ausgabe → Virtuelle Kamera aktivieren**
+   die Erweiterung installieren und in den macOS-Systemeinstellungen erlauben.
+   Je nach macOS-Version unter **Allgemein → Anmeldeobjekte & Erweiterungen →
+   Kameraerweiterungen** oder **Datenschutz & Sicherheit**. macOS kann einen Neustart verlangen.
+3. Unter **Einstellungen → Kamera** deine Quelle wählen, im Hauptfenster **Kamera starten**
+   und den Kamerazugriff erlauben. In deiner Video-App **BetterCam** auswählen;
+   bereits geöffnete Video-Apps gegebenenfalls neu starten.
+
+Optional ZIP und `SHA256SUMS.txt` in denselben Ordner laden und dort prüfen:
+
+```sh
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+Persönliche Hintergrundbilder und Modellgewichte sind nicht im App-Paket enthalten.
+Eigene Bilder lassen sich importieren, optionale Modelle direkt in den Einstellungen laden.
+Die Vorschau funktioniert auch ohne aktivierte virtuelle Kamera.
+
+## Screenshots
+
+Echte Aufnahmen aus **BetterCam 0.1.0** mit gestoppter Kamera. Die Seitenleiste im
+Hauptfenster ist ausgeblendet; persönliche Hintergründe und Mediathek-Miniaturen
+werden nicht gezeigt. Die Bilder zeigen die Bedienoberfläche, keine Freistellungs- oder Leistungsmessung.
+
+![Hauptfenster mit gestoppter Kamera und ausgeblendeter Seitenleiste](website/public/media/screenshots/bettercam-0.1.0-preview.png)
+
+![Einstellungen für Ausgabeformat und virtuelle Kamera](website/public/media/screenshots/bettercam-0.1.0-output.png)
+
+![Bilderkennung mit U²-Net und Maskeneinstellungen](website/public/media/screenshots/bettercam-0.1.0-recognition.png)
+
+Alle sechs Aufnahmen mit Kameraauswahl, Gesten und Modellkatalog findest du in der
+[kompletten Screenshot-Galerie](https://frankhildebrandt.github.io/better-cam-filter/docs/screenshots/).
+
 ## Voraussetzungen
+
+Die folgenden Voraussetzungen gelten nur für den Selbstbau.
 
 - macOS 14+, Xcode mit Swift 6 und Command Line Tools.
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) zum Neuerzeugen des mitgelieferten Xcode-Projekts (`brew install xcodegen`).
@@ -389,14 +436,14 @@ reichen zwei negative Beobachtungen über mindestens 60 ms. Eine Wiedererkennung
 der Freigabe gilt sofort. Die Personenmaske selbst wird weder verzögert noch mit alten
 Kopfkonturen überblendet.
 
-Seit Version 0.4.2 übernehmen bewegte Komponenten die bestehende Bestätigung in einem
+Bewegte Komponenten übernehmen die bestehende Bestätigung in einem
 begrenzten Randbereich (2 % der Analysebreite), wenn mindestens 40 % der aktuellen
 Komponente mit farblich passenden bestätigten Pixeln überlappen. Unabhängige neue
 Bereiche durchlaufen weiterhin die anfängliche Mehrbildprüfung. Szenenwechsel werden
 an Hintergrundpixeln außerhalb der aktuellen und vorherigen Personenmaske sowie des
 Zubehörs gemessen, damit Personenbewegungen nicht die gesamte Zubehörhistorie löschen.
 
-Seit Version 0.4.1 bleibt die Zubehör-Bestätigung auch dann bestehen, wenn Vision
+Die Zubehör-Bestätigung bleibt auch dann bestehen, wenn Vision
 dasselbe Objekt zwischenzeitlich zur vollständig opaken Personenmaske zählt.
 Die akzeptierten Objektkomponenten liefern dafür eigene Evidenz unabhängig vom
 Personenalpha. Fällt etwa das Mikrofon später wieder aus der Personenmaske heraus,
@@ -523,7 +570,7 @@ ist die Quelle für Änderungen an Targets, Build-Einstellungen und Capabilities
 
 - [Apples Foreground Instance Masks](https://developer.apple.com/videos/play/wwdc2023/10176/):
   native Segmentierung allgemeiner Vordergrundobjekte ab macOS 14. Diese Version
-  wurde zunächst als Basis verwendet. Seit Version 0.4 verwendet die App stattdessen
+  wurde zunächst als Basis verwendet. Inzwischen verwendet die App stattdessen
   die Personenmaske als festen semantischen Anker, weil wechselnde allgemeine Instanzen
   Raumobjekte freigeben konnten. Keine zusätzlichen Gewichte und keine Server erforderlich.
 - [Robust Video Matting (RVM)](https://github.com/PeterL1n/RobustVideoMatting):

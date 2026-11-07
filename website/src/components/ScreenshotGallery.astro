@@ -1,0 +1,16 @@
+---
+import { releaseVersion, screenshots, url } from '../lib/site';
+interface Props { selection?: string[] }
+const { selection } = Astro.props;
+const images = screenshots.filter(image => !selection || selection.includes(image.slug));
+---
+<div class="screenshot-gallery">
+  {images.map(image => (
+    <figure>
+      <a href={url(`media/screenshots/bettercam-${releaseVersion}-${image.slug}.png`)} aria-label={`${image.title}: Screenshot in voller Größe öffnen`}>
+        <img src={url(`media/screenshots/bettercam-${releaseVersion}-${image.slug}.png`)} width={image.width} height={image.height} alt={image.caption} loading="lazy" />
+      </a>
+      <figcaption><strong>{image.title}</strong><span>{image.caption}</span></figcaption>
+    </figure>
+  ))}
+</div>

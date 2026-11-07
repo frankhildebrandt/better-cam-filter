@@ -1,5 +1,5 @@
 BETTERCAM — PRODUKT- UND MARKETINGTEXTE
-Stand: November 2026 · Quellcode: https://github.com/frankhildebrandt/better-cam-filter
+Stand: Version 0.1.0 · November 2026 · Quellcode: https://github.com/frankhildebrandt/better-cam-filter
 Website: https://frankhildebrandt.github.io/better-cam-filter/
 Lizenz: MIT · Copyright (c) 2026 Frank Hildebrandt
 
@@ -10,7 +10,7 @@ KURZBESCHREIBUNG (DE)
 BetterCam ist deine native macOS-Kamera mit lokaler Hintergrundersetzung und offenem Swift-Quellcode.
 
 PRODUKTBESCHREIBUNG (DE)
-BetterCam ist eine native macOS-Webcam-App mit lokaler Hintergrundersetzung. Wähle deine Kamera, importiere einen Hintergrund und nutze das verarbeitete Bild über die virtuelle Kamera BetterCam in deinen Video-Apps. Mit Apple Vision, optionalen Core-ML-Modellen und Schutzbereichen gestaltest du dein Bild selbst. Die Ausgabe ist von HD bis 4K mit 15 bis 60 FPS konfigurierbar. Standard ist Full HD bei 30 FPS; die tatsächlich erreichbare Leistung hängt von Mac, Kamera und Modell ab. BetterCam steht als Quellcode zum Selbstbau unter der MIT-Lizenz bereit.
+BetterCam ist eine native macOS-Webcam-App mit lokaler Hintergrundersetzung. Wähle deine Kamera, importiere einen Hintergrund und nutze das verarbeitete Bild über die virtuelle Kamera BetterCam in deinen Video-Apps. Mit Apple Vision, optionalen Core-ML-Modellen und Schutzbereichen gestaltest du dein Bild selbst. Die Ausgabe ist von HD bis 4K mit 15 bis 60 FPS konfigurierbar. Standard ist Full HD bei 30 FPS; die tatsächlich erreichbare Leistung hängt von Mac, Kamera und Modell ab. BetterCam 0.1.0 ist als signierte und notarisierte Universal-App für macOS verfügbar. Der Quellcode steht unter MIT.
 
 SOCIAL-POST (DE)
 Dein Bild. Dein Hintergrund. Dein Mac. BetterCam verarbeitet dein Kamerabild lokal und bringt deinen eigenen Hintergrund in deine Video-Apps. Native SwiftUI-App, offene MIT-Lizenz und Modelle nach Wahl. Quellcode und Build-Anleitung: https://frankhildebrandt.github.io/better-cam-filter/
@@ -25,7 +25,7 @@ SHORT DESCRIPTION (EN)
 BetterCam is a native macOS webcam app with local background replacement and open Swift source code.
 
 PRODUCT DESCRIPTION (EN)
-Choose a camera, import a background, and send your processed picture to video apps through the BetterCam virtual camera. Start with Apple Vision, download optional U²-Net models, or import your own Core ML model. Fixed keep regions let you preserve parts of the original picture. Output is configurable from HD to 4K at target frame rates between 15 and 60 FPS, with Full HD at 30 FPS as the default. Actual processing performance depends on your camera, Mac, and model. BetterCam is available as source code under the MIT license.
+Choose a camera, import a background, and send your processed picture to video apps through the BetterCam virtual camera. Start with Apple Vision, download optional U²-Net models, or import your own Core ML model. Fixed keep regions let you preserve parts of the original picture. Output is configurable from HD to 4K at target frame rates between 15 and 60 FPS, with Full HD at 30 FPS as the default. Actual processing performance depends on your camera, Mac, and model. BetterCam 0.1.0 is available as a signed and notarized universal macOS app. Source code is MIT-licensed.
 
 SOCIAL POST (EN)
 Your camera. Your background. Your Mac. BetterCam brings local background replacement to a native macOS virtual camera. Built with SwiftUI, open under MIT, and ready for your own Core ML models. Source and build guide: https://frankhildebrandt.github.io/better-cam-filter/
@@ -33,7 +33,8 @@ Your camera. Your background. Your Mac. BetterCam brings local background replac
 FACTS AND EDITORIAL NOTES
 - macOS 14+, Xcode with Swift 6, and XcodeGen for building.
 - The virtual camera requires Apple signing and appropriate provisioning profiles. Developer ID distribution additionally requires notarization.
-- No signed app download is offered on the website.
+- Signed/notarized v0.1.0: https://github.com/frankhildebrandt/better-cam-filter/releases/tag/v0.1.0.
+- Real v0.1.0 UI screenshots: https://frankhildebrandt.github.io/better-cam-filter/docs/screenshots/ (camera stopped, no personal backgrounds).
 - Camera processing runs locally. Optional Codex background generation sends prompts, context, and reference images through Codex to OpenAI; live camera frames are not used for generation.
 - Optional models have their own licenses. U²-Net/U²-NetP models are not bundled with the app.
 - Target output formats are not performance guarantees.
