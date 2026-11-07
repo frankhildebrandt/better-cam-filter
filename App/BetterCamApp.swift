@@ -19,7 +19,8 @@ struct BetterCamApp: App {
         .windowResizability(.contentMinSize)
         .commands { CommandGroup(replacing: .newItem) {} }
         Settings {
-            ConfigurationView(settings: segmentationSettings, camera: camera)
+            ConfigurationView(settings: segmentationSettings, camera: camera,
+                              extensionManager: extensionManager, backgrounds: backgrounds)
         }
     }
 }

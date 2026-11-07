@@ -21,7 +21,7 @@ final class SegmentationSettingsModel: ObservableObject {
             do { configuration = try store.load() }
             catch { self.error = error.localizedDescription }
             installedModels = try store.installedModels()
-            if !configuration.hasMaskSettings,
+            if configuration.provider == .custom, !configuration.hasMaskSettings,
                let model = installedModels.first(where: { $0.modelURL == configuration.customModelURL }) {
                 configuration.maskSettings = SegmentationModelCatalog.defaultMaskSettings(for: model.catalogID)
                 try store.save(configuration)
@@ -65,6 +65,27 @@ final class SegmentationSettingsModel: ObservableObject {
         guard !isBusy, let store else { return }
         var updated = configuration
         updated.maskSettings = settings
+        do {
+            try store.save(updated)
+            configuration = updated
+            error = nil
+        } catch { self.error = error.localizedDescription }
+    }
+
+    func updateAppleSettings(_ settings: AppleRecognitionSettings) {
+        var updated = configuration
+        updated.appleSettings = settings.sanitized
+        save(updated)
+    }
+
+    func updateInferenceSettings(_ settings: ModelInferenceSettings) {
+        var updated = configuration
+        updated.inferenceSettings = settings
+        save(updated)
+    }
+
+    private func save(_ updated: SegmentationConfiguration) {
+        guard !isBusy, let store else { return }
         do {
             try store.save(updated)
             configuration = updated

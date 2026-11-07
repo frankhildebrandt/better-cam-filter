@@ -3,6 +3,7 @@ import Foundation
 
 /// All access is confined to the capture engine's serial frame queue.
 final class VirtualCameraOutput {
+    var configuration = OutputConfiguration()
     private var device: CMIODeviceID?
     private var stream: CMIOStreamID?
     private var bufferQueue: CMSimpleQueue?
@@ -45,6 +46,7 @@ final class VirtualCameraOutput {
             for candidateStream in streams {
                 let direction = try CMIOProperties.uint32(candidateStream, selector: CMIOObjectPropertySelector(kCMIOStreamPropertyDirection))
                 guard direction == 0 else { continue }
+                try CMIOProperties.configure(candidateStream, for: configuration)
                 var queue: Unmanaged<CMSimpleQueue>?
                 try VideoBuffers.check(CMIOStreamCopyBufferQueue(candidateStream, { _, _, _ in }, nil, &queue))
                 let ownedQueue = queue?.takeRetainedValue()

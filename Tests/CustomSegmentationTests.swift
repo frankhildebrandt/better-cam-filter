@@ -4,6 +4,33 @@ import Testing
 @testable import BetterCamCore
 
 struct CustomSegmentationTests {
+    @Test func aspectFillRestoresTheCentralModelCropAndDoesNotInventMasksOutsideIt() throws {
+        let fixture = try CustomModelFixture.make(imageOutput: true)
+        defer { fixture.remove() }
+        let segmenter = try CustomForegroundSegmenter(modelURL: fixture.compiled,
+            settings: ModelInferenceSettings(computeUnits: .cpuOnly, inputScaling: .aspectFill))
+        let bounds = CGRect(x: 13, y: 17, width: 40, height: 20)
+        let image = CIImage(color: .white).cropped(to: bounds)
+        let mask = try segmenter.mask(for: image)
+        #expect(mask.extent == bounds)
+        #expect(value(mask, x: 33, y: 27) > 0.99)
+        #expect(value(mask, x: 15, y: 27) < 0.01)
+        #expect(value(mask, x: 50, y: 27) < 0.01)
+    }
+
+    @Test func fittingWideImagesPreservesTheirFullCoordinateRange() throws {
+        let fixture = try CustomModelFixture.make(imageOutput: true)
+        defer { fixture.remove() }
+        let segmenter = try CustomForegroundSegmenter(modelURL: fixture.compiled,
+            settings: ModelInferenceSettings(computeUnits: .cpuOnly, inputScaling: .aspectFit))
+        let bounds = CGRect(x: 13, y: 17, width: 40, height: 20)
+        let image = CIImage(color: .white).cropped(to: bounds)
+        let mask = try segmenter.mask(for: image)
+        #expect(mask.extent == bounds)
+        #expect(value(mask, x: 15, y: 27) > 0.9)
+        #expect(value(mask, x: 50, y: 27) > 0.9)
+    }
+
     @Test func configuredPostprocessingChangesTheActualRouterMaskAndCanBeBypassed() throws {
         let fixture = try CustomModelFixture.make(imageOutput: true)
         defer { fixture.remove() }

@@ -11,8 +11,11 @@ struct CameraChoice: Identifiable {
 @MainActor
 final class CameraModel: ObservableObject {
     @Published private(set) var cameras: [CameraChoice] = []
-    @Published var selectedCameraID = "" {
-        didSet { if oldValue != selectedCameraID { clearKeepStrokes() } }
+    @Published var selectedCameraID = UserDefaults.standard.string(forKey: "selectedCameraID") ?? "" {
+        didSet {
+            UserDefaults.standard.set(selectedCameraID, forKey: "selectedCameraID")
+            if oldValue != selectedCameraID { clearKeepStrokes() }
+        }
     }
     @Published private(set) var preview: CGImage?
     @Published private(set) var isRunning = false
@@ -23,10 +26,28 @@ final class CameraModel: ObservableObject {
     @Published private(set) var backgroundLibraryID: UUID?
     @Published private(set) var inputResolution = "–"
     @Published private(set) var framesPerSecond = 0
+    @Published var outputConfiguration: OutputConfiguration = {
+        guard let data = UserDefaults.standard.data(forKey: "outputConfiguration"),
+              let saved = try? JSONDecoder().decode(OutputConfiguration.self, from: data) else {
+            return OutputConfiguration()
+        }
+        return saved.sanitized
+    }() {
+        didSet {
+            guard !isRunning, !isBusy else { outputConfiguration = oldValue; return }
+            outputConfiguration = outputConfiguration.sanitized
+            if let data = try? JSONEncoder().encode(outputConfiguration) {
+                UserDefaults.standard.set(data, forKey: "outputConfiguration")
+            }
+        }
+    }
     @Published private(set) var keepStrokes: [KeepStroke] = []
     @Published var brushRadius = 0.025
-    @Published var previewMask = false {
-        didSet { engine.setPreviewMask(previewMask) }
+    @Published var previewMask = UserDefaults.standard.bool(forKey: "previewMask") {
+        didSet {
+            UserDefaults.standard.set(previewMask, forKey: "previewMask")
+            engine.setPreviewMask(previewMask)
+        }
     }
     @Published var segmentationMode = SegmentationMode(
         rawValue: UserDefaults.standard.string(forKey: "segmentationMode") ?? ""
@@ -90,7 +111,8 @@ final class CameraModel: ObservableObject {
             return
         }
         do {
-            try await engine.start(deviceID: selectedCameraID)
+            engine.setPreviewMask(previewMask)
+            try await engine.start(deviceID: selectedCameraID, configuration: outputConfiguration)
             isRunning = true
         } catch { self.error = error.localizedDescription }
     }

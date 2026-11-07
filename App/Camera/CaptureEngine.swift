@@ -23,17 +23,22 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private var statisticsStarted: TimeInterval = 0
     private var processedFrames = 0
     private var framesPerSecond = 0
+    private var outputError: String?
+    private var outputConfiguration = OutputConfiguration()
     private let onUpdate: @Sendable (CaptureUpdate) -> Void
 
     init(onUpdate: @escaping @Sendable (CaptureUpdate) -> Void) {
         self.onUpdate = onUpdate
     }
 
-    func start(deviceID: String) async throws {
+    func start(deviceID: String, configuration: OutputConfiguration) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             queue.async {
                 do {
                     self.stopOnQueue()
+                    self.outputConfiguration = configuration.sanitized
+                    self.processor.outputConfiguration = self.outputConfiguration
+                    self.output.configuration = self.outputConfiguration
                     try self.configure(deviceID: deviceID)
                     self.session.startRunning()
                     guard self.session.isRunning else { throw CaptureError.startFailed }
@@ -94,6 +99,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         statisticsStarted = ProcessInfo.processInfo.systemUptime
         processedFrames = 0
         framesPerSecond = 0
+        outputError = nil
     }
 
     private func configure(deviceID: String) throws {
@@ -106,11 +112,6 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         let input = try AVCaptureDeviceInput(device: device)
         guard session.canAddInput(input) else { throw CaptureError.missingCamera }
         session.addInput(input)
-        if session.canSetSessionPreset(.hd1920x1080) {
-            session.sessionPreset = .hd1920x1080
-        } else if session.canSetSessionPreset(.high) {
-            session.sessionPreset = .high
-        }
         let video = AVCaptureVideoDataOutput()
         video.alwaysDiscardsLateVideoFrames = true
         video.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
@@ -119,17 +120,41 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         session.addOutput(video)
         try device.lockForConfiguration()
         defer { device.unlockForConfiguration() }
-        if device.activeFormat.videoSupportedFrameRateRanges.contains(where: { $0.minFrameRate <= 30 && $0.maxFrameRate >= 30 }) {
-            device.activeVideoMinFrameDuration = CameraConfiguration.frameDuration
-            device.activeVideoMaxFrameDuration = CameraConfiguration.frameDuration
+        // Prefer the requested size and cadence; lower-resolution cameras may still be upscaled.
+        let requestedRate = Double(outputConfiguration.frameRate)
+        let candidates = device.formats.filter {
+            $0.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= requestedRate && $0.maxFrameRate >= requestedRate }
+        }
+        let formats = candidates.isEmpty ? device.formats : candidates
+        let targetWidth = outputConfiguration.width
+        if let format = formats.min(by: { left, right in
+            func cost(_ format: AVCaptureDevice.Format) -> Int {
+                let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+                let undersized = dimensions.width < targetWidth ? targetWidth : 0
+                return abs(Int(dimensions.width) - targetWidth) + abs(Int(dimensions.height) - outputConfiguration.height) + undersized
+            }
+            return cost(left) < cost(right)
+        }) {
+            device.activeFormat = format
+        }
+        if let range = device.activeFormat.videoSupportedFrameRateRanges.min(by: {
+            abs(min($0.maxFrameRate, max($0.minFrameRate, requestedRate)) - requestedRate)
+                < abs(min($1.maxFrameRate, max($1.minFrameRate, requestedRate)) - requestedRate)
+        }) {
+            let rate = min(range.maxFrameRate, max(range.minFrameRate, requestedRate))
+            let duration = rate == range.maxFrameRate ? range.minFrameDuration
+                : (rate == range.minFrameRate ? range.maxFrameDuration : outputConfiguration.frameDuration)
+            device.activeVideoMinFrameDuration = duration
+            device.activeVideoMaxFrameDuration = duration
         }
     }
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard session.isRunning, let input = sampleBuffer.imageBuffer else { return }
         let now = ProcessInfo.processInfo.systemUptime
-        guard now >= nextFrame else { return }
-        nextFrame = now + 1.0 / 31.0
+        guard now + 0.001 >= nextFrame else { return }
+        let interval = 1.0 / Double(outputConfiguration.frameRate)
+        nextFrame = nextFrame == 0 ? now + interval : max(nextFrame + interval, now)
         do {
             let processed = try processor.process(input, at: CMClockGetTime(CMClockGetHostTimeClock()))
             processedFrames += 1
@@ -139,14 +164,22 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
                 statisticsStarted = ProcessInfo.processInfo.systemUptime
                 processedFrames = 0
             }
-            let connected = try self.output.send(processed)
+            // Transport failures must not interrupt the independent local preview.
+            let connected: Bool
+            do {
+                connected = try self.output.send(processed)
+                if connected { outputError = nil }
+            } catch {
+                connected = false
+                outputError = error.localizedDescription
+            }
             guard now >= nextPreview, let buffer = processed.imageBuffer else { return }
             nextPreview = now + 1.0 / 15.0
             let previewImage = previewOriginal
-                ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: CameraConfiguration.bounds)
+                ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
                 : (previewMask ? processor.previewMask : nil) ?? CIImage(cvPixelBuffer: buffer)
-            let image = processor.context.createCGImage(previewImage, from: CameraConfiguration.bounds)
-            onUpdate(CaptureUpdate(preview: image, outputConnected: connected, error: nil,
+            let image = processor.context.createCGImage(previewImage, from: outputConfiguration.bounds)
+            onUpdate(CaptureUpdate(preview: image, outputConnected: connected, error: outputError,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
                                    framesPerSecond: framesPerSecond))
         } catch {
