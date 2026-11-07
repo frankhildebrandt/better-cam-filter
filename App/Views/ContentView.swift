@@ -5,7 +5,9 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @ObservedObject var camera: CameraModel
     @ObservedObject var extensionManager: ExtensionManager
+    @ObservedObject var backgrounds: BackgroundModel
     @State private var choosingBackground = false
+    @State private var showingGenerator = false
 
     var body: some View {
         NavigationSplitView {
@@ -56,6 +58,9 @@ struct ContentView: View {
             case .failure(let error): camera.reportError(error.localizedDescription)
             }
         }
+        .sheet(isPresented: $showingGenerator) {
+            BackgroundGeneratorView(model: backgrounds, camera: camera)
+        }
         .task { camera.refreshCameras() }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)) { _ in camera.refreshCameras() }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasDisconnectedNotification)) { _ in camera.refreshCameras() }
@@ -93,6 +98,13 @@ struct ContentView: View {
             Toggle("Durch Bild ersetzen", isOn: $camera.backgroundEnabled)
                 .disabled(camera.backgroundName == nil)
             Button("Bild auswählen …", systemImage: "photo") { choosingBackground = true }
+            Button("Hintergrund erzeugen …", systemImage: "sparkles") { showingGenerator = true }
+            if backgrounds.isGenerating {
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text(backgrounds.status).font(.caption).foregroundStyle(.secondary)
+                }
+            }
             if let name = camera.backgroundName {
                 Text(name).font(.caption).lineLimit(2).foregroundStyle(.secondary)
             }

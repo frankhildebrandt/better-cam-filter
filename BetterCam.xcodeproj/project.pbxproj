@@ -18,11 +18,15 @@
 		41F6E8EED77B9DC8C98D548F /* CameraProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */; };
 		52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */; };
 		5704B831F951F648489B9D5D /* VirtualCameraOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2343611B51258CA358E6DB1C /* VirtualCameraOutput.swift */; };
+		6456835E045C97DC52BA0E8E /* BackgroundModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545DC1660B33828E9F6E1391 /* BackgroundModel.swift */; };
+		6E71F8D67258855249C396F5 /* BackgroundGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */; };
 		7A2DA8FF1B2BD747E921C57D /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
 		846A8E747D998B89FCE29153 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF7C97635A1CE2903C68CBD /* CameraModel.swift */; };
 		8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0972352CB0F20374B164A /* PreviewView.swift */; };
 		A20674BB1B01B1D44A730768 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
+		A53037C95A694B82783FC53C /* BackgroundProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF320EEAD520D02EC3543FF /* BackgroundProfile.swift */; };
 		C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
+		CAA68E5CC796912C2F47C0B3 /* CodexBackgroundClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */; };
 		D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */; };
@@ -55,10 +59,13 @@
 
 /* Begin PBXFileReference section */
 		0A36C7AB8A905DDE72735ED2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1EF320EEAD520D02EC3543FF /* BackgroundProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundProfile.swift; sourceTree = "<group>"; };
 		2343611B51258CA358E6DB1C /* VirtualCameraOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualCameraOutput.swift; sourceTree = "<group>"; };
+		2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexBackgroundClient.swift; sourceTree = "<group>"; };
 		3BF7C97635A1CE2903C68CBD /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
 		4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraProvider.swift; sourceTree = "<group>"; };
+		545DC1660B33828E9F6E1391 /* BackgroundModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundModel.swift; sourceTree = "<group>"; };
 		5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMIOProperties.swift; sourceTree = "<group>"; };
 		5BF204A04213445EE86C2E1C /* BetterCamCamera.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = BetterCamCamera.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
 		5ED6BCE480775BAD10C84692 /* CameraStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStream.swift; sourceTree = "<group>"; };
@@ -66,6 +73,7 @@
 		6AC2F1453FF2775E12223786 /* VideoBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoBuffers.swift; sourceTree = "<group>"; };
 		8568133F76938204D3BD452B /* FrameProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameProcessor.swift; sourceTree = "<group>"; };
 		8C36F03963DB0C71698755D0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundGeneratorView.swift; sourceTree = "<group>"; };
 		BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterCamApp.swift; sourceTree = "<group>"; };
 		C05F5E661B236F149157C273 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
 		D067C0D4AD0B8B4569702957 /* BetterCam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -80,11 +88,21 @@
 			isa = PBXGroup;
 			children = (
 				E4AF956B564961909988201C /* App */,
+				36DD6D3379A4879C056076D2 /* Backgrounds */,
 				75D115320119319C2ABABE0A /* CameraExtension */,
 				A9E5A1621472ED6239C4E0CD /* Config */,
 				CD95B18F5C23F0D54D0CFB6E /* Shared */,
 				68784BE8C58DF23852D92D0A /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		36DD6D3379A4879C056076D2 /* Backgrounds */ = {
+			isa = PBXGroup;
+			children = (
+				1EF320EEAD520D02EC3543FF /* BackgroundProfile.swift */,
+				2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */,
+			);
+			path = Backgrounds;
 			sourceTree = "<group>";
 		};
 		4E94EA4761ED2283EFA3A6CE /* Camera */ = {
@@ -129,6 +147,7 @@
 		BE132CDAE912145BECC6C7AA /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */,
 				0A36C7AB8A905DDE72735ED2 /* ContentView.swift */,
 				F5E0972352CB0F20374B164A /* PreviewView.swift */,
 			);
@@ -148,6 +167,7 @@
 		E4AF956B564961909988201C /* App */ = {
 			isa = PBXGroup;
 			children = (
+				545DC1660B33828E9F6E1391 /* BackgroundModel.swift */,
 				BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */,
 				3BF7C97635A1CE2903C68CBD /* CameraModel.swift */,
 				61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */,
@@ -252,11 +272,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E71F8D67258855249C396F5 /* BackgroundGeneratorView.swift in Sources */,
+				6456835E045C97DC52BA0E8E /* BackgroundModel.swift in Sources */,
+				A53037C95A694B82783FC53C /* BackgroundProfile.swift in Sources */,
 				419AAFDEC15A312ACEDBCFB4 /* BetterCamApp.swift in Sources */,
 				52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */,
 				7A2DA8FF1B2BD747E921C57D /* CameraConfiguration.swift in Sources */,
 				846A8E747D998B89FCE29153 /* CameraModel.swift in Sources */,
 				E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */,
+				CAA68E5CC796912C2F47C0B3 /* CodexBackgroundClient.swift in Sources */,
 				311965863F06070D8905A988 /* ContentView.swift in Sources */,
 				F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */,
 				DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */,

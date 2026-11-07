@@ -22,13 +22,15 @@ targets:
   BetterCam:
     type: application
     platform: macOS
-    sources: [App, Shared]
+    sources: [App, Shared, Backgrounds]
     info:
       path: Config/App-Info.plist
       properties:
         CFBundleDisplayName: BetterCam
         CFBundleShortVersionString: $(MARKETING_VERSION)
         NSCameraUsageDescription: BetterCam verwendet die ausgewählte Kamera für Vorschau und virtuelle Kamera.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         NSHumanReadableCopyright: Copyright © 2026 BetterCam
         NSHighResolutionCapable: true
         LSApplicationCategoryType: public.app-category.video
@@ -37,6 +39,7 @@ targets:
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.device.camera: true
+        com.apple.security.network.client: true
         com.apple.security.files.user-selected.read-only: true
         com.apple.developer.system-extension.install: true
         com.apple.security.application-groups: ['$(TeamIdentifierPrefix)de.bettercam.camera']

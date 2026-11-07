@@ -5,7 +5,8 @@
 Native macOS-Webcam-App in SwiftUI mit Kameraauswahl, verarbeiteter Live-Vorschau
 und einer CoreMediaIO Camera Extension als virtuelle Kamera **BetterCam**.
 Optional ersetzt Vision den Hintergrund hinter einer Person durch ein eigenes Bild.
-Die Verarbeitung läuft lokal, ohne Server oder Netzwerkzugriff.
+Die Kameraverarbeitung läuft lokal. Optional lassen sich neue Hintergrundbilder
+über einen lokalen Codex App Server erzeugen.
 
 ## Voraussetzungen
 
@@ -50,6 +51,50 @@ stellt auf das unveränderte Kamerabild zurück. Kamera stoppen gibt die Hardwar
 die installierte virtuelle Kamera bleibt verfügbar und liefert Schwarz. Zum Wechseln
 der Quelle erst stoppen. Das Hintergrundbild wird nur für die laufende Sitzung gehalten.
 
+## Hintergründe mit Codex erzeugen
+
+Voraussetzung ist eine aktuelle Codex CLI mit angemeldetem Konto und verfügbarer
+Bildgenerierung. Den App Server auf **demselben Mac** starten:
+
+```sh
+codex login
+codex app-server --listen ws://127.0.0.1:4500
+```
+
+1. Unter **Hintergrund → Hintergrund erzeugen …** auf **Neu** klicken.
+2. Einen Profilnamen und den **Pre-Prompt** mit den festen Vorgaben eintragen,
+   beispielsweise Raumstil, Farben oder Markenregeln.
+3. Optional über **Bilder hinzufügen …** Logos, Stilvorlagen und andere
+   Referenzbilder importieren. BetterCam speichert eigene PNG-Kopien; die
+   ursprünglichen Dateien müssen anschließend nicht mehr verfügbar sein.
+4. **Profil speichern**, das Profil auswählen und bei Bedarf im Feld
+   **Zusätzlicher Kontext** die Wünsche für dieses einzelne Bild ergänzen.
+5. **Hintergrund erzeugen** klicken. Das fertige Bild wird als Kamerahintergrund
+   aktiviert. Die Kamera muss zum Generieren nicht laufen.
+
+Pre-Prompt und **alle** Profilbilder werden bei jeder Generierung erneut
+übergeben. Der Zusatzkontext kann leer bleiben. Profile können über die
+Stift-Schaltfläche bearbeitet oder über den Papierkorb gelöscht werden.
+Profile, importierte Bilder und das zuletzt erzeugte Bild liegen im
+Application-Support-Verzeichnis der App unter `BetterCam/Backgrounds`.
+Das ausgewählte Profil und die Server-Adresse bleiben nach einem Neustart erhalten;
+der aktive Kamerahintergrund wird weiterhin pro Sitzung gesetzt.
+
+Unter **Codex App Server** lässt sich die lokale WebSocket-Adresse anpassen.
+Die App akzeptiert ausschließlich Loopback-Adressen und behält ihre macOS-Sandbox;
+die Kameraerweiterung erhält keinen Netzwerkzugriff. Es wird kein API-Key in
+BetterCam gespeichert. Codex verwendet seine bestehende Anmeldung und Konfiguration.
+Für jede Generierung wird ein eigener temporärer Thread mit `workspace-write` und
+`approvalPolicy: never` angelegt. Interaktive Freigabeanfragen werden abgelehnt.
+**Abbrechen** unterbricht den laufenden Turn. Bei Fehlern bleibt das bisherige
+Kamerahintergrundbild aktiv.
+
+Zur Bildgenerierung werden Pre-Prompt, Zusatzkontext und Profilbilder über Codex
+an OpenAI übertragen. Die laufenden Kamerabilder werden dafür nicht verwendet.
+Bildgenerierung muss vom verwendeten Codex-Konto unterstützt werden; BetterCam
+zeigt Fehler des Servers an. Der WebSocket-Transport des App Servers ist
+experimentell. Protokollgrundlage: [offizielle OpenAI-Dokumentation zum Codex App Server](https://learn.chatgpt.com/docs/app-server).
+
 ## Architektur
 
 ```text
@@ -77,8 +122,7 @@ AVCaptureDevice → AVCaptureVideoDataOutput
 Kamerahardware bestimmen die effektive Bildrate; die Extension wiederholt bei kurzen
 Lücken den letzten Frame. Die Personenmaske ist für Menschen gedacht und kann an
 Haaren, schnellen Bewegungen oder bei schlechtem Licht sichtbare Kanten erzeugen.
-Audio, Aufnahme, persistente Einstellungen und Distribution/Notarisierung sind nicht
-Teil dieses Bootstraps.
+Audio, Aufnahme und Distribution/Notarisierung sind nicht Teil dieses Bootstraps.
 
 ## Prüfen
 
@@ -87,7 +131,7 @@ Teil dieses Bootstraps.
 xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
   -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 
-# Synthetische Tests für Crop, Masken-Compositing, Format, Zeitstempel und Pool-Limit:
+# Tests für Bildverarbeitung, Profil-/Asset-Speicherung und den Codex-JSON-RPC-Ablauf:
 swift test
 ```
 
