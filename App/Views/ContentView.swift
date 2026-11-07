@@ -7,6 +7,7 @@ struct ContentView: View {
     @ObservedObject var camera: CameraModel
     @ObservedObject var extensionManager: ExtensionManager
     @ObservedObject var backgrounds: BackgroundModel
+    @ObservedObject var segmentationSettings: SegmentationSettingsModel
     @State private var choosingBackground = false
     @State private var showingGenerator = false
     @State private var showingLibrary = false
@@ -26,10 +27,13 @@ struct ContentView: View {
                     cameraControls
                     Divider()
                     BackgroundControls(camera: camera, backgrounds: backgrounds,
+                                       segmentationSettings: segmentationSettings,
                                        choosingBackground: $choosingBackground, showingGenerator: $showingGenerator,
                                        showingLibrary: $showingLibrary)
                     Divider()
                     extensionControls
+                    Divider()
+                    SettingsLink { Label("Konfiguration …", systemImage: "gearshape") }
                 }
                 .padding(20)
             }
@@ -88,6 +92,9 @@ struct ContentView: View {
             BackgroundLibraryView(model: backgrounds, camera: camera)
         }
         .task { camera.refreshCameras() }
+        .onChange(of: segmentationSettings.configuration, initial: true) { _, configuration in
+            camera.setSegmentationConfiguration(configuration)
+        }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)) { _ in camera.refreshCameras() }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasDisconnectedNotification)) { _ in camera.refreshCameras() }
         .onReceive(NotificationCenter.default.publisher(for: AVCaptureSession.runtimeErrorNotification)) { _ in

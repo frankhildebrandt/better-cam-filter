@@ -3,6 +3,7 @@ import SwiftUI
 struct BackgroundControls: View {
     @ObservedObject var camera: CameraModel
     @ObservedObject var backgrounds: BackgroundModel
+    @ObservedObject var segmentationSettings: SegmentationSettingsModel
     @Binding var choosingBackground: Bool
     @Binding var showingGenerator: Bool
     @Binding var showingLibrary: Bool
@@ -24,16 +25,8 @@ struct BackgroundControls: View {
             if let name = camera.backgroundName {
                 Text(name).font(.caption).lineLimit(2).foregroundStyle(.secondary)
             }
-            Picker("Erkennung", selection: $camera.segmentationMode) {
-                ForEach(SegmentationMode.allCases) { Text($0.title).tag($0) }
-            }
-            Text("Personenmaske mit gezielter Zubehör-Ergänzung. Verarbeitung lokal auf deinem Mac.")
-                .font(.caption).foregroundStyle(.secondary)
-            if camera.segmentationMode == .foregroundObjects {
-                Toggle("Stuhl & Mikrofon ergänzen", isOn: $camera.accessoriesEnabled)
-                Text("Zubehör wird zeitlich bestätigt. Bei dunklem Raumhintergrund ausschalten.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
+            SettingsLink { Label(segmentationSettings.configuration.provider.title, systemImage: "person.crop.rectangle") }
+                .help("Bilderkennung konfigurieren")
             Toggle("Bereiche behalten", isOn: $camera.isEditingKeepMask)
                 .disabled(!camera.isRunning || !camera.backgroundEnabled)
             if camera.isEditingKeepMask {

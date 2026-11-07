@@ -25,11 +25,19 @@ final class CameraModel: ObservableObject {
     @Published private(set) var framesPerSecond = 0
     @Published private(set) var keepStrokes: [KeepStroke] = []
     @Published var brushRadius = 0.025
-    @Published var segmentationMode = SegmentationMode.foregroundObjects {
-        didSet { engine.setSegmentationMode(segmentationMode) }
+    @Published var segmentationMode = SegmentationMode(
+        rawValue: UserDefaults.standard.string(forKey: "segmentationMode") ?? ""
+    ) ?? .foregroundObjects {
+        didSet {
+            UserDefaults.standard.set(segmentationMode.rawValue, forKey: "segmentationMode")
+            engine.setSegmentationMode(segmentationMode)
+        }
     }
-    @Published var accessoriesEnabled = true {
-        didSet { engine.setAccessoriesEnabled(accessoriesEnabled) }
+    @Published var accessoriesEnabled = (UserDefaults.standard.object(forKey: "accessoriesEnabled") as? Bool) ?? true {
+        didSet {
+            UserDefaults.standard.set(accessoriesEnabled, forKey: "accessoriesEnabled")
+            engine.setAccessoriesEnabled(accessoriesEnabled)
+        }
     }
     @Published var isEditingKeepMask = false {
         didSet { engine.setPreviewOriginal(isEditingKeepMask) }
@@ -116,6 +124,12 @@ final class CameraModel: ObservableObject {
     }
 
     func reportError(_ message: String) { error = message }
+
+    func setSegmentationConfiguration(_ configuration: SegmentationConfiguration) {
+        engine.setSegmentationConfiguration(configuration)
+        engine.setSegmentationMode(segmentationMode)
+        engine.setAccessoriesEnabled(accessoriesEnabled)
+    }
 
     func addKeepStroke(_ stroke: KeepStroke) {
         keepStrokes.append(stroke)

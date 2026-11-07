@@ -10,6 +10,12 @@ final class FrameProcessor {
     private var inputSize = CGSize.zero
     var background: CIImage? { didSet { resetSegmentation() } }
     var segmentationMode = SegmentationMode.foregroundObjects { didSet { resetSegmentation() } }
+    var segmentationConfiguration = SegmentationConfiguration() {
+        didSet {
+            segmentation.configuration = segmentationConfiguration
+            accessoryRefiner.reset()
+        }
+    }
     var keepMask: CIImage?
     var accessoriesEnabled = true { didSet { resetSegmentation() } }
 
@@ -34,7 +40,7 @@ final class FrameProcessor {
             let mask: CIImage
             do {
                 let automatic = try segmentation.mask(for: foreground)
-                mask = accessoriesEnabled && segmentationMode == .foregroundObjects
+                mask = segmentationConfiguration.provider == .apple && accessoriesEnabled && segmentationMode == .foregroundObjects
                     ? accessoryRefiner.refine(mask: automatic, image: foreground, time: time.seconds) : automatic
             } catch {
                 resetSegmentation()

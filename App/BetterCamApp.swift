@@ -7,15 +7,20 @@ struct BetterCamApp: App {
     @StateObject private var camera = CameraModel()
     @StateObject private var extensionManager = ExtensionManager()
     @StateObject private var backgrounds = BackgroundModel()
+    @StateObject private var segmentationSettings = SegmentationSettingsModel()
 
     var body: some Scene {
         WindowGroup {
-            ContentView(camera: camera, extensionManager: extensionManager, backgrounds: backgrounds)
+            ContentView(camera: camera, extensionManager: extensionManager, backgrounds: backgrounds,
+                        segmentationSettings: segmentationSettings)
                 .onAppear { delegate.onTerminate = { camera.shutdown(); backgrounds.shutdown() } }
         }
         .defaultSize(width: 1080, height: 680)
         .windowResizability(.contentMinSize)
         .commands { CommandGroup(replacing: .newItem) {} }
+        Settings {
+            ConfigurationView(settings: segmentationSettings, camera: camera)
+        }
     }
 }
 

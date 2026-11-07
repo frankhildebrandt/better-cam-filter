@@ -12,6 +12,7 @@
 		1305B25E6CB9725EB0644DEF /* BackgroundLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D8AFCA54FBD2668AFF2D10 /* BackgroundLibraryView.swift */; };
 		1424C45D759E7405A0B2A5BA /* CodexAppServerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7812516CBE599A8DF0342DAB /* CodexAppServerService.swift */; };
 		18B469165AAA90749154BAB2 /* FrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8568133F76938204D3BD452B /* FrameProcessor.swift */; };
+		1FD467C8B819F44D580A3A3B /* CustomForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5E3B8542031FEEC3B87D3EC /* CustomForegroundSegmenter.swift */; };
 		29AA684525025A5D3389309D /* CameraStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED6BCE480775BAD10C84692 /* CameraStream.swift */; };
 		311965863F06070D8905A988 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36C7AB8A905DDE72735ED2 /* ContentView.swift */; };
 		343D7B5201CF9597EB984196 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C36F03963DB0C71698755D0 /* main.swift */; };
@@ -34,12 +35,16 @@
 		846A8E747D998B89FCE29153 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF7C97635A1CE2903C68CBD /* CameraModel.swift */; };
 		8561B92F1B3D352FB984D6D8 /* AccessorySceneHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C315F896A00E43C87E7C9C /* AccessorySceneHistory.swift */; };
 		85702ECB1C9BCCCED6584F97 /* CodexExecutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F042B747BE79D8124EEA0CC1 /* CodexExecutable.swift */; };
+		8A22774FB01EB4AB289D2693 /* CustomMaskDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60808FB17F835879E2C719B1 /* CustomMaskDecoder.swift */; };
 		8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0972352CB0F20374B164A /* PreviewView.swift */; };
+		906F7AC3F3E924FCC108F83D /* SegmentationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A2FD09047B221531148F38 /* SegmentationConfiguration.swift */; };
 		9745B9A90A7998C9D939CEA3 /* de.bettercam.camera.systemextension in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 349A4555FCEC89B9CD2D3F7F /* de.bettercam.camera.systemextension */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		97E9CA6EB06681E1882EE2E4 /* KeepMask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A71751C24D16B99F017B8FF /* KeepMask.swift */; };
 		A20674BB1B01B1D44A730768 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
 		A53037C95A694B82783FC53C /* BackgroundProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF320EEAD520D02EC3543FF /* BackgroundProfile.swift */; };
 		A8D7F212B954C8DFF1CC29BE /* CodexServer.xpc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 821CD20E682F67A0D077185E /* CodexServer.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B2027582732DAE755D989B73 /* SegmentationModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CFBA38FE299E70F4D5960C /* SegmentationModelStore.swift */; };
+		B93BCE60522C9682CBC71E52 /* ConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3CD766CAAE863054D70781 /* ConfigurationView.swift */; };
 		C64FA70D743DFB4D8FC104F8 /* PixelComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC66E128993CCB9462615491 /* PixelComponents.swift */; };
 		C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
 		CAA68E5CC796912C2F47C0B3 /* CodexBackgroundClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */; };
@@ -49,6 +54,7 @@
 		E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */; };
 		E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */; };
 		E74BAF580CBAAA61610B3BB5 /* AccessoryRegions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */; };
+		F45D6D26C02B103FFB7229B5 /* SegmentationSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74494C742EEEFC85732DB36 /* SegmentationSettingsModel.swift */; };
 		F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */; };
 		F763D89B75EA5F6A242E11F6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D991E7820B431D2DFE3FEDE9 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -97,6 +103,7 @@
 /* Begin PBXFileReference section */
 		0A36C7AB8A905DDE72735ED2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1EF320EEAD520D02EC3543FF /* BackgroundProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundProfile.swift; sourceTree = "<group>"; };
+		22CFBA38FE299E70F4D5960C /* SegmentationModelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationModelStore.swift; sourceTree = "<group>"; };
 		2343611B51258CA358E6DB1C /* VirtualCameraOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualCameraOutput.swift; sourceTree = "<group>"; };
 		2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexBackgroundClient.swift; sourceTree = "<group>"; };
 		30764A366BE67B1ACA09A7D3 /* AccessoryTemporalFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryTemporalFilter.swift; sourceTree = "<group>"; };
@@ -111,6 +118,7 @@
 		545DC1660B33828E9F6E1391 /* BackgroundModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundModel.swift; sourceTree = "<group>"; };
 		5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMIOProperties.swift; sourceTree = "<group>"; };
 		5ED6BCE480775BAD10C84692 /* CameraStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStream.swift; sourceTree = "<group>"; };
+		60808FB17F835879E2C719B1 /* CustomMaskDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMaskDecoder.swift; sourceTree = "<group>"; };
 		61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionManager.swift; sourceTree = "<group>"; };
 		64D8AFCA54FBD2668AFF2D10 /* BackgroundLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLibraryView.swift; sourceTree = "<group>"; };
 		6AC2F1453FF2775E12223786 /* VideoBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoBuffers.swift; sourceTree = "<group>"; };
@@ -123,23 +131,38 @@
 		8C36F03963DB0C71698755D0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundGeneratorView.swift; sourceTree = "<group>"; };
 		ADB82EAB6C73516BBA8B310D /* AccessoryMotionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryMotionSupport.swift; sourceTree = "<group>"; };
+		AF3CD766CAAE863054D70781 /* ConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationView.swift; sourceTree = "<group>"; };
 		B2DA8A951A08E49AA84F9E39 /* BackgroundLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLibraryStore.swift; sourceTree = "<group>"; };
 		BC66E128993CCB9462615491 /* PixelComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelComponents.swift; sourceTree = "<group>"; };
 		BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterCamApp.swift; sourceTree = "<group>"; };
 		C05F5E661B236F149157C273 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
 		CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundSegmenter.swift; sourceTree = "<group>"; };
 		D067C0D4AD0B8B4569702957 /* BetterCam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5A2FD09047B221531148F38 /* SegmentationConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationConfiguration.swift; sourceTree = "<group>"; };
 		D991E7820B431D2DFE3FEDE9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC64A35D8EB89D159E1A1967 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameComposition.swift; sourceTree = "<group>"; };
+		E5E3B8542031FEEC3B87D3EC /* CustomForegroundSegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomForegroundSegmenter.swift; sourceTree = "<group>"; };
 		EC24548297D6B472F820B7FE /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		F042B747BE79D8124EEA0CC1 /* CodexExecutable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexExecutable.swift; sourceTree = "<group>"; };
 		F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
 		F5E0972352CB0F20374B164A /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		F74494C742EEEFC85732DB36 /* SegmentationSettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationSettingsModel.swift; sourceTree = "<group>"; };
 		FD7A3CBC5F87BFF391D1B64A /* CodexXPCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexXPCConnection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		10C6200E705568E67E46DD3C /* Segmentation */ = {
+			isa = PBXGroup;
+			children = (
+				E5E3B8542031FEEC3B87D3EC /* CustomForegroundSegmenter.swift */,
+				60808FB17F835879E2C719B1 /* CustomMaskDecoder.swift */,
+				D5A2FD09047B221531148F38 /* SegmentationConfiguration.swift */,
+				22CFBA38FE299E70F4D5960C /* SegmentationModelStore.swift */,
+			);
+			path = Segmentation;
+			sourceTree = "<group>";
+		};
 		32ABD38657117FB474F9F65B = {
 			isa = PBXGroup;
 			children = (
@@ -229,6 +252,7 @@
 				70182A4C24CB8B5B7C0946C8 /* BackgroundControls.swift */,
 				9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */,
 				64D8AFCA54FBD2668AFF2D10 /* BackgroundLibraryView.swift */,
+				AF3CD766CAAE863054D70781 /* ConfigurationView.swift */,
 				0A36C7AB8A905DDE72735ED2 /* ContentView.swift */,
 				8A5FDD570EC4F192E5E1FCEB /* KeepMaskOverlay.swift */,
 				F5E0972352CB0F20374B164A /* PreviewView.swift */,
@@ -250,6 +274,7 @@
 				7A71751C24D16B99F017B8FF /* KeepMask.swift */,
 				BC66E128993CCB9462615491 /* PixelComponents.swift */,
 				6AC2F1453FF2775E12223786 /* VideoBuffers.swift */,
+				10C6200E705568E67E46DD3C /* Segmentation */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -262,6 +287,7 @@
 				BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */,
 				3BF7C97635A1CE2903C68CBD /* CameraModel.swift */,
 				61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */,
+				F74494C742EEEFC85732DB36 /* SegmentationSettingsModel.swift */,
 				4E94EA4761ED2283EFA3A6CE /* Camera */,
 				BE132CDAE912145BECC6C7AA /* Views */,
 			);
@@ -428,7 +454,10 @@
 				1424C45D759E7405A0B2A5BA /* CodexAppServerService.swift in Sources */,
 				CAA68E5CC796912C2F47C0B3 /* CodexBackgroundClient.swift in Sources */,
 				047811C43E9DC08B50F9C6DB /* CodexXPCConnection.swift in Sources */,
+				B93BCE60522C9682CBC71E52 /* ConfigurationView.swift in Sources */,
 				311965863F06070D8905A988 /* ContentView.swift in Sources */,
+				1FD467C8B819F44D580A3A3B /* CustomForegroundSegmenter.swift in Sources */,
+				8A22774FB01EB4AB289D2693 /* CustomMaskDecoder.swift in Sources */,
 				F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */,
 				E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */,
 				DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */,
@@ -437,6 +466,9 @@
 				39BF0E5448AE890723558CDF /* KeepMaskOverlay.swift in Sources */,
 				C64FA70D743DFB4D8FC104F8 /* PixelComponents.swift in Sources */,
 				8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */,
+				906F7AC3F3E924FCC108F83D /* SegmentationConfiguration.swift in Sources */,
+				B2027582732DAE755D989B73 /* SegmentationModelStore.swift in Sources */,
+				F45D6D26C02B103FFB7229B5 /* SegmentationSettingsModel.swift in Sources */,
 				346B1B1E658B526FC925D16D /* VideoBuffers.swift in Sources */,
 				5704B831F951F648489B9D5D /* VirtualCameraOutput.swift in Sources */,
 			);
@@ -528,7 +560,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -542,7 +574,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.4.2;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -589,7 +621,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -609,7 +641,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.4.2;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

@@ -4,7 +4,7 @@
 
 Native macOS-Webcam-App in SwiftUI mit Kameraauswahl, verarbeiteter Live-Vorschau
 und einer CoreMediaIO Camera Extension als virtuelle Kamera **BetterCam**.
-Optional ersetzt Vision den Hintergrund hinter Personen und erkannten Vordergrundobjekten
+Optional ersetzt Apple Vision oder ein importiertes Core-ML-Modell den Hintergrund
 durch ein eigenes Bild. Die Ausgabe erfolgt in Full HD (1920 × 1080).
 Die Kameraverarbeitung läuft lokal. Optional lassen sich neue Hintergrundbilder
 über einen lokalen Codex App Server erzeugen.
@@ -146,9 +146,44 @@ Bildgenerierung muss vom verwendeten Codex-Konto unterstützt werden; BetterCam
 zeigt Fehler des Servers an. Der optionale WebSocket-Transport des App Servers ist
 experimentell. Protokollgrundlage: [offizielle OpenAI-Dokumentation zum Codex App Server](https://learn.chatgpt.com/docs/app-server).
 
+## Konfiguration und Modellauswahl
+
+**Konfiguration …** in der Seitenleiste oder **BetterCam → Einstellungen …** (`⌘,`)
+öffnet die native Konfigurationsseite. Unter **Bilderkennung → Modell** stehen
+**Apple Vision** und **Custom-Modell** zur Auswahl. Die Auswahl gilt für Vorschau
+und virtuelle Kamera und bleibt nach einem Neustart erhalten.
+
+Apple Vision ist der Standard und benötigt keinen Download. **Modell importieren …**
+übernimmt ein eigenes Core-ML-Modell (`.mlmodel`, `.mlpackage` oder `.mlmodelc`),
+prüft seine Schnittstelle und aktiviert es nach erfolgreichem Import. Ohne importiertes
+Modell öffnet die Auswahl **Custom-Modell** zuerst den Importdialog. Abbrechen und
+fehlgeschlagene Importe behalten die bisherige Auswahl bei. Ein bereits importiertes
+Modell lässt sich jederzeit wieder auswählen; Apple Vision bleibt parallel verfügbar.
+
+Das Custom-Modell muss genau einen Bildeingang und eine einzelne Vordergrundmaske
+liefern: ein Graustufenbild oder ein einkanaliges Array mit Form `[H, W]`, `[1, H, W]`
+oder `[1, 1, H, W]` und Werten von 0 bis 1. Weiß beziehungsweise 1 bedeutet behalten,
+Schwarz beziehungsweise 0 bedeutet Hintergrund. Das gesamte Kamerabild wird auf den
+Modelleingang skaliert; die Maske wird anschließend auf dieselben Bildkoordinaten
+abgebildet. Modelle mit mehreren Klassen, Bildprompts oder zusätzlichen Zuständen
+benötigen einen eigenen Adapter. Beliebige SAM-/PyTorch-Gewichte können nicht direkt
+importiert werden. Es ist kein eigenes trainiertes Modell enthalten.
+
+Kompilierung und Prüfung laufen außerhalb des UI-Threads. BetterCam speichert eigene
+kompilierte Modellkopien unter `Application Support/BetterCam/Segmentation`; die
+ursprüngliche Datei muss danach nicht mehr verfügbar sein. Die Verarbeitung läuft
+lokal. Bei einem Fehler während der Modellanwendung erscheint die Fehlermeldung im
+Kamerafenster; es erfolgt kein stiller Wechsel zu Apple Vision.
+
+Bei Apple Vision lassen sich auf derselben Konfigurationsseite die Erkennung und die
+Zubehör-Ergänzung einstellen. Diese Einstellungen bleiben ebenfalls gespeichert.
+Beim Custom-Modell wird dessen Maske direkt verwendet; die automatische
+Apple-Zubehör-Ergänzung ist dabei ausgeschaltet. Explizite Schutzmarkierungen gelten
+weiterhin für beide Varianten.
+
 ## Vordergrund und Schutzbereiche
 
-**Erkennung → Person + Zubehör** ist der Standard. Die genaue Vision-Personenmaske
+**Konfiguration → Erkennung → Person + Zubehör** ist bei Apple Vision der Standard. Die genaue Vision-Personenmaske
 bildet die Basis; daran wird Zubehör gezielt ergänzt. Allgemeine Vision-Instanzen
 werden nicht mehr pauschal übernommen, damit Tür oder Whiteboard bei wechselnder
 Erkennung nicht als neue Vordergrundobjekte erscheinen. **Nur Person** verwendet

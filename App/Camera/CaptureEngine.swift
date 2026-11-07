@@ -62,6 +62,10 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         queue.async { self.processor.segmentationMode = mode }
     }
 
+    func setSegmentationConfiguration(_ configuration: SegmentationConfiguration) {
+        queue.async { self.processor.segmentationConfiguration = configuration }
+    }
+
     func setAccessoriesEnabled(_ enabled: Bool) {
         queue.async { self.processor.accessoriesEnabled = enabled }
     }

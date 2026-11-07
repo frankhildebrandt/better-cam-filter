@@ -14,7 +14,14 @@ enum SegmentationMode: String, CaseIterable, Identifiable, Sendable {
 
 /// Requests are stateful and must remain on the owning capture queue.
 final class ForegroundSegmenter {
+    var configuration = SegmentationConfiguration() {
+        didSet {
+            if configuration.customModelURL != oldValue.customModelURL { custom = nil }
+            reset()
+        }
+    }
     private var person = ForegroundSegmenter.makeRequest()
+    private var custom: CustomForegroundSegmenter?
 
     func reset() { person = Self.makeRequest() }
 
@@ -27,6 +34,12 @@ final class ForegroundSegmenter {
 
     /// Analyze the already cropped camera image, then map the full mask back without a second crop.
     func mask(for image: CIImage) throws -> CIImage {
+        if configuration.provider == .custom {
+            guard let url = configuration.customModelURL else { throw CustomSegmentationError.missingModel }
+            if custom == nil { custom = try CustomForegroundSegmenter(modelURL: url) }
+            guard let custom else { throw CustomSegmentationError.missingModel }
+            return try custom.mask(for: image)
+        }
         let scale = min(1, 768 / image.extent.width)
         let analysis = image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         let handler = VNImageRequestHandler(ciImage: analysis, orientation: .up)
