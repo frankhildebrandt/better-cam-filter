@@ -20,6 +20,7 @@ final class CameraModel: ObservableObject {
     @Published private(set) var outputConnected = false
     @Published private(set) var error: String?
     @Published private(set) var backgroundName: String?
+    @Published private(set) var backgroundLibraryID: UUID?
     @Published private(set) var inputResolution = "–"
     @Published private(set) var framesPerSecond = 0
     @Published private(set) var keepStrokes: [KeepStroke] = []
@@ -103,9 +104,10 @@ final class CameraModel: ObservableObject {
         applyBackground(cgImage, name: url.lastPathComponent)
     }
 
-    func applyBackground(_ image: CGImage, name: String) {
+    func applyBackground(_ image: CGImage, name: String, libraryID: UUID? = nil) {
         backgroundImage = image
         backgroundName = name
+        backgroundLibraryID = libraryID
         backgroundEnabled = true
         error = nil
     }

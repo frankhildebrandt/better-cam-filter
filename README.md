@@ -98,7 +98,14 @@ codex app-server --listen ws://127.0.0.1:4500
 Pre-Prompt und **alle** Profilbilder werden bei jeder Generierung erneut
 übergeben. Der Zusatzkontext kann leer bleiben. Profile können über die
 Stift-Schaltfläche bearbeitet oder über den Papierkorb gelöscht werden.
-Profile, importierte Bilder und das zuletzt erzeugte Bild liegen im
+Über **Hintergrund → Mediathek …** oder **Mediathek öffnen …** im Generator lassen
+sich alle erzeugten Bilder anhand ihrer Vorschau auswählen. Ein Klick aktiviert
+das Bild als Kamerahintergrund; das aktive Bild ist markiert. Neue Bilder werden
+automatisch dauerhaft gespeichert, die neuesten stehen zuerst. Sie bleiben auch
+nach einem App-Neustart und nach dem Löschen des zugehörigen Profils verfügbar.
+Ein bereits vorhandenes `last-background.png` wird einmalig in die Mediathek übernommen.
+
+Profile, importierte Bilder und die Mediathek liegen im
 Application-Support-Verzeichnis der App unter `BetterCam/Backgrounds`.
 Das ausgewählte Profil und die Server-Adresse bleiben nach einem Neustart erhalten;
 der aktive Kamerahintergrund wird weiterhin pro Sitzung gesetzt.
@@ -179,7 +186,7 @@ Audio, Aufnahme und Distribution/Notarisierung sind nicht Teil dieses Bootstraps
 xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
   -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 
-# Tests für Bildverarbeitung, Schutzpinsel, Full HD, Profile, Assets und Codex-JSON-RPC:
+# Tests für Bildverarbeitung, Schutzpinsel, Full HD, Profile, Assets, Mediathek und Codex-JSON-RPC:
 swift test
 ```
 
