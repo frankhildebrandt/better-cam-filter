@@ -1,0 +1,2 @@
+// Put DEVELOPMENT_TEAM = YOUR_TEAM_ID in Local.xcconfig (not committed).
+#include? "Local.xcconfig"

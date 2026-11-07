@@ -1,0 +1,127 @@
+import AVFoundation
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct ContentView: View {
+    @ObservedObject var camera: CameraModel
+    @ObservedObject var extensionManager: ExtensionManager
+    @State private var choosingBackground = false
+
+    var body: some View {
+        NavigationSplitView {
+            VStack(alignment: .leading, spacing: 24) {
+                Label("BetterCam", systemImage: "camera.filters")
+                    .font(.title2.bold())
+                cameraControls
+                Divider()
+                backgroundControls
+                Spacer()
+                extensionControls
+            }
+            .padding(20)
+            .navigationSplitViewColumnWidth(min: 280, ideal: 300, max: 340)
+        } detail: {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Dein Kamera-Ausgang").font(.title2.bold())
+                        Text("So wird dein Bild an andere Apps weitergegeben.")
+                            .font(.callout).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Label(camera.isRunning ? "Live" : "Gestoppt", systemImage: "circle.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(camera.isRunning ? .green : .secondary)
+                }
+                PreviewView(image: camera.preview, isRunning: camera.isRunning)
+                HStack {
+                    Label("1280 × 720 · bis zu 30 FPS", systemImage: "video")
+                    Spacer()
+                    Text("Ausgang: BetterCam")
+                }
+                .font(.caption).foregroundStyle(.secondary)
+                if let error = camera.error {
+                    Label(error, systemImage: "exclamationmark.triangle")
+                        .font(.callout).foregroundStyle(.orange).textSelection(.enabled)
+                }
+                outputStatus
+                Spacer(minLength: 0)
+            }
+            .padding(28)
+            .frame(minWidth: 580, minHeight: 540)
+        }
+        .fileImporter(isPresented: $choosingBackground, allowedContentTypes: [.image]) { result in
+            switch result {
+            case .success(let url): camera.loadBackground(url)
+            case .failure(let error): camera.reportError(error.localizedDescription)
+            }
+        }
+        .task { camera.refreshCameras() }
+        .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)) { _ in camera.refreshCameras() }
+        .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasDisconnectedNotification)) { _ in camera.refreshCameras() }
+        .onReceive(NotificationCenter.default.publisher(for: AVCaptureSession.runtimeErrorNotification)) { _ in
+            Task { await camera.stop(); camera.reportError("Die Kamera wurde unterbrochen. Bitte erneut starten.") }
+        }
+    }
+
+    private var cameraControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("KAMERA").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Picker("Quelle", selection: $camera.selectedCameraID) {
+                if camera.cameras.isEmpty { Text("Keine Kamera gefunden").tag("") }
+                ForEach(camera.cameras) { Text($0.name).tag($0.id) }
+            }
+            .labelsHidden()
+            .disabled(camera.isRunning || camera.isBusy)
+            Button {
+                Task { if camera.isRunning { await camera.stop() } else { await camera.start() } }
+            } label: {
+                Label(camera.isRunning ? "Kamera stoppen" : "Kamera starten",
+                      systemImage: camera.isRunning ? "stop.fill" : "play.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(camera.isBusy || camera.selectedCameraID.isEmpty)
+            Text("Zum Wechseln der Quelle die Kamera kurz stoppen.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var backgroundControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("HINTERGRUND").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Toggle("Durch Bild ersetzen", isOn: $camera.backgroundEnabled)
+                .disabled(camera.backgroundName == nil)
+            Button("Bild auswählen …", systemImage: "photo") { choosingBackground = true }
+            if let name = camera.backgroundName {
+                Text(name).font(.caption).lineLimit(2).foregroundStyle(.secondary)
+            }
+            Text("Personenerkennung läuft lokal auf deinem Mac.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var extensionControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Virtuelle Kamera", systemImage: "puzzlepiece.extension")
+                .font(.headline)
+            Text(extensionManager.status).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+            Button("Virtuelle Kamera aktivieren") { extensionManager.activate() }
+                .disabled(extensionManager.isBusy)
+            if extensionManager.isBusy { ProgressView().controlSize(.small) }
+        }
+    }
+
+    private var outputStatus: some View {
+        Label {
+            Text(camera.outputConnected
+                 ? "Verbunden. Wähle „BetterCam“ in deiner Video-App."
+                 : "Vorschau ist unabhängig verfügbar. Für andere Apps die virtuelle Kamera aktivieren.")
+        } icon: {
+            Image(systemName: camera.outputConnected ? "checkmark.circle.fill" : "info.circle")
+                .foregroundStyle(camera.outputConnected ? .green : .secondary)
+        }
+        .font(.callout).padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+    }
+}

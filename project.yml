@@ -1,0 +1,80 @@
+name: BetterCam
+options:
+  bundleIdPrefix: de.bettercam
+  deploymentTarget:
+    macOS: '14.0'
+  xcodeVersion: '16.0'
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Config/Development.xcconfig
+  Release: Config/Development.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: '0.1.0'
+    CURRENT_PROJECT_VERSION: '1'
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  BetterCam:
+    type: application
+    platform: macOS
+    sources: [App, Shared]
+    info:
+      path: Config/App-Info.plist
+      properties:
+        CFBundleDisplayName: BetterCam
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        NSCameraUsageDescription: BetterCam verwendet die ausgewählte Kamera für Vorschau und virtuelle Kamera.
+        NSHumanReadableCopyright: Copyright © 2026 BetterCam
+        NSHighResolutionCapable: true
+        LSApplicationCategoryType: public.app-category.video
+    entitlements:
+      path: Config/App.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.device.camera: true
+        com.apple.security.files.user-selected.read-only: true
+        com.apple.developer.system-extension.install: true
+        com.apple.security.application-groups: ['$(TeamIdentifierPrefix)de.bettercam.camera']
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.bettercam.app
+    dependencies:
+      - target: BetterCamCamera
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Library/SystemExtensions
+  BetterCamCamera:
+    type: system-extension
+    platform: macOS
+    sources: [CameraExtension, Shared]
+    info:
+      path: Config/Camera-Info.plist
+      properties:
+        CFBundleDisplayName: BetterCam Camera
+        CFBundlePackageType: SYSX
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        NSSystemExtensionUsageDescription: Stellt das verarbeitete Kamerabild als BetterCam für andere Apps bereit.
+        CMIOExtension:
+          CMIOExtensionMachServiceName: $(TeamIdentifierPrefix)de.bettercam.camera
+    entitlements:
+      path: Config/Camera.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups: ['$(TeamIdentifierPrefix)de.bettercam.camera']
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.bettercam.camera
+        REGISTER_APP_GROUPS: YES
+        SKIP_INSTALL: YES
+schemes:
+  BetterCam:
+    build:
+      targets:
+        BetterCam: all

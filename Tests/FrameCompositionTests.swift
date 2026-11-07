@@ -1,0 +1,46 @@
+import CoreImage
+import Testing
+@testable import BetterCamCore
+
+struct FrameCompositionTests {
+    @Test func aspectFillCropsTheCenterWithoutDistortion() {
+        let red = CIImage(color: CIColor(red: 1, green: 0, blue: 0))
+            .cropped(to: CGRect(x: 0, y: 0, width: 8, height: 2))
+        let green = CIImage(color: CIColor(red: 0, green: 1, blue: 0))
+            .cropped(to: CGRect(x: 3, y: 0, width: 2, height: 2))
+        let image = green.composited(over: red)
+        let bounds = CGRect(x: 0, y: 0, width: 2, height: 2)
+        let result = FrameComposition.aspectFill(image, in: bounds)
+        #expect(result.extent == bounds)
+        #expect(pixel(result, x: 0, y: 0) == [0, 255, 0, 255])
+        #expect(pixel(result, x: 1, y: 1) == [0, 255, 0, 255])
+    }
+
+    @Test func aspectFillSupportsTranslatedImages() {
+        let image = CIImage(color: .white).cropped(to: CGRect(x: 40, y: -20, width: 4, height: 2))
+        let bounds = CGRect(x: 0, y: 0, width: 8, height: 8)
+        let result = FrameComposition.aspectFill(image, in: bounds)
+        #expect(result.extent == bounds)
+        #expect(pixel(result, x: 0, y: 0) == [255, 255, 255, 255])
+    }
+
+    @Test func segmentationMaskPreservesPersonAndReplacesBackground() {
+        let bounds = CGRect(x: 0, y: 0, width: 4, height: 2)
+        let foreground = CIImage(color: CIColor(red: 1, green: 0, blue: 0)).cropped(to: bounds)
+        let background = CIImage(color: CIColor(red: 0, green: 0, blue: 1)).cropped(to: bounds)
+        let black = CIImage(color: .black).cropped(to: bounds)
+        let mask = CIImage(color: .white).cropped(to: CGRect(x: 0, y: 0, width: 2, height: 2))
+            .composited(over: black)
+        let result = FrameComposition.replaceBackground(foreground: foreground, background: background, mask: mask)
+        #expect(pixel(result, x: 0, y: 0) == [255, 0, 0, 255])
+        #expect(pixel(result, x: 3, y: 0) == [0, 0, 255, 255])
+    }
+
+    private func pixel(_ image: CIImage, x: Int, y: Int) -> [UInt8] {
+        var rgba = [UInt8](repeating: 0, count: 4)
+        CIContext().render(image, toBitmap: &rgba, rowBytes: 4,
+                           bounds: CGRect(x: x, y: y, width: 1, height: 1),
+                           format: .RGBA8, colorSpace: CGColorSpaceCreateDeviceRGB())
+        return rgba
+    }
+}
