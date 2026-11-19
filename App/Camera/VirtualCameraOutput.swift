@@ -37,25 +37,20 @@ final class VirtualCameraOutput {
     }
 
     private func connect() throws {
-        let devices = try CMIOProperties.objects(CMIOObjectID(kCMIOObjectSystemObject),
-                                                 selector: CMIOObjectPropertySelector(kCMIOHardwarePropertyDevices))
-        for candidate in devices {
-            guard let uid = try? CMIOProperties.string(candidate, selector: CMIOObjectPropertySelector(kCMIODevicePropertyDeviceUID)),
-                  uid.caseInsensitiveCompare(CameraConfiguration.deviceID.uuidString) == .orderedSame else { continue }
-            let streams = try CMIOProperties.objects(candidate, selector: CMIOObjectPropertySelector(kCMIODevicePropertyStreams))
-            for candidateStream in streams {
-                let direction = try CMIOProperties.uint32(candidateStream, selector: CMIOObjectPropertySelector(kCMIOStreamPropertyDirection))
-                guard direction == 0 else { continue }
-                try CMIOProperties.configure(candidateStream, for: configuration)
-                var queue: Unmanaged<CMSimpleQueue>?
-                try VideoBuffers.check(CMIOStreamCopyBufferQueue(candidateStream, { _, _, _ in }, nil, &queue))
-                let ownedQueue = queue?.takeRetainedValue()
-                try VideoBuffers.check(CMIODeviceStartStream(candidate, candidateStream))
-                device = candidate
-                stream = candidateStream
-                bufferQueue = ownedQueue
-                return
-            }
+        guard let candidate = try CMIOProperties.betterCamDevice() else { return }
+        let streams = try CMIOProperties.objects(candidate, selector: CMIOObjectPropertySelector(kCMIODevicePropertyStreams))
+        for candidateStream in streams {
+            let direction = try CMIOProperties.uint32(candidateStream, selector: CMIOObjectPropertySelector(kCMIOStreamPropertyDirection))
+            guard direction == 0 else { continue }
+            try CMIOProperties.configure(candidateStream, for: configuration)
+            var queue: Unmanaged<CMSimpleQueue>?
+            try VideoBuffers.check(CMIOStreamCopyBufferQueue(candidateStream, { _, _, _ in }, nil, &queue))
+            let ownedQueue = queue?.takeRetainedValue()
+            try VideoBuffers.check(CMIODeviceStartStream(candidate, candidateStream))
+            device = candidate
+            stream = candidateStream
+            bufferQueue = ownedQueue
+            return
         }
     }
 

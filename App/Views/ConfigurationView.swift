@@ -121,10 +121,6 @@ struct ConfigurationView: View {
         } message: {
             Text("Der Pre-Prompt und die gespeicherten Referenzbilder werden entfernt.")
         }
-        .task { camera.refreshCameras() }
-        .onChange(of: settings.configuration) { _, configuration in
-            camera.setSegmentationConfiguration(configuration)
-        }
     }
 
     private func categoryIcon(_ category: SettingsCategory, size: CGFloat) -> some View {

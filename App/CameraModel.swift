@@ -10,6 +10,8 @@ struct CameraChoice: Identifiable {
 
 @MainActor
 final class CameraModel: ObservableObject {
+    enum PreviewSource { case mainWindow, gestures }
+
     @Published private(set) var cameras: [CameraChoice] = []
     @Published var selectedCameraID = UserDefaults.standard.string(forKey: "selectedCameraID") ?? "" {
         didSet {
@@ -85,6 +87,18 @@ final class CameraModel: ObservableObject {
         }
     }
 
+    private var observations = Set<AnyCancellable>()
+    private var previewSource: PreviewSource?
+    private var sourceIsActive = false
+    private var automaticStartSuppressed = false
+    private var isShuttingDown = false
+    private lazy var demand = VirtualCameraDemand { [weak self] active in
+        guard let self else { return }
+        self.sourceIsActive = active
+        if !active { self.automaticStartSuppressed = false }
+        self.reconcileCapture()
+    }
+
     private lazy var engine = CaptureEngine { [weak self] update in
         Task { @MainActor [weak self] in
             guard let self, self.isRunning else { return }
@@ -99,6 +113,24 @@ final class CameraModel: ObservableObject {
         }
     }
 
+    func observeCameraUsage() {
+        refreshCameras()
+        let notifications = NotificationCenter.default
+        notifications.publisher(for: AVCaptureDevice.wasConnectedNotification)
+            .merge(with: notifications.publisher(for: AVCaptureDevice.wasDisconnectedNotification))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.refreshCameras() }
+            .store(in: &observations)
+        notifications.publisher(for: AVCaptureSession.runtimeErrorNotification, object: engine.captureSession)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.stop()
+                self?.error = "Die Kamera wurde unterbrochen. Bitte erneut starten."
+            }
+            .store(in: &observations)
+        demand.start()
+    }
+
     func refreshCameras() {
         let discovery = AVCaptureDevice.DiscoverySession(
             deviceTypes: [.builtInWideAngleCamera, .external, .continuityCamera], mediaType: .video, position: .unspecified
@@ -107,20 +139,57 @@ final class CameraModel: ObservableObject {
             .filter { $0.uniqueID.caseInsensitiveCompare(CameraConfiguration.deviceID.uuidString) != .orderedSame }
             .map { CameraChoice(id: $0.uniqueID, name: $0.localizedName) }
         if !cameras.contains(where: { $0.id == selectedCameraID }) {
-            if isRunning {
-                Task { await stop(); error = "Kamera wurde getrennt. Bitte eine Kamera auswählen." }
+            if !selectedCameraID.isEmpty, isRunning || isBusy {
+                stop()
+                error = "Kamera wurde getrennt. Bitte eine Kamera auswählen."
             }
             selectedCameraID = cameras.first?.id ?? ""
         }
+        reconcileCapture()
     }
 
-    func start() async {
-        guard !isBusy, !isRunning, !selectedCameraID.isEmpty else { return }
+    func startPreview(_ source: PreviewSource) {
+        previewSource = source
+        automaticStartSuppressed = false
+        reconcileCapture()
+    }
+
+    func endPreview(_ source: PreviewSource) {
+        guard previewSource == source else { return }
+        previewSource = nil
+        reconcileCapture()
+    }
+
+    func stop() {
+        previewSource = nil
+        // A manual stop applies until the current use of the virtual camera ends.
+        automaticStartSuppressed = sourceIsActive
+        reconcileCapture()
+    }
+
+    private var wantsCapture: Bool {
+        !isShuttingDown && !selectedCameraID.isEmpty
+            && (previewSource != nil || (sourceIsActive && !automaticStartSuppressed))
+    }
+
+    private func reconcileCapture() {
+        guard !isBusy, wantsCapture != isRunning else { return }
         isBusy = true
+        Task {
+            defer { isBusy = false }
+            // Demand and preview visibility can change while permissions or AVFoundation are pending.
+            while wantsCapture != isRunning {
+                if wantsCapture { await startCapture() } else { await stopCapture() }
+            }
+        }
+    }
+
+    private func startCapture() async {
         error = nil
-        defer { isBusy = false }
         let allowed = await AVCaptureDevice.requestAccess(for: .video)
+        guard wantsCapture else { return }
         guard allowed else {
+            stop()
             error = "Bitte Kamerazugriff unter Systemeinstellungen → Datenschutz & Sicherheit → Kamera erlauben."
             return
         }
@@ -129,12 +198,13 @@ final class CameraModel: ObservableObject {
             engine.setGestureConfiguration(gestureConfiguration)
             try await engine.start(deviceID: selectedCameraID, configuration: outputConfiguration)
             isRunning = true
-        } catch { self.error = error.localizedDescription }
+        } catch {
+            stop()
+            self.error = error.localizedDescription
+        }
     }
 
-    func stop() async {
-        guard !isBusy else { return }
-        isBusy = true
+    private func stopCapture() async {
         isRunning = false
         isEditingKeepMask = false
         preview = nil
@@ -144,7 +214,6 @@ final class CameraModel: ObservableObject {
         detectedGesture = nil
         gestureError = nil
         await engine.stop()
-        isBusy = false
     }
 
     func loadBackground(_ url: URL) {
@@ -201,5 +270,10 @@ final class CameraModel: ObservableObject {
 
     private func updateKeepMask() { engine.setKeepMask(KeepMask.render(keepStrokes)) }
 
-    func shutdown() { engine.shutdown() }
+    func shutdown() {
+        isShuttingDown = true
+        observations.removeAll()
+        demand.stop()
+        engine.shutdown()
+    }
 }

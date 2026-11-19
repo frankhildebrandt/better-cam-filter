@@ -2,6 +2,16 @@ import CoreMediaIO
 import Foundation
 
 enum CMIOProperties {
+    static let system = CMIOObjectID(kCMIOObjectSystemObject)
+    static let devicesSelector = CMIOObjectPropertySelector(kCMIOHardwarePropertyDevices)
+
+    static func betterCamDevice() throws -> CMIODeviceID? {
+        try objects(system, selector: devicesSelector).first { candidate in
+            let uid = try? string(candidate, selector: CMIOObjectPropertySelector(kCMIODevicePropertyDeviceUID))
+            return uid?.caseInsensitiveCompare(CameraConfiguration.deviceID.uuidString) == .orderedSame
+        }
+    }
+
     static func address(_ selector: CMIOObjectPropertySelector) -> CMIOObjectPropertyAddress {
         CMIOObjectPropertyAddress(mSelector: selector, mScope: CMIOObjectPropertyScope(kCMIOObjectPropertyScopeGlobal),
                                   mElement: CMIOObjectPropertyElement(kCMIOObjectPropertyElementMain))

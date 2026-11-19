@@ -1,13 +1,10 @@
 import AppKit
-import AVFoundation
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct ContentView: View {
     @ObservedObject var camera: CameraModel
-    @ObservedObject var extensionManager: ExtensionManager
     @ObservedObject var backgrounds: BackgroundModel
-    @ObservedObject var segmentationSettings: SegmentationSettingsModel
     @State private var choosingBackground = false
     @State private var showingGenerator = false
     @State private var showingLibrary = false
@@ -103,15 +100,7 @@ struct ContentView: View {
         .sheet(isPresented: $showingLibrary) {
             BackgroundLibraryView(model: backgrounds, camera: camera)
         }
-        .task { camera.refreshCameras() }
-        .onChange(of: segmentationSettings.configuration, initial: true) { _, configuration in
-            camera.setSegmentationConfiguration(configuration)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)) { _ in camera.refreshCameras() }
-        .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasDisconnectedNotification)) { _ in camera.refreshCameras() }
-        .onReceive(NotificationCenter.default.publisher(for: AVCaptureSession.runtimeErrorNotification)) { _ in
-            Task { await camera.stop(); camera.reportError("Die Kamera wurde unterbrochen. Bitte erneut starten.") }
-        }
+        .onDisappear { camera.endPreview(.mainWindow) }
     }
 
     private var cameraControls: some View {
@@ -122,7 +111,7 @@ struct ContentView: View {
                     .font(.callout.weight(.medium)).lineLimit(2)
             }
             Button {
-                Task { if camera.isRunning { await camera.stop() } else { await camera.start() } }
+                if camera.isRunning { camera.stop() } else { camera.startPreview(.mainWindow) }
             } label: {
                 HStack {
                     if camera.isBusy { ProgressView().controlSize(.small) }
