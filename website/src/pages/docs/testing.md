@@ -36,7 +36,10 @@ Mikrofonkanten und den Wechsel zwischen Personen- und Zubehörmaske.
 Ein erfolgreicher Build und diese Tests ersetzen keinen Installationstest. Für den
 End-to-End-Test auf einem Mac: signieren und installieren, BetterCam beispielsweise
 in QuickTime auswählen, Quelle und Bildfilter prüfen, Stop/Start, USB-Abziehen und
-App-Beenden testen. Kopfkontur, Mikrofon, Stuhl und Schutzbereiche bei Bewegung prüfen.
+App-Beenden testen. Hauptfenster schließen und über das Kamerasymbol wieder öffnen.
+Bei geschlossenem Hauptfenster den virtuellen Stream öffnen und schließen und prüfen,
+ob die Webcam startet und wieder freigegeben wird. Kopfkontur, Mikrofon, Stuhl und
+Schutzbereiche bei Bewegung prüfen.
 Beim Markieren muss der virtuelle Ausgang weiter gefiltert bleiben. Nach spätestens
 500 ms ohne Producer muss Schwarz erscheinen;
 die eigene virtuelle Kamera darf nicht als Eingangsquelle angeboten werden.

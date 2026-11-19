@@ -30,6 +30,8 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private var outputConfiguration = OutputConfiguration()
     private let onUpdate: @Sendable (CaptureUpdate) -> Void
 
+    var captureSession: AVCaptureSession { session }
+
     init(onUpdate: @escaping @Sendable (CaptureUpdate) -> Void) {
         self.onUpdate = onUpdate
     }

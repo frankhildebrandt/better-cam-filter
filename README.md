@@ -59,9 +59,9 @@ Apple-Developer-Konto erforderlich. Der Download ist über das öffentliche GitH
    die Erweiterung installieren und in den macOS-Systemeinstellungen erlauben.
    Je nach macOS-Version unter **Allgemein → Anmeldeobjekte & Erweiterungen →
    Kameraerweiterungen** oder **Datenschutz & Sicherheit**. macOS kann einen Neustart verlangen.
-3. Unter **Einstellungen → Kamera** deine Quelle wählen, im Hauptfenster **Kamera starten**
-   und den Kamerazugriff erlauben. In deiner Video-App **BetterCam** auswählen;
-   bereits geöffnete Video-Apps gegebenenfalls neu starten.
+3. Unter **Einstellungen → Kamera** deine Quelle wählen. In deiner Video-App
+   **BetterCam** auswählen und BetterCam beim ersten Start der Webcam den Kamerazugriff erlauben.
+   Bereits geöffnete Video-Apps gegebenenfalls neu starten.
 
 Optional ZIP und `SHA256SUMS.txt` in denselben Ordner laden und dort prüfen:
 
@@ -183,14 +183,31 @@ Grundlage: [Apple: System Extensions and DriverKit](https://developer.apple.com/
 4. Die Kameraerweiterung in den Systemeinstellungen erlauben. Je nach macOS-Version
    unter **Allgemein → Anmeldeobjekte & Erweiterungen → Kameraerweiterungen** oder
    **Datenschutz & Sicherheit**. macOS kann einen Neustart verlangen.
-5. Unter **Einstellungen → Kamera** die Quelle auswählen, im Hauptfenster **Kamera starten** und den Kamerazugriff erlauben.
+5. Unter **Einstellungen → Kamera** die Quelle auswählen.
 6. In der Video-App **BetterCam** als Kamera wählen. Bereits geöffnete Video-Apps
-   gegebenenfalls neu starten, damit sie das neue Gerät entdecken.
+   gegebenenfalls neu starten, damit sie das neue Gerät entdecken. Beim ersten Start
+   der Webcam den Kamerazugriff erlauben.
 
-**Importieren …** speichert einen Hintergrund in der Mediathek und aktiviert den Filter. Der Schalter
-stellt auf das unveränderte Kamerabild zurück. Kamera stoppen gibt die Hardware frei;
-die installierte virtuelle Kamera bleibt verfügbar und liefert Schwarz. Zum Wechseln
-der Quelle erst stoppen. Die Bilddatei bleibt in der Mediathek gespeichert; der aktive Hintergrund wird pro Sitzung gesetzt.
+### Menüleiste und Kamerastart
+
+Beim Schließen des Fensters bleibt BetterCam in der macOS-Menüleiste erreichbar.
+Über das Kamerasymbol lässt sich das Fenster wieder öffnen, die laufende Kamera stoppen
+oder BetterCam beenden.
+
+Sobald eine Video-App den virtuellen Kamerastream **BetterCam** öffnet, startet
+die ausgewählte Webcam. Wenn die letzte Video-App den Stream schließt, gibt
+BetterCam die Webcam frei, sofern keine manuell gestartete Vorschau geöffnet ist.
+Für eine lokale Vorschau **Kamera starten** wählen. Beim Schließen der Vorschau
+endet der lokale Kamerabedarf.
+
+**Kamera stoppen** gibt die Webcam frei und pausiert einen laufenden Zugriff über
+die virtuelle Kamera. Sobald alle Video-Apps den Stream geschlossen haben, ist
+der automatische Start für den nächsten Zugriff wieder bereit.
+Für den automatischen Start mit einer älteren Installation unter **Einstellungen →
+Ausgabe** die mitgelieferte Kameraerweiterung erneut aktivieren.
+
+**Importieren …** speichert einen Hintergrund in der Mediathek und aktiviert den Filter.
+Der Schalter stellt auf das unveränderte Kamerabild zurück. Der aktive Hintergrund wird pro Sitzung gesetzt.
 
 ## Hintergründe mit Codex erzeugen
 
@@ -558,7 +575,10 @@ Mikrofonkanten und den Wechsel zwischen Personen- und Zubehörmaske.
 Ein erfolgreicher Build und diese Tests ersetzen keinen Installationstest. Für den
 End-to-End-Test auf einem Mac: signieren und installieren, BetterCam beispielsweise
 in QuickTime auswählen, Quelle und Bildfilter prüfen, Stop/Start, USB-Abziehen und
-App-Beenden testen. Kopfkontur, Mikrofon, Stuhl und Schutzbereiche bei Bewegung prüfen.
+App-Beenden testen. Hauptfenster schließen und über das Kamerasymbol wieder öffnen.
+Bei geschlossenem Hauptfenster den virtuellen Stream öffnen und schließen und prüfen,
+ob die Webcam startet und wieder freigegeben wird. Kopfkontur, Mikrofon, Stuhl und
+Schutzbereiche bei Bewegung prüfen.
 Beim Markieren muss der virtuelle Ausgang weiter gefiltert bleiben. Nach spätestens
 500 ms ohne Producer muss Schwarz erscheinen;
 die eigene virtuelle Kamera darf nicht als Eingangsquelle angeboten werden.

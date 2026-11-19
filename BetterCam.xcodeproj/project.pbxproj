@@ -71,6 +71,7 @@
 		C64FA70D743DFB4D8FC104F8 /* PixelComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC66E128993CCB9462615491 /* PixelComponents.swift */; };
 		C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
 		CAA68E5CC796912C2F47C0B3 /* CodexBackgroundClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */; };
+		CD0C6D228CA03CA938DB9758 /* VirtualCameraDemand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A1EC8EA21C9DEECA20C93 /* VirtualCameraDemand.swift */; };
 		D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		D99A786205144DB8BB7A476F /* AccessoryMaskRefiner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A4B48121E6510E42E6BD9 /* AccessoryMaskRefiner.swift */; };
 		DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
@@ -125,6 +126,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		015A1EC8EA21C9DEECA20C93 /* VirtualCameraDemand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualCameraDemand.swift; sourceTree = "<group>"; };
 		0A36C7AB8A905DDE72735ED2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		124ACFFAE3571310A496DD82 /* ModelCatalogSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalogSection.swift; sourceTree = "<group>"; };
 		126A453F1A8E0088AE90DA78 /* DownloadableSegmentationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadableSegmentationModel.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 				8568133F76938204D3BD452B /* FrameProcessor.swift */,
 				36EA7A659AFE4748CCE1F6BB /* GestureAnalysisWorker.swift */,
 				9BC88AAE5BC48873A0DE7D85 /* GestureReactionProcessor.swift */,
+				015A1EC8EA21C9DEECA20C93 /* VirtualCameraDemand.swift */,
 				2343611B51258CA358E6DB1C /* VirtualCameraOutput.swift */,
 			);
 			path = Camera;
@@ -582,6 +585,7 @@
 				B2027582732DAE755D989B73 /* SegmentationModelStore.swift in Sources */,
 				F45D6D26C02B103FFB7229B5 /* SegmentationSettingsModel.swift in Sources */,
 				346B1B1E658B526FC925D16D /* VideoBuffers.swift in Sources */,
+				CD0C6D228CA03CA938DB9758 /* VirtualCameraDemand.swift in Sources */,
 				5704B831F951F648489B9D5D /* VirtualCameraOutput.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -672,7 +676,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 18;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -733,7 +737,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 18;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -12,6 +12,7 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     private var producer: CMIOExtensionClient?
     private var sinkRunning = false
     private var sourceClients = 0
+    private let demandProperty = CMIOExtensionProperty(rawValue: CameraConfiguration.sourceDemandProperty)
     private var timer: DispatchSourceTimer?
     private var consuming = false
     private var generation = 0
@@ -47,18 +48,29 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
         try device.addStream(sink.stream)
     }
 
-    var availableProperties: Set<CMIOExtensionProperty> { [.deviceTransportType, .deviceModel] }
+    var availableProperties: Set<CMIOExtensionProperty> { [.deviceTransportType, .deviceModel, demandProperty] }
 
     func deviceProperties(forProperties properties: Set<CMIOExtensionProperty>) throws -> CMIOExtensionDeviceProperties {
         let result = CMIOExtensionDeviceProperties(dictionary: [:])
         if properties.contains(.deviceTransportType) { result.transportType = kIOAudioDeviceTransportTypeVirtual }
         if properties.contains(.deviceModel) { result.model = "BetterCam Virtual Camera" }
+        if properties.contains(demandProperty) { result.setPropertyState(demandState, forProperty: demandProperty) }
         return result
     }
 
     func setDeviceProperties(_ deviceProperties: CMIOExtensionDeviceProperties) throws {}
 
+    private var demandState: CMIOExtensionPropertyState<AnyObject> {
+        CMIOExtensionPropertyState(value: (sourceClients > 0 ? "1" : "0") as NSString,
+                                   attributes: .readOnlyPropertyAttribute)
+    }
+
     func configure(_ configuration: OutputConfiguration, for direction: CMIOExtensionStream.Direction) throws {
+        // The producer can connect after a video app has negotiated its source format.
+        if direction == .sink, sourceClients > 0 {
+            sink.apply(configuration)
+            return
+        }
         if configuration.resolution != source.configuration.resolution {
             let pool = try VideoBuffers.makePool(configuration: configuration)
             let buffer = try VideoBuffers.makePixelBuffer(from: pool)
@@ -86,12 +98,16 @@ final class CameraDevice: NSObject, CMIOExtensionDeviceSource, @unchecked Sendab
     }
 
     func start(_ direction: CMIOExtensionStream.Direction) {
+        let hadDemand = sourceClients > 0
         if direction == .source { sourceClients += 1 } else { sinkRunning = true }
+        if !hadDemand && sourceClients > 0 { device.notifyPropertiesChanged([demandProperty: demandState]) }
         updateTimer()
     }
 
     func stop(_ direction: CMIOExtensionStream.Direction) {
+        let hadDemand = sourceClients > 0
         if direction == .source { sourceClients = max(0, sourceClients - 1) } else { clearProducer() }
+        if hadDemand && sourceClients == 0 { device.notifyPropertiesChanged([demandProperty: demandState]) }
         updateTimer()
     }
 

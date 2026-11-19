@@ -26,7 +26,7 @@ struct GestureSettingsSections: View {
                     Text("Die Testbuttons spielen die gewählte Reaction direkt im Kamera-Ausgang ab – auch bei ausgeschalteter Gestenerkennung.")
                         .font(.caption).foregroundStyle(.secondary)
                     if !camera.isRunning {
-                        Button("Kamera starten", systemImage: "play.fill") { Task { await camera.start() } }
+                        Button("Kamera starten", systemImage: "play.fill") { camera.startPreview(.gestures) }
                             .disabled(camera.isBusy || camera.selectedCameraID.isEmpty)
                     }
                 }
@@ -49,6 +49,7 @@ struct GestureSettingsSections: View {
         } footer: {
             Text("Für jeden Slot stehen nur passende Reactions zur Auswahl. Unbelegte Gesten werden ebenfalls erkannt und hier angezeigt. Fingerherz und Herzhände sind experimentell: Halte beide Hände vollständig im Bild und möglichst frei von Verdeckungen.")
         }
+        .onDisappear { camera.endPreview(.gestures) }
     }
 
     private var status: String {
