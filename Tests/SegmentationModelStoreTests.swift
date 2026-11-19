@@ -10,6 +10,19 @@ struct SegmentationModelStoreTests {
         #expect(try store.load().provider == .apple)
     }
 
+    @Test func builtInObjectModelReloadsWithItsOwnMaskProfile() throws {
+        let store = try temporaryStore()
+        defer { try? FileManager.default.removeItem(at: store.directory) }
+        var config = SegmentationConfiguration(provider: .appleObjects)
+        #expect(config.maskSettings == .microphoneSetup)
+        config.maskSettings = .detailed
+        try store.save(config)
+        var restored = try store.load()
+        #expect(restored == config)
+        restored.provider = .apple
+        #expect(restored.maskSettings == .original)
+    }
+
     @Test func providerAndImportedModelMetadataSurviveReloadAndAppleSelection() throws {
         let store = try temporaryStore()
         defer { try? FileManager.default.removeItem(at: store.directory) }

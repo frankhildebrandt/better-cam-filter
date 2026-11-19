@@ -10,8 +10,6 @@ struct CameraChoice: Identifiable {
 
 @MainActor
 final class CameraModel: ObservableObject {
-    enum PreviewSource { case mainWindow, gestures }
-
     @Published private(set) var cameras: [CameraChoice] = []
     @Published var selectedCameraID = UserDefaults.standard.string(forKey: "selectedCameraID") ?? "" {
         didSet {
@@ -39,17 +37,21 @@ final class CameraModel: ObservableObject {
             gestureError = nil
         }
     }
-    @Published var outputConfiguration: OutputConfiguration = {
+    @Published private var storedOutputConfiguration: OutputConfiguration = {
         guard let data = UserDefaults.standard.data(forKey: "outputConfiguration"),
               let saved = try? JSONDecoder().decode(OutputConfiguration.self, from: data) else {
             return OutputConfiguration()
         }
         return saved.sanitized
-    }() {
-        didSet {
-            guard !isRunning, !isBusy else { outputConfiguration = oldValue; return }
-            outputConfiguration = outputConfiguration.sanitized
-            if let data = try? JSONEncoder().encode(outputConfiguration) {
+    }()
+    var outputConfiguration: OutputConfiguration {
+        get { storedOutputConfiguration }
+        set {
+            guard !isRunning, !isBusy else { return }
+            let configuration = newValue.sanitized
+            guard configuration != storedOutputConfiguration else { return }
+            storedOutputConfiguration = configuration
+            if let data = try? JSONEncoder().encode(configuration) {
                 UserDefaults.standard.set(data, forKey: "outputConfiguration")
             }
         }
@@ -60,20 +62,6 @@ final class CameraModel: ObservableObject {
         didSet {
             UserDefaults.standard.set(previewMask, forKey: "previewMask")
             engine.setPreviewMask(previewMask)
-        }
-    }
-    @Published var segmentationMode = SegmentationMode(
-        rawValue: UserDefaults.standard.string(forKey: "segmentationMode") ?? ""
-    ) ?? .foregroundObjects {
-        didSet {
-            UserDefaults.standard.set(segmentationMode.rawValue, forKey: "segmentationMode")
-            engine.setSegmentationMode(segmentationMode)
-        }
-    }
-    @Published var accessoriesEnabled = (UserDefaults.standard.object(forKey: "accessoriesEnabled") as? Bool) ?? true {
-        didSet {
-            UserDefaults.standard.set(accessoriesEnabled, forKey: "accessoriesEnabled")
-            engine.setAccessoriesEnabled(accessoriesEnabled)
         }
     }
     @Published var isEditingKeepMask = false {
@@ -154,7 +142,12 @@ final class CameraModel: ObservableObject {
         reconcileCapture()
     }
 
+    func previewAppeared(_ source: PreviewSource) {
+        engine.setPreviewVisible(true, for: source)
+    }
+
     func endPreview(_ source: PreviewSource) {
+        engine.setPreviewVisible(false, for: source)
         guard previewSource == source else { return }
         previewSource = nil
         reconcileCapture()
@@ -248,8 +241,6 @@ final class CameraModel: ObservableObject {
 
     func setSegmentationConfiguration(_ configuration: SegmentationConfiguration) {
         engine.setSegmentationConfiguration(configuration)
-        engine.setSegmentationMode(segmentationMode)
-        engine.setAccessoriesEnabled(accessoriesEnabled)
     }
 
     func addKeepStroke(_ stroke: KeepStroke) {

@@ -9,6 +9,7 @@ struct CustomMaskConfigurationTests {
         var configuration = try JSONDecoder().decode(SegmentationConfiguration.self, from: data)
         #expect(configuration.appleSettings.quality == .balanced)
         #expect(configuration.appleSettings.analysisWidth == 128)
+        #expect(configuration.appleSettings.accessoryDetail == .standard)
         #expect(configuration.appleSettings.revision == 0)
         #expect(!configuration.appleSettings.preferBackgroundProcessing)
         configuration.provider = .custom
@@ -27,6 +28,7 @@ struct CustomMaskConfigurationTests {
         configuration.maskSettings = .cleanEdges
         configuration.appleSettings.quality = .fast
         configuration.appleSettings.analysisWidth = 512
+        configuration.appleSettings.accessoryDetail = .veryFine
         configuration.provider = .custom
         #expect(configuration.maskSettings == .detailed)
         #expect(configuration.inferenceSettings.computeUnits == .cpuOnly)

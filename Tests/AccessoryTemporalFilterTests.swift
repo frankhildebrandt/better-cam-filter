@@ -61,6 +61,25 @@ struct AccessoryTemporalFilterTests {
         #expect(frame(filter, candidate: false, time: 0.43)[accessory] == 0)
     }
 
+    @Test func farEndOfConfirmedBoomGetsSameBoundedHoldAsItsBase() {
+        let filter = AccessoryTemporalFilter()
+        var person = [UInt8](repeating: 0, count: width * height)
+        person[55] = 255
+        var boom = [UInt8](repeating: 0, count: person.count)
+        for pixel in 50..<55 { boom[pixel] = 255 }
+        let rgba = [UInt8](repeating: 50, count: person.count * 4)
+        for time in [0.0, 0.05, 0.11] {
+            _ = filter.filter(boom, person: person, rgba: rgba, width: width, height: height, time: time)
+        }
+        let miss = [UInt8](repeating: 0, count: person.count)
+        for time in [0.15, 0.20, 0.30] {
+            let held = filter.filter(miss, person: person, rgba: rgba, width: width, height: height, time: time)
+            #expect(held[50] == 255 && held[54] == 255)
+        }
+        let expired = filter.filter(miss, person: person, rgba: rgba, width: width, height: height, time: 0.37)
+        #expect(expired[50] == 0 && expired[54] == 0)
+    }
+
     @Test func revealedBrightBackgroundNeedsRepeatedNegativeEvidence() {
         let filter = confirmedFilter()
         #expect(frame(filter, candidate: false, time: 0.15, color: 255)[accessory] == 255)
@@ -117,6 +136,23 @@ struct AccessoryTemporalFilterTests {
                           color: UInt8(50 + index * 5))[accessory] == 255)
         }
         #expect(frame(filter, candidate: false, time: 0.63, color: 105)[accessory] == 255)
+    }
+
+    @Test(arguments: [UInt8(50), UInt8(200)])
+    func prolongedSemanticCoverageRetainsOnlyPreviouslyConfirmedMatchingAppearance(color: UInt8) {
+        let filter = confirmedFilter()
+        let empty = [UInt8](repeating: 0, count: width * height)
+        var person = empty
+        person[55] = 255
+        person[accessory] = 255
+        var rgba = [UInt8](repeating: 80, count: person.count * 4)
+        for channel in 0..<3 { rgba[accessory * 4 + channel] = color }
+        for frame in 4..<20 {
+            _ = filter.filter(empty, person: person, rgba: rgba, width: width, height: height, time: Double(frame) / 30)
+        }
+        person[accessory] = 0
+        let released = filter.filter(empty, person: person, rgba: rgba, width: width, height: height, time: 20.0 / 30)
+        #expect(released[accessory] == (color == 50 ? 255 : 0))
     }
 
     @Test func oneColorOutlierCannotRemoveAPositivelyRecognizedMic() {
@@ -234,6 +270,34 @@ struct AccessoryTemporalFilterTests {
         #expect(result[57] == 255)
         #expect(result[58] == 255)
         #expect(result[59] == 0)
+    }
+
+    @Test(arguments: [false, true])
+    func cableMotionNeedsAChangedOldLocationAndLeavesNoDoubleEdge(oldCableStillVisible: Bool) {
+        let w = 40, h = 24
+        var person = [UInt8](repeating: 0, count: w * h)
+        person[12 * w + 32] = 255
+        let cable = (6...31).map { 12 * w + $0 }
+        var evidence = [UInt8](repeating: 0, count: person.count)
+        var rgba = [UInt8](repeating: 220, count: person.count * 4)
+        func paint(_ p: Int, present: Bool) {
+            evidence[p] = present ? 255 : 0
+            for channel in 0..<3 { rgba[p * 4 + channel] = present ? 42 : 220 }
+        }
+        let filter = AccessoryTemporalFilter()
+        for p in cable { paint(p, present: true) }
+        for t in [0.0, 0.05, 0.11] {
+            _ = filter.filter(evidence, person: person, rgba: rgba, width: w, height: h, time: t)
+        }
+        for p in cable {
+            paint(p, present: oldCableStillVisible)
+            paint(p + 2 * w, present: true)
+        }
+        let result = filter.filter(evidence, person: person, rgba: rgba, width: w, height: h, time: 0.15)
+        for p in cable {
+            #expect(result[p] == (oldCableStillVisible ? 255 : 0))
+            #expect(result[p + 2 * w] == (oldCableStillVisible ? 0 : 255))
+        }
     }
 
     private func confirmedFilter() -> AccessoryTemporalFilter {

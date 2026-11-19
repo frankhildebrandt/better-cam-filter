@@ -17,11 +17,13 @@ enum SegmentationModelStoreError: LocalizedError {
 
 struct SegmentationModelStore: Sendable {
     let directory: URL
+    private let legacyAppleAccessories: AppleAccessorySelection
 
     private var models: URL { directory.appendingPathComponent("Models", isDirectory: true) }
     private var manifest: URL { directory.appendingPathComponent("configuration.json") }
 
-    init(root: URL? = nil) throws {
+    init(root: URL? = nil, legacyAppleAccessories: AppleAccessorySelection = .init()) throws {
+        self.legacyAppleAccessories = legacyAppleAccessories
         if let root {
             directory = root.standardizedFileURL
         } else {
@@ -32,8 +34,12 @@ struct SegmentationModelStore: Sendable {
     }
 
     func load() throws -> SegmentationConfiguration {
-        guard FileManager.default.fileExists(atPath: manifest.path) else { return SegmentationConfiguration() }
-        let configuration = try JSONDecoder().decode(SegmentationConfiguration.self, from: Data(contentsOf: manifest))
+        guard FileManager.default.fileExists(atPath: manifest.path) else {
+            return SegmentationConfiguration(appleAccessories: legacyAppleAccessories)
+        }
+        let decoder = JSONDecoder()
+        decoder.userInfo[.legacyAppleAccessories] = legacyAppleAccessories
+        let configuration = try decoder.decode(SegmentationConfiguration.self, from: Data(contentsOf: manifest))
         try check(configuration)
         return configuration
     }
@@ -71,7 +77,7 @@ struct SegmentationModelStore: Sendable {
     /// Select a validated owned model copy without downloading or recompiling it.
     func select(_ model: InstalledSegmentationModel) throws -> SegmentationConfiguration {
         try check(model)
-        var configuration = (try? load()) ?? SegmentationConfiguration()
+        var configuration = (try? load()) ?? SegmentationConfiguration(appleAccessories: legacyAppleAccessories)
         configuration.provider = .custom
         configuration.customModelURL = model.modelURL
         configuration.customModelName = model.name
@@ -108,7 +114,7 @@ struct SegmentationModelStore: Sendable {
         let name = displayName ?? url.deletingPathExtension().lastPathComponent
         let installed = InstalledSegmentationModel(id: id, catalogID: catalogID, name: name, modelURL: destination)
         try JSONEncoder().encode(installed).write(to: sidecar, options: .atomic)
-        var configuration = (try? load()) ?? SegmentationConfiguration()
+        var configuration = (try? load()) ?? SegmentationConfiguration(appleAccessories: legacyAppleAccessories)
         configuration.provider = .custom
         configuration.customModelURL = destination
         configuration.customModelName = name

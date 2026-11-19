@@ -100,6 +100,7 @@ struct ContentView: View {
         .sheet(isPresented: $showingLibrary) {
             BackgroundLibraryView(model: backgrounds, camera: camera)
         }
+        .onAppear { camera.previewAppeared(.mainWindow) }
         .onDisappear { camera.endPreview(.mainWindow) }
     }
 

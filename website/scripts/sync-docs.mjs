@@ -49,8 +49,8 @@ const pages = [
   [
     "research",
     "Modell-Recherche",
-    "Recherche vom 7. November 2026: mögliche nächste Schritte für Segmentierung und Matting.",
-    ["Recherche zu Segmentierung und Matting (7. November 2026)"],
+    "Recherche vom 19. November 2026: mögliche nächste Schritte für Segmentierung und Matting.",
+    ["Recherche zu Segmentierung und Matting (19. November 2026)"],
   ],
   [
     "license",

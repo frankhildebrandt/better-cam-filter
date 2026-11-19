@@ -138,7 +138,7 @@ Die Bundle IDs sind `de.bettercam.app`, `de.bettercam.camera` und
 `de.bettercam.CodexServer` (eingebetteter XPC-Dienst). Der XPC-Dienst benötigt kein
 eigenes Provisioning-Profil. Falls die App- oder Kamera-ID im
 Developer Account nicht verfügbar sind, in `project.yml` ändern und die IDs in
-`CameraConfiguration.swift`, `CameraDevice.authorizeProducer`, der App Group und
+`CameraConfiguration.swift`, `ProducerAuthorization.swift`, der App Group und
 `CMIOExtensionMachServiceName` entsprechend angleichen. Die gemeinsame App Group
 `$(TeamIdentifierPrefix)de.bettercam.camera` muss für beide Targets freigegeben sein.
 
@@ -198,7 +198,8 @@ Sobald eine Video-App den virtuellen Kamerastream **BetterCam** öffnet, startet
 die ausgewählte Webcam. Wenn die letzte Video-App den Stream schließt, gibt
 BetterCam die Webcam frei, sofern keine manuell gestartete Vorschau geöffnet ist.
 Für eine lokale Vorschau **Kamera starten** wählen. Beim Schließen der Vorschau
-endet der lokale Kamerabedarf.
+endet der lokale Kamerabedarf. Läuft BetterCam nur für eine Video-App, entfallen
+die zusätzlichen Vorschaubilder für das Hauptfenster und die Gesteneinstellungen.
 
 **Kamera stoppen** gibt die Webcam frei und pausiert einen laufenden Zugriff über
 die virtuelle Kamera. Sobald alle Video-Apps den Stream geschlossen haben, ist
@@ -333,10 +334,32 @@ und dort bei Bedarf ausgeschaltet werden.
 ### Bilderkennungsmodelle
 
 Unter **Bilderkennung → Modell** stehen
-**Apple Vision**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
+**Apple Vision**, **Apple Vision · Vordergrundobjekte**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
 und virtuelle Kamera und bleibt nach einem Neustart erhalten.
 
-Apple Vision ist der Standard und benötigt keinen Download. **U²-NetP** ist die
+Unter **Einstellungen → Bilderkennung → Aufnahme-Preset** lassen sich Modell,
+Maske und Zubehör-Erkennung gemeinsam wählen. Für ein Mikrofon am Arm mit
+dünnem Anschlusskabel empfiehlt sich **Mikrofon · Feine Kabel**.
+
+| Aufnahme-Preset | Modell | Zubehörbreite | Geeignet für |
+| --- | --- | --- | --- |
+| Mikrofon · Feine Kabel | Apple Vision | 1024 Pixel | Dünne Kabel, feine Streben und reflektierende Stecker |
+| Mikrofon · Ausgewogen | Apple Vision | 768 Pixel | Mikrofon und Arm, wenn die höchste Detailstufe die Bildrate zu stark senkt |
+| Videocall · Standard | Apple Vision | 512 Pixel | Breite Arme und geringeren Rechenaufwand |
+| Freistehendes Mikrofon | Apple Vision · Vordergrundobjekte | 1024 Pixel | Ein Mikrofon abseits der Person, mit zusätzlicher Personen- und Zubehörerkennung |
+
+Die drei Presets für Apple Vision verwenden die präzise Personenmaske und ergänzen
+das Zubehör separat. Einzelne Einstellungen lassen sich anschließend anpassen.
+Passt die Kombination zu keinem Preset, zeigt die App **Benutzerdefiniert**.
+Die Auswahl wird für den nächsten Start gespeichert.
+
+Für freistehende Gegenstände steht auch **Apple Vision · Vordergrundobjekte** direkt auf
+dem Mac zur Verfügung. Es übernimmt die auffälligen Objekte jedes Bildes. Dazu können
+auch Gegenstände im Zimmer gehören. Seine Vorgabe **Mikrofon, Arm & Kabel** ergänzt die
+Objektmaske mit der Personen- und Zubehörerkennung. Das kostet einen zweiten
+Vision-Durchlauf. **Nur stabilisieren** zeigt die zeitlich gestützte Objektmaske allein.
+
+**U²-NetP** ist die
 empfohlene kleine Alternative für einen ersten Live-Versuch; **U²-Net** ist die größere
 Variante für einen Qualitätsvergleich. Die Auswahl eines noch nicht installierten
 Modells oder **Herunterladen und verwenden** startet den Download mit Fortschritt und
@@ -393,13 +416,14 @@ CPU/Neural Engine) und Eingangs-Skalierung (strecken, einpassen, ausfüllen) zur
 Die Eingangsgröße und die Maskenausgänge sind durch die jeweilige Modelldatei vorgegeben.
 Einpassen verwendet schwarze Ränder; Ausfüllen beschneidet den Eingang. Die Maske wird
 mit der passenden inversen Transformation auf das Kamerabild zurückgeführt.
-Die automatische Apple-Zubehör-Heuristik ist beim Custom-Modell ausgeschaltet.
-Explizite Schutzmarkierungen gelten weiterhin für beide Varianten.
+Auch für U²-Net und importierte Modelle lässt sich die Vorgabe **Mikrofon, Arm & Kabel**
+wählen. Sie behält die weichen Modellkanten bei und ergänzt lokal Person und Zubehör.
+Bisherige Modellprofile bleiben gespeichert. Schutzmarkierungen gelten für alle Modelle.
 
 ### Masken einstellen
 
 Unter **Bilderkennung → Maske optimieren** gibt es gespeicherte Einstellungen pro
-Modell, einschließlich Apple Vision. Apple beginnt mit **Unverändert**, um das bisherige Verhalten beizubehalten. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
+Modell, einschließlich Apple Vision. Das Apple-Personenmodell beginnt mit **Unverändert**, um das bisherige Verhalten beizubehalten. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
 nutzt **Mehr Vordergrund**, weil es auf dem lokalen Testbild andernfalls auch im
 Pullover deutlich durchsichtige Bereiche erzeugt. Neu manuell importierte Modelle
 beginnen mit **Unverändert**, damit fertige Matting-Modelle ihre eigenen weichen
@@ -415,7 +439,7 @@ Personenerkennung und Stabilisierung vollständig aus.
   negative erweitern sie. Die Pixelangabe bezieht sich auf 1080 Pixel Ausgabehöhe.
 - **Flackern reduzieren:** Hält zuvor sicher erkannten Vordergrund kurz fest, wenn
   die Bildfarbe am gleichen Ort weiterhin passt. Die Haltezeit beträgt höchstens
-  120 ms bei 100 %. Neue Vordergrundflächen erscheinen sofort; eigene gehaltene
+  120 ms ab der letzten sicheren Erkennung bei 100 %. Neue Vordergrundflächen erscheinen sofort; eigene gehaltene
   Ausgaben verlängern die Historie nicht. Bei nachziehenden Konturen den Wert senken.
 - **Person zusätzlich mit Apple erkennen:** Vereinigt die aktuelle Vision-Personenmaske
   mit der Objektmaske vor der Nachbearbeitung. Das kann fehlende Körperbereiche
@@ -436,26 +460,39 @@ nun sauber freigestellt werden; dafür ist eine neue Live-Prüfung erforderlich.
 ## Vordergrund und Schutzbereiche
 
 **Einstellungen → Bilderkennung → Zubehör → Person + Zubehör** ist bei Apple Vision der Standard. Die genaue Vision-Personenmaske
-bildet die Basis; daran wird Zubehör gezielt ergänzt. Allgemeine Vision-Instanzen
-werden nicht mehr pauschal übernommen, damit Tür oder Whiteboard bei wechselnder
-Erkennung nicht als neue Vordergrundobjekte erscheinen. **Nur Person** verwendet
+bildet die Basis für die gezielte Zubehörerkennung. **Nur Person** verwendet
 dieselbe Personenmaske ohne die automatische Zubehör-Ergänzung.
+
+Für dünne Mikrofonkabel lässt sich die **Zubehör-Auflösung** von 512 Pixeln
+(Standard) auf 768 oder 1024 Pixel Breite erhöhen. Bei feinen Kabeln zuerst
+1024 ausprobieren und die Bildrate im Hauptfenster prüfen. Wenn sie zu stark
+sinkt, ist 768 die Zwischenstufe. Die Auswahl gilt auch für die Zubehör-Ergänzung
+bei anderen Modellen. In beiden höheren Stufen prüft BetterCam den Stecker zusätzlich
+bei 512 Pixeln. Dadurch können graue Metallflächen und helle Reflexe erhalten
+bleiben, wenn sie in der feineren Analyse mit der Wand verschmelzen.
 
 **Stuhl & Mikrofon ergänzen** ist im Objektmodus standardmäßig aktiv. Ein lokaler
 Algorithmus sucht zusammenhängende dunkle, wenig gesättigte Flächen nahe der bereits
 erkannten Person. Schmale farbige Komponenten ergänzen beispielsweise ein Kabel;
-kurze Verbindungsstücke überbrücken helle Metallteile. Neue unabhängige Zubehörbereiche
+schmale dunkle Strukturen können einen Mikrofonarm oder ein schwarzes Anschlusskabel bilden.
+Die Suche folgt mehreren verbundenen Teilen. Helle Reflexe im Stecker brauchen einen
+weitgehend erhaltenen Rand mit grauen Metallpixeln. Beim Vergrößern der Zubehörmaske
+dienen die Helligkeitskanten des aktuellen Kamerabildes als Führung. Neue unabhängige Zubehörbereiche
 benötigen mindestens drei aufeinanderfolgende Beobachtungen über mindestens 100 ms.
 Bestätigtes Zubehör bleibt bei positiver Erkennung auch bei Farbsprüngen erhalten;
 seine Farbreferenz folgt laufenden Belichtungsänderungen. Ausblenden benötigt mindestens
 drei negative Beobachtungen über 200 ms. Bei deutlich anderem freigelegtem Hintergrund
 reichen zwei negative Beobachtungen über mindestens 60 ms. Eine Wiedererkennung vor
-der Freigabe gilt sofort. Die Personenmaske selbst wird weder verzögert noch mit alten
+der Freigabe gilt sofort. Diese Haltezeit gilt bis zur Spitze eines langen Arms. Die Personenmaske selbst wird weder verzögert noch mit alten
 Kopfkonturen überblendet.
 
 Bewegte Komponenten übernehmen die bestehende Bestätigung in einem
 begrenzten Randbereich (2 % der Analysebreite), wenn mindestens 40 % der aktuellen
-Komponente mit farblich passenden bestätigten Pixeln überlappen. Unabhängige neue
+Komponente mit farblich passenden bestätigten Pixeln überlappen. Bei einem dünnen
+verschobenen Kabel kann auch ein kurzer Versatz ohne Überlappung bestätigt werden.
+Dafür müssen sich die alten Bildpunkte sichtbar geändert haben und mindestens drei
+Viertel der verteilten Stichproben an der versetzten Position zu Form und Farbe passen.
+Die bisherigen Kabelpixel werden im selben Bild freigegeben. Unabhängige neue
 Bereiche durchlaufen weiterhin die anfängliche Mehrbildprüfung. Szenenwechsel werden
 an Hintergrundpixeln außerhalb der aktuellen und vorherigen Personenmaske sowie des
 Zubehörs gemessen, damit Personenbewegungen nicht die gesamte Zubehörhistorie löschen.
@@ -522,14 +559,19 @@ AVCaptureDevice → AVCaptureVideoDataOutput
   mit IOSurface-Puffern und begrenztem Pool. Die Extension wird bei Bedarf alle
   zwei Sekunden erneut gesucht, sodass die Vorschau auch ohne Installation läuft.
 - **CameraExtension:** stabiles Geräte-/Stream-UUID-Paar und Source-/Sink-Streams.
-  Ein Producer gleichzeitig, auf die App-Signatur-ID beschränkt. Die Extension
+  Ein Producer gleichzeitig, auf die gültige Apple-Signatur von `de.bettercam.app`
+  aus demselben Developer-Team wie die Erweiterung beschränkt. Die Prüfung nutzt
+  den laufenden Prozess, weil CoreMediaIO die Client-Kennung auch als `unknown`
+  liefern kann. Security.framework prüft die vom Kernel gehaltene Signatur ohne
+  Dateizugriff auf das App-Bundle des Producers.
+  Die Extension
   konsumiert auch ohne Zuschauer und sendet an alle Kamera-Clients. Ohne aktuelle
   Frames spätestens nach 500 ms Schwarz; beim regulären Stop wird das letzte Bild
   sofort verworfen. Die Kamera gibt keine eigenen Hardware-Captures in Auftrag.
 - **Shared:** Ausgabeformat, Seitenverhältnis, Vision-Segmentierung, Schutzmaske,
   Masken-Compositing und Sample-Puffer. Masken werden in normalisierten Koordinaten
   auf das bereits zugeschnittene Kamerabild abgebildet, ohne erneuten Aspect-Fill-Crop.
-  `AccessoryMaskRefiner` analysiert Bild und Maske bei 512 Pixeln Breite.
+  `AccessoryMaskRefiner` begrenzt die Analysebreite auf die gewählte Zubehör-Auflösung.
   `AccessoryRegions` ergänzt begrenzt verbundene Komponenten. `AccessoryTemporalFilter`
   bestätigt nur zusätzliche Zubehörpixel; die aktuelle hochauflösende Personenmaske
   und explizite Schutzbereiche bleiben davon unabhängig.
@@ -554,13 +596,20 @@ xcodebuild -project BetterCam.xcodeproj -scheme BetterCam \
 # Tests für Bildverarbeitung, Profile, Mediathek, Codex-JSON-RPC und Prozesslebenszyklus:
 swift test
 
+# Echter Kamera-Controller: SwiftUI-Ausgabewahl, 60 FPS und Speicherung ohne Kamera:
+python3 Tools/verify_camera_settings.py
+
+# Virtuellen Ausgang als separater Client prüfen (aktivierte Extension und laufende Kamera erforderlich):
+swiftc -swift-version 6 -parse-as-library Shared/CameraConfiguration.swift Shared/VideoBuffers.swift App/Camera/CMIOProperties.swift Tools/VerifyVirtualCamera.swift -o /tmp/verify-virtual-camera
+/tmp/verify-virtual-camera
+
 # Vergleich aus einem lokalen Kamerabild (optional: Screenshot-Crop in Pixeln ab links oben):
-swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Tools/InspectMask.swift -o /tmp/inspect-mask
+swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Shared/Gestures/*.swift Shared/Reactions/*.swift Tools/InspectMask.swift -o /tmp/inspect-mask
 /tmp/inspect-mask /path/to/camera.png build/mask-evaluation
 # /tmp/inspect-mask /path/to/window.png build/mask-evaluation 336 136 681 383
 
 # Optionaler echter Netzwerk-/Modelltest (lädt beide Katalogmodelle, etwa 181 MB):
-swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Tools/VerifyModelCatalog.swift -o /tmp/verify-model-catalog
+swiftc -O -swift-version 6 Shared/*.swift Shared/Segmentation/*.swift Shared/Gestures/*.swift Shared/Reactions/*.swift Tools/VerifyModelCatalog.swift -o /tmp/verify-model-catalog
 /tmp/verify-model-catalog build/catalog-verification --all
 ```
 
@@ -570,7 +619,9 @@ der Ausgabeordner `build/` ist ignoriert. Die Tests decken unter anderem Stuhl,
 Arm, farbiges Kabel, kurze Verbinder, unveränderte weiche Personenränder und
 abgelehnte dunkle Hintergrundflächen ab. Zeitliche Regressionstests prüfen positive
 Erkennung bei Farbdrift, kurze Erkennungslücken, bestätigte Entfernung, bewegte
-Mikrofonkanten und den Wechsel zwischen Personen- und Zubehörmaske.
+Mikrofonkanten und den Wechsel zwischen Personen- und Zubehörmaske. Eine Sequenz
+prüft beide Schienen eines Mikrofonarms, den reflektierenden Stecker und ein dünnes
+schwarzes Kabel. Die Zwischenräume und der Hintergrund neben dem Kabel werden separat geprüft.
 
 Ein erfolgreicher Build und diese Tests ersetzen keinen Installationstest. Für den
 End-to-End-Test auf einem Mac: signieren und installieren, BetterCam beispielsweise
@@ -586,13 +637,34 @@ die eigene virtuelle Kamera darf nicht als Eingangsquelle angeboten werden.
 Das Xcode-Projekt und generierte Plists/Entitlements werden mitgeliefert; `project.yml`
 ist die Quelle für Änderungen an Targets, Build-Einstellungen und Capabilities.
 
-## Recherche zu Segmentierung und Matting (7. November 2026)
+## Recherche zu Segmentierung und Matting (19. November 2026)
+
+Für Mikrofon, Arm und Kabel sind die Kontur im Einzelbild und die Wiedererkennung
+bei Bewegung zwei verschiedene Anforderungen. Drei Kandidaten für einen Vergleich:
+
+- **EdgeTAM** verfolgt per Punkt oder Box markierte Objekte in Videos. Damit ließe sich
+  der Mikrofonaufbau einmal markieren. Der offizielle Core-ML-Export dokumentiert
+  Bildencoder, Promptencoder und Maskendecoder. Für BetterCam braucht es zusätzlich die
+  Videozustandsverwaltung und eine Laufzeitmessung mit der Kamera. [Meta, EdgeTAM](https://github.com/facebookresearch/EdgeTAM)
+- **BiRefNet-V2** untersucht hochauflösende Einzelbildmasken für dünne Strukturen und
+  offene Zwischenräume. Als Referenz für Kabelkanten ist es interessant. Die publizierten
+  Bildbenchmarks messen weder zeitliches Flackern noch die Live-Bildrate auf diesem Mac.
+  [Originalarbeit, November 2026](https://arxiv.org/abs/2611.11272)
+- **Cutie** übernimmt eine Startmaske und verfolgt das bezeichnete Objekt mit einem
+  Gedächtnis über die Folgeframes. Ein sorgfältig markierter Arm samt Kabel könnte so
+  auch beim Schwenken sichtbar bleiben. Die Qualität am lokalen Setup und eine native
+  Integration sind offen. [Forschungsprojekt und Referenzcode](https://github.com/hkchengrex/Cutie)
+
+Diese drei Modelle sind Recherchekandidaten. In der App verfügbar sind die beiden
+Vision-Verfahren, die beiden U²-Net-Downloads und kompatible eigene Core-ML-Modelle.
+
+### Weitere Ansätze
 
 - [Apples Foreground Instance Masks](https://developer.apple.com/videos/play/wwdc2023/10176/):
   native Segmentierung allgemeiner Vordergrundobjekte ab macOS 14. Diese Version
-  wurde zunächst als Basis verwendet. Inzwischen verwendet die App stattdessen
-  die Personenmaske als festen semantischen Anker, weil wechselnde allgemeine Instanzen
-  Raumobjekte freigeben konnten. Keine zusätzlichen Gewichte und keine Server erforderlich.
+  ist als **Apple Vision · Vordergrundobjekte** wählbar. Der Standard verwendet
+  die Personenmaske als Anker, weil wechselnde allgemeine Instanzen auch Raumobjekte
+  freigeben können. Keine zusätzlichen Gewichte und keine Server erforderlich.
 - [Robust Video Matting (RVM)](https://github.com/PeterL1n/RobustVideoMatting):
   zeitliches Gedächtnis und Core-ML-Unterstützung sind für flackerarme Personenmasken
   interessant. Es ist ausdrücklich für Human Matting trainiert; ein Erhalt von

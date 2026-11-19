@@ -85,7 +85,7 @@ Die Bundle IDs sind `de.bettercam.app`, `de.bettercam.camera` und
 `de.bettercam.CodexServer` (eingebetteter XPC-Dienst). Der XPC-Dienst benötigt kein
 eigenes Provisioning-Profil. Falls die App- oder Kamera-ID im
 Developer Account nicht verfügbar sind, in `project.yml` ändern und die IDs in
-`CameraConfiguration.swift`, `CameraDevice.authorizeProducer`, der App Group und
+`CameraConfiguration.swift`, `ProducerAuthorization.swift`, der App Group und
 `CMIOExtensionMachServiceName` entsprechend angleichen. Die gemeinsame App Group
 `$(TeamIdentifierPrefix)de.bettercam.camera` muss für beide Targets freigegeben sein.
 
@@ -145,7 +145,8 @@ Sobald eine Video-App den virtuellen Kamerastream **BetterCam** öffnet, startet
 die ausgewählte Webcam. Wenn die letzte Video-App den Stream schließt, gibt
 BetterCam die Webcam frei, sofern keine manuell gestartete Vorschau geöffnet ist.
 Für eine lokale Vorschau **Kamera starten** wählen. Beim Schließen der Vorschau
-endet der lokale Kamerabedarf.
+endet der lokale Kamerabedarf. Läuft BetterCam nur für eine Video-App, entfallen
+die zusätzlichen Vorschaubilder für das Hauptfenster und die Gesteneinstellungen.
 
 **Kamera stoppen** gibt die Webcam frei und pausiert einen laufenden Zugriff über
 die virtuelle Kamera. Sobald alle Video-Apps den Stream geschlossen haben, ist

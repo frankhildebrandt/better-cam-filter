@@ -31,6 +31,50 @@ struct AccessoryRegionsTests {
         #expect(AccessoryRegions.refine(rgba: rgba, alpha: alpha, width: width, height: height) == alpha)
     }
 
+    @Test func fineMetalJoinedToAGrayWallUsesOnlyMatchingCoarseConnectorPixels() {
+        func frame(scale: Int) -> AccessorySamples {
+            let w = 512 * scale, h = 288 * scale
+            var rgba = [UInt8](repeating: 255, count: w * h * 4)
+            var alpha = [UInt8](repeating: 0, count: w * h)
+            func paint(_ x: Range<Int>, _ y: Range<Int>, gray: UInt8, person: Bool = false) {
+                for row in (y.lowerBound * scale)..<(y.upperBound * scale) {
+                    for column in (x.lowerBound * scale)..<(x.upperBound * scale) {
+                        let index = row * w + column
+                        for channel in 0..<3 { rgba[index * 4 + channel] = gray }
+                        if person { alpha[index] = 255 }
+                    }
+                }
+            }
+            paint(365..<440, 90..<270, gray: 35, person: true)
+            paint(220..<365, 206..<215, gray: 35) // Arm.
+            paint(150..<205, 208..<213, gray: 30) // Cable.
+            paint(205..<220, 206..<215, gray: 155) // Sleeve.
+            paint(207..<218, 207..<214, gray: 225) // Reflection.
+            paint(185..<245, 130..<190, gray: 155) // Wall.
+            if scale == 2 {
+                // A one-pixel seam joins the gray regions only at the finer resolution.
+                for row in (190 * scale)..<(206 * scale) {
+                    let offset = (row * w + 210 * scale) * 4
+                    for channel in 0..<3 { rgba[offset + channel] = 155 }
+                }
+                let edge = (214 * scale * w + 210 * scale) * 4
+                for channel in 0..<3 { rgba[edge + channel] = 245 }
+            }
+            return AccessorySamples(rgba: rgba, alpha: alpha, width: w, height: h)
+        }
+        let coarse = frame(scale: 1), fine = frame(scale: 2)
+        var evidence = fine.proposal().evidence
+        func index(_ x: Int, _ y: Int) -> Int { 2 * y * fine.width + 2 * x }
+        #expect(evidence[index(211, 210)] == 0)
+        #expect(evidence[index(206, 210)] == 0)
+        AccessoryRegions.restoreMetal(from: coarse, in: fine, evidence: &evidence)
+        #expect(evidence[index(211, 210)] == 255) // Reflection.
+        #expect(evidence[index(206, 210)] == 255) // Gray metal.
+        #expect(evidence[index(210, 214)] == 0)   // Bright edge outside the metal color.
+        #expect(evidence[index(210, 200)] == 0)   // Seam.
+        #expect(evidence[index(210, 170)] == 0)   // Wall.
+    }
+
     @Test func rejectsDarkWallConnectedToPersonAtUpperFrameEdge() {
         var rgba = canvas()
         var alpha = [UInt8](repeating: 0, count: width * height)

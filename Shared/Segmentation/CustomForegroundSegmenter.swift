@@ -111,6 +111,8 @@ final class CustomForegroundSegmenter {
 
     private func checkedImage(_ buffer: CVPixelBuffer) throws -> CIImage {
         let image = CIImage(cvPixelBuffer: buffer, options: [.colorSpace: NSNull()])
+        // Normalized eight-bit samples already guarantee a finite alpha in 0...1.
+        if CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_OneComponent8 { return image }
         let width = CVPixelBufferGetWidth(buffer), height = CVPixelBufferGetHeight(buffer)
         var values = [Float](repeating: 0, count: width * height)
         context.render(image, toBitmap: &values, rowBytes: width * MemoryLayout<Float>.size,

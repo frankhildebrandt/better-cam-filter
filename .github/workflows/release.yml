@@ -39,6 +39,7 @@ jobs:
         run: |
           python3 -m unittest discover -s Tools/ci -p 'test_*.py'
           swift test
+          python3 Tools/verify_camera_settings.py
       - name: Import signing credentials
         env:
           APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}

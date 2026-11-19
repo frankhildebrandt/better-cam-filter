@@ -31,6 +31,14 @@ struct CustomMaskTemporalFilterTests {
         #expect(value(recovered, x: 12, y: 8) > 0.99)
     }
 
+    @Test(arguments: [0.01, 0.5, 1.0])
+    func sparseFramesCannotExtendTheConfiguredHold(strength: Double) {
+        let filter = CustomMaskTemporalFilter(context: context)
+        _ = filter.filter(mask: micMask(), image: appearance(), time: 0, strength: strength)
+        let result = filter.filter(mask: black(), image: appearance(), time: 0.12 * strength + 0.001, strength: strength)
+        #expect(value(result, x: 12, y: 8) == 0)
+    }
+
     @Test func changedSourcePixelsReleaseHistoryImmediately() {
         let filter = CustomMaskTemporalFilter(context: context)
         _ = filter.filter(mask: micMask(), image: appearance(), time: 0, strength: 1)

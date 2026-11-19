@@ -27,7 +27,9 @@ enum InspectMask {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let context = CIContext()
         let image = FrameComposition.aspectFill(CIImage(cgImage: bitmap), in: CameraConfiguration.bounds)
-        let baseline = try ForegroundSegmenter().mask(for: image)
+        let segmenter = ForegroundSegmenter(context: context)
+        segmenter.configuration.appleAccessories.mode = .person
+        let baseline = try segmenter.mask(for: image)
         let refiner = AccessoryMaskRefiner(context: context)
         var refined = baseline
         for frame in 0..<6 {

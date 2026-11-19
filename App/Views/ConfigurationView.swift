@@ -105,6 +105,12 @@ struct ConfigurationView: View {
             .navigationTitle(category.title)
         }
         .frame(minWidth: 840, idealWidth: 900, minHeight: 640, idealHeight: 740)
+        .onAppear { if category == .gestures { camera.previewAppeared(.gestures) } }
+        .onChange(of: category) { previous, current in
+            if current == .gestures { camera.previewAppeared(.gestures) }
+            else if previous == .gestures { camera.endPreview(.gestures) }
+        }
+        .onDisappear { camera.endPreview(.gestures) }
         .fileImporter(isPresented: $choosingModel, allowedContentTypes: [.item, .folder]) { result in
             switch result {
             case .success(let url): Task { await settings.importModel(url) }
@@ -195,10 +201,27 @@ struct ConfigurationView: View {
 
     @ViewBuilder private var recognitionSections: some View {
         Section {
+            Picker("Aufnahme-Preset", selection: Binding(
+                get: { RecognitionPreset.matching(settings.configuration) },
+                set: { if let preset = $0 { settings.apply(preset) } }
+            )) {
+                ForEach(RecognitionPreset.allCases) { preset in
+                    Text(preset.title).tag(Optional(preset))
+                }
+                Text("Benutzerdefiniert").tag(RecognitionPreset?.none).disabled(true)
+            }
+        } footer: {
+            if let preset = RecognitionPreset.matching(settings.configuration) {
+                Text(preset.hint)
+            } else {
+                Text("Ein Aufnahme-Preset wählt das Modell und die Einstellungen für Person, Mikrofon und Zubehör gemeinsam.")
+            }
+        }
+        .disabled(settings.isBusy)
+
+        Section {
             modelPicker
-            Text(settings.configuration.provider == .apple
-                 ? "Apples Personenmodell verarbeitet deine Kamera lokal auf dem Mac."
-                 : "Das gewählte Modell liefert die Vordergrundmaske. Die Verarbeitung bleibt lokal auf dem Mac.")
+            Text(modelDescription)
                 .font(.callout).foregroundStyle(.secondary)
             Button("Modelle verwalten …") { selectedCategory = SettingsCategory.models.rawValue }
         } header: {
@@ -212,15 +235,17 @@ struct ConfigurationView: View {
 
         if settings.configuration.provider == .apple {
             Section("Zubehör") {
-                Picker("Erkennung", selection: $camera.segmentationMode) {
+                Picker("Erkennung", selection: appleAccessories.mode) {
                     ForEach(SegmentationMode.allCases) { Text($0.title).tag($0) }
                 }
-                if camera.segmentationMode == .foregroundObjects {
-                    Toggle("Stuhl & Mikrofon ergänzen", isOn: $camera.accessoriesEnabled)
-                    Text("Ergänzt Zubehör nahe der Person anhand von Farbe und Bewegung. Bei dunklem Raumhintergrund ausschalten.")
+                if settings.configuration.appleAccessories.mode == .foregroundObjects {
+                    Toggle("Stuhl & Mikrofon ergänzen", isOn: appleAccessories.enabled)
+                    Text("Erhält auch verbundene Mikrofonarme, Stecker und Kabel. In der Maskenvorschau lassen sich die Zwischenräume am Arm prüfen.")
                         .font(.caption).foregroundStyle(.secondary)
+                    if settings.configuration.appleAccessories.enabled { AccessoryDetailPicker(settings: settings) }
                 }
             }
+            .disabled(settings.isBusy)
         }
         Section("Maskenvorschau") {
             Toggle("Maske nur in Vorschau anzeigen", isOn: $camera.previewMask)
@@ -230,9 +255,21 @@ struct ConfigurationView: View {
         modelError
     }
 
+    private var appleAccessories: Binding<AppleAccessorySelection> {
+        Binding(get: { settings.configuration.appleAccessories }, set: { settings.updateAppleAccessories($0) })
+    }
+
+    private var modelDescription: String {
+        switch settings.configuration.provider {
+        case .apple: "Apples Personenmodell kann Stuhl und Mikrofon anhand ihrer Kontur und Farbe ergänzen."
+        case .appleObjects: "Apple erkennt auffällige Vordergrundobjekte in jedem Bild. Das kann ein freistehendes Mikrofon erfassen, aber auch Gegenstände im Raum. Das Modell läuft lokal ohne Download."
+        case .custom: "Das gewählte Modell liefert die Vordergrundmaske. Die Verarbeitung bleibt lokal auf dem Mac."
+        }
+    }
+
     private var modelPicker: some View {
         Picker("Modell", selection: selectedModel) {
-            Text("Apple Vision").tag("apple")
+            ForEach([SegmentationProvider.apple, .appleObjects]) { Text($0.title).tag($0.rawValue) }
             ForEach(SegmentationModelCatalog.models) { Text($0.title).tag($0.id) }
             ForEach(settings.installedModels.filter { $0.catalogID == nil }) { Text($0.name).tag($0.id) }
             Text("Eigenes Modell importieren …").tag("import")
@@ -322,11 +359,11 @@ struct ConfigurationView: View {
 
     private var selectedModel: Binding<String> {
         Binding(get: {
-            guard settings.configuration.provider == .custom else { return "apple" }
+            guard settings.configuration.provider == .custom else { return settings.configuration.provider.rawValue }
             let installed = settings.installedModels.first { $0.modelURL == settings.configuration.customModelURL }
             return installed?.catalogID ?? installed?.id ?? "import"
         }, set: { selected in
-            if selected == "apple" { settings.select(.apple) }
+            if let provider = SegmentationProvider(rawValue: selected), provider != .custom { settings.select(provider) }
             else if selected == "import" { choosingModel = true }
             else if let model = SegmentationModelCatalog.models.first(where: { $0.id == selected }) { settings.use(model) }
             else if let model = settings.installedModels.first(where: { $0.id == selected }) { settings.select(model) }

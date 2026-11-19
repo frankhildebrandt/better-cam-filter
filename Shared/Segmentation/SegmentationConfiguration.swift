@@ -1,12 +1,13 @@
 import Foundation
 
 enum SegmentationProvider: String, Codable, CaseIterable, Identifiable, Sendable {
-    case apple, custom
+    case apple, appleObjects, custom
 
     var id: Self { self }
     var title: String {
         switch self {
         case .apple: "Apple Vision"
+        case .appleObjects: "Apple Vision · Vordergrundobjekte"
         case .custom: "Custom-Modell"
         }
     }
@@ -18,11 +19,19 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
     var customModelName: String?
     var maskProfiles: [String: CustomMaskSettings] = [:]
     var appleSettings = AppleRecognitionSettings()
+    var appleAccessories = AppleAccessorySelection()
     var inferenceProfiles: [String: ModelInferenceSettings] = [:]
     var hasMaskSettings: Bool { maskProfiles[profileKey] != nil }
 
     var maskSettings: CustomMaskSettings {
-        get { (maskProfiles[profileKey] ?? (provider == .apple ? .original : .balanced)).sanitized }
+        get {
+            if let profile = maskProfiles[profileKey] { return profile.sanitized }
+            switch provider {
+            case .apple: return .original
+            case .appleObjects: return .microphoneSetup
+            case .custom: return .balanced
+            }
+        }
         set { maskProfiles[profileKey] = newValue.sanitized }
     }
 
@@ -31,16 +40,19 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
         set { inferenceProfiles[profileKey] = newValue }
     }
 
-    private var profileKey: String { provider == .apple ? "apple" : customModelURL?.lastPathComponent ?? "custom" }
+    private var profileKey: String {
+        provider == .custom ? (customModelURL?.lastPathComponent ?? "custom") : provider.rawValue
+    }
 
     init(provider: SegmentationProvider = .apple, customModelURL: URL? = nil, customModelName: String? = nil,
          maskProfiles: [String: CustomMaskSettings] = [:], appleSettings: AppleRecognitionSettings = .init(),
-         inferenceProfiles: [String: ModelInferenceSettings] = [:]) {
+         inferenceProfiles: [String: ModelInferenceSettings] = [:], appleAccessories: AppleAccessorySelection = .init()) {
         self.provider = provider
         self.customModelURL = customModelURL
         self.customModelName = customModelName
         self.maskProfiles = maskProfiles
         self.appleSettings = appleSettings.sanitized
+        self.appleAccessories = appleAccessories
         self.inferenceProfiles = inferenceProfiles
     }
 
@@ -51,12 +63,24 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
         customModelName = try values.decodeIfPresent(String.self, forKey: .customModelName)
         maskProfiles = try values.decodeIfPresent([String: CustomMaskSettings].self, forKey: .maskProfiles) ?? [:]
         appleSettings = try values.decodeIfPresent(AppleRecognitionSettings.self, forKey: .appleSettings)?.sanitized ?? .init()
+        appleAccessories = try values.decodeIfPresent(AppleAccessorySelection.self, forKey: .appleAccessories)
+            ?? (decoder.userInfo[.legacyAppleAccessories] as? AppleAccessorySelection) ?? .init()
         inferenceProfiles = try values.decodeIfPresent([String: ModelInferenceSettings].self, forKey: .inferenceProfiles) ?? [:]
     }
 
     private enum CodingKeys: String, CodingKey {
-        case provider, customModelURL, customModelName, maskProfiles, appleSettings, inferenceProfiles
+        case provider, customModelURL, customModelName, maskProfiles, appleSettings, appleAccessories, inferenceProfiles
     }
+}
+
+extension CodingUserInfoKey {
+    static let legacyAppleAccessories = Self(rawValue: "bettercam.legacyAppleAccessories")!
+}
+
+struct AppleAccessorySelection: Codable, Equatable, Sendable {
+    var mode: SegmentationMode = .foregroundObjects
+    var enabled = true
+    var isActive: Bool { mode == .foregroundObjects && enabled }
 }
 
 enum RecognitionQuality: String, Codable, CaseIterable, Identifiable, Sendable {
@@ -71,18 +95,24 @@ enum RecognitionQuality: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 }
 
+enum AccessoryDetail: Int, CaseIterable, Codable, Sendable {
+    case standard = 512, fine = 768, veryFine = 1024
+}
+
 struct AppleRecognitionSettings: Codable, Equatable, Sendable {
     var quality: RecognitionQuality = .accurate
     /// Zero uses the complete output image; other values cap the analysis width.
     var analysisWidth = 768
+    var accessoryDetail: AccessoryDetail = .standard
     /// Zero follows the system's default revision.
     var revision = 0
     var preferBackgroundProcessing = false
 
     init(quality: RecognitionQuality = .accurate, analysisWidth: Int = 768, revision: Int = 0,
-         preferBackgroundProcessing: Bool = false) {
+         preferBackgroundProcessing: Bool = false, accessoryDetail: AccessoryDetail = .standard) {
         self.quality = quality
         self.analysisWidth = analysisWidth
+        self.accessoryDetail = accessoryDetail
         self.revision = revision
         self.preferBackgroundProcessing = preferBackgroundProcessing
     }
@@ -92,11 +122,12 @@ struct AppleRecognitionSettings: Codable, Equatable, Sendable {
         self.init(quality: try values.decodeIfPresent(RecognitionQuality.self, forKey: .quality) ?? .accurate,
                   analysisWidth: try values.decodeIfPresent(Int.self, forKey: .analysisWidth) ?? 768,
                   revision: try values.decodeIfPresent(Int.self, forKey: .revision) ?? 0,
-                  preferBackgroundProcessing: try values.decodeIfPresent(Bool.self, forKey: .preferBackgroundProcessing) ?? false)
+                  preferBackgroundProcessing: try values.decodeIfPresent(Bool.self, forKey: .preferBackgroundProcessing) ?? false,
+                  accessoryDetail: AccessoryDetail(rawValue: try values.decodeIfPresent(Int.self, forKey: .accessoryDetail) ?? 0) ?? .standard)
         self = sanitized
     }
 
-    private enum CodingKeys: String, CodingKey { case quality, analysisWidth, revision, preferBackgroundProcessing }
+    private enum CodingKeys: String, CodingKey { case quality, analysisWidth, accessoryDetail, revision, preferBackgroundProcessing }
 
     var sanitized: Self {
         var result = self

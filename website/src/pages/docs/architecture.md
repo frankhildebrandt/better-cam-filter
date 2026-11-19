@@ -20,14 +20,19 @@ AVCaptureDevice → AVCaptureVideoDataOutput
   mit IOSurface-Puffern und begrenztem Pool. Die Extension wird bei Bedarf alle
   zwei Sekunden erneut gesucht, sodass die Vorschau auch ohne Installation läuft.
 - **CameraExtension:** stabiles Geräte-/Stream-UUID-Paar und Source-/Sink-Streams.
-  Ein Producer gleichzeitig, auf die App-Signatur-ID beschränkt. Die Extension
+  Ein Producer gleichzeitig, auf die gültige Apple-Signatur von `de.bettercam.app`
+  aus demselben Developer-Team wie die Erweiterung beschränkt. Die Prüfung nutzt
+  den laufenden Prozess, weil CoreMediaIO die Client-Kennung auch als `unknown`
+  liefern kann. Security.framework prüft die vom Kernel gehaltene Signatur ohne
+  Dateizugriff auf das App-Bundle des Producers.
+  Die Extension
   konsumiert auch ohne Zuschauer und sendet an alle Kamera-Clients. Ohne aktuelle
   Frames spätestens nach 500 ms Schwarz; beim regulären Stop wird das letzte Bild
   sofort verworfen. Die Kamera gibt keine eigenen Hardware-Captures in Auftrag.
 - **Shared:** Ausgabeformat, Seitenverhältnis, Vision-Segmentierung, Schutzmaske,
   Masken-Compositing und Sample-Puffer. Masken werden in normalisierten Koordinaten
   auf das bereits zugeschnittene Kamerabild abgebildet, ohne erneuten Aspect-Fill-Crop.
-  `AccessoryMaskRefiner` analysiert Bild und Maske bei 512 Pixeln Breite.
+  `AccessoryMaskRefiner` begrenzt die Analysebreite auf die gewählte Zubehör-Auflösung.
   `AccessoryRegions` ergänzt begrenzt verbundene Komponenten. `AccessoryTemporalFilter`
   bestätigt nur zusätzliche Zubehörpixel; die aktuelle hochauflösende Personenmaske
   und explizite Schutzbereiche bleiben davon unabhängig.
