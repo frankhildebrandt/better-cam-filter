@@ -201,6 +201,25 @@ struct ConfigurationView: View {
 
     @ViewBuilder private var recognitionSections: some View {
         Section {
+            Picker("Aufnahme-Preset", selection: Binding(
+                get: { RecognitionPreset.matching(settings.configuration) },
+                set: { if let preset = $0 { settings.apply(preset) } }
+            )) {
+                ForEach(RecognitionPreset.allCases) { preset in
+                    Text(preset.title).tag(Optional(preset))
+                }
+                Text("Benutzerdefiniert").tag(RecognitionPreset?.none).disabled(true)
+            }
+        } footer: {
+            if let preset = RecognitionPreset.matching(settings.configuration) {
+                Text(preset.hint)
+            } else {
+                Text("Ein Aufnahme-Preset wählt das Modell und die Einstellungen für Person, Mikrofon und Zubehör gemeinsam.")
+            }
+        }
+        .disabled(settings.isBusy)
+
+        Section {
             modelPicker
             Text(modelDescription)
                 .font(.callout).foregroundStyle(.secondary)
@@ -216,16 +235,17 @@ struct ConfigurationView: View {
 
         if settings.configuration.provider == .apple {
             Section("Zubehör") {
-                Picker("Erkennung", selection: $camera.segmentationMode) {
+                Picker("Erkennung", selection: appleAccessories.mode) {
                     ForEach(SegmentationMode.allCases) { Text($0.title).tag($0) }
                 }
-                if camera.segmentationMode == .foregroundObjects {
-                    Toggle("Stuhl & Mikrofon ergänzen", isOn: $camera.accessoriesEnabled)
+                if settings.configuration.appleAccessories.mode == .foregroundObjects {
+                    Toggle("Stuhl & Mikrofon ergänzen", isOn: appleAccessories.enabled)
                     Text("Erhält auch verbundene Mikrofonarme, Stecker und Kabel. In der Maskenvorschau lassen sich die Zwischenräume am Arm prüfen.")
                         .font(.caption).foregroundStyle(.secondary)
-                    if camera.accessoriesEnabled { AccessoryDetailPicker(settings: settings) }
+                    if settings.configuration.appleAccessories.enabled { AccessoryDetailPicker(settings: settings) }
                 }
             }
+            .disabled(settings.isBusy)
         }
         Section("Maskenvorschau") {
             Toggle("Maske nur in Vorschau anzeigen", isOn: $camera.previewMask)
@@ -233,6 +253,10 @@ struct ConfigurationView: View {
                 .font(.caption).foregroundStyle(.secondary)
         }
         modelError
+    }
+
+    private var appleAccessories: Binding<AppleAccessorySelection> {
+        Binding(get: { settings.configuration.appleAccessories }, set: { settings.updateAppleAccessories($0) })
     }
 
     private var modelDescription: String {

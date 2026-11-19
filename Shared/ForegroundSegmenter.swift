@@ -1,7 +1,7 @@
 import CoreImage
 import Vision
 
-enum SegmentationMode: String, CaseIterable, Identifiable, Sendable {
+enum SegmentationMode: String, Codable, CaseIterable, Identifiable, Sendable {
     case foregroundObjects, person
     var id: Self { self }
     var title: String {
@@ -55,8 +55,7 @@ final class ForegroundSegmenter {
     }
 
     /// Analyze the already cropped camera image, then map the full mask back without a second crop.
-    func mask(for image: CIImage, time: Double = ProcessInfo.processInfo.systemUptime,
-              includeAppleAccessories: Bool = false) throws -> CIImage {
+    func mask(for image: CIImage, time: Double = ProcessInfo.processInfo.systemUptime) throws -> CIImage {
         let settings = configuration.maskSettings
         var mask: CIImage
         switch configuration.provider {
@@ -79,7 +78,7 @@ final class ForegroundSegmenter {
             mask = maskRefiner.refine(mask, settings: settings)
             mask = maskTemporal.filter(mask: mask, image: image, time: time, strength: settings.temporalStrength)
         }
-        if configuration.provider == .apple && includeAppleAccessories {
+        if configuration.provider == .apple && configuration.appleAccessories.isActive {
             mask = accessories.refine(mask: mask, image: image, time: time, detail: configuration.appleSettings.accessoryDetail)
         }
         return mask

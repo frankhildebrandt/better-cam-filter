@@ -19,6 +19,7 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
     var customModelName: String?
     var maskProfiles: [String: CustomMaskSettings] = [:]
     var appleSettings = AppleRecognitionSettings()
+    var appleAccessories = AppleAccessorySelection()
     var inferenceProfiles: [String: ModelInferenceSettings] = [:]
     var hasMaskSettings: Bool { maskProfiles[profileKey] != nil }
 
@@ -45,12 +46,13 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
 
     init(provider: SegmentationProvider = .apple, customModelURL: URL? = nil, customModelName: String? = nil,
          maskProfiles: [String: CustomMaskSettings] = [:], appleSettings: AppleRecognitionSettings = .init(),
-         inferenceProfiles: [String: ModelInferenceSettings] = [:]) {
+         inferenceProfiles: [String: ModelInferenceSettings] = [:], appleAccessories: AppleAccessorySelection = .init()) {
         self.provider = provider
         self.customModelURL = customModelURL
         self.customModelName = customModelName
         self.maskProfiles = maskProfiles
         self.appleSettings = appleSettings.sanitized
+        self.appleAccessories = appleAccessories
         self.inferenceProfiles = inferenceProfiles
     }
 
@@ -61,12 +63,24 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
         customModelName = try values.decodeIfPresent(String.self, forKey: .customModelName)
         maskProfiles = try values.decodeIfPresent([String: CustomMaskSettings].self, forKey: .maskProfiles) ?? [:]
         appleSettings = try values.decodeIfPresent(AppleRecognitionSettings.self, forKey: .appleSettings)?.sanitized ?? .init()
+        appleAccessories = try values.decodeIfPresent(AppleAccessorySelection.self, forKey: .appleAccessories)
+            ?? (decoder.userInfo[.legacyAppleAccessories] as? AppleAccessorySelection) ?? .init()
         inferenceProfiles = try values.decodeIfPresent([String: ModelInferenceSettings].self, forKey: .inferenceProfiles) ?? [:]
     }
 
     private enum CodingKeys: String, CodingKey {
-        case provider, customModelURL, customModelName, maskProfiles, appleSettings, inferenceProfiles
+        case provider, customModelURL, customModelName, maskProfiles, appleSettings, appleAccessories, inferenceProfiles
     }
+}
+
+extension CodingUserInfoKey {
+    static let legacyAppleAccessories = Self(rawValue: "bettercam.legacyAppleAccessories")!
+}
+
+struct AppleAccessorySelection: Codable, Equatable, Sendable {
+    var mode: SegmentationMode = .foregroundObjects
+    var enabled = true
+    var isActive: Bool { mode == .foregroundObjects && enabled }
 }
 
 enum RecognitionQuality: String, Codable, CaseIterable, Identifiable, Sendable {

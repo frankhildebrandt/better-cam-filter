@@ -17,18 +17,12 @@ final class FrameProcessor {
         }
     }
     var background: CIImage? { didSet { resetSegmentation() } }
-    var segmentationMode = SegmentationMode.foregroundObjects {
-        didSet { if segmentationMode != oldValue { resetSegmentation() } }
-    }
     var segmentationConfiguration = SegmentationConfiguration() {
         didSet {
             if segmentationConfiguration != oldValue { segmentation.configuration = segmentationConfiguration }
         }
     }
     var keepMask: CIImage?
-    var accessoriesEnabled = true {
-        didSet { if accessoriesEnabled != oldValue { resetSegmentation() } }
-    }
     private(set) var previewMask: CIImage?
     var gestureConfiguration: GestureConfiguration {
         get { gestureReactions.configuration }
@@ -100,8 +94,7 @@ final class FrameProcessor {
     }
 
     private func mask(for image: CIImage, at time: Double) throws -> CIImage {
-        let automatic = try segmentation.mask(for: image, time: time,
-                                              includeAppleAccessories: accessoriesEnabled && segmentationMode == .foregroundObjects)
+        let automatic = try segmentation.mask(for: image, time: time)
         return FrameComposition.preserving(keepMask, in: automatic)
     }
 }

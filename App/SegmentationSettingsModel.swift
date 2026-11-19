@@ -15,8 +15,14 @@ final class SegmentationSettingsModel: ObservableObject {
     var isBusy: Bool { isImporting || downloadingModelID != nil }
 
     init() {
+        let defaults = UserDefaults.standard
+        let legacy = AppleAccessorySelection(
+            mode: defaults.string(forKey: "segmentationMode").flatMap(SegmentationMode.init(rawValue:)) ?? .foregroundObjects,
+            enabled: defaults.object(forKey: "accessoriesEnabled") as? Bool ?? true
+        )
+        configuration.appleAccessories = legacy
         do {
-            let store = try SegmentationModelStore()
+            let store = try SegmentationModelStore(legacyAppleAccessories: legacy)
             self.store = store
             do { configuration = try store.load() }
             catch { self.error = error.localizedDescription }
@@ -38,6 +44,16 @@ final class SegmentationSettingsModel: ObservableObject {
             configuration = updated
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+
+    func apply(_ preset: RecognitionPreset) {
+        save(preset.applying(to: configuration))
+    }
+
+    func updateAppleAccessories(_ selection: AppleAccessorySelection) {
+        var updated = configuration
+        updated.appleAccessories = selection
+        save(updated)
     }
 
     func importModel(_ url: URL) async {

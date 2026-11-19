@@ -81,6 +81,7 @@
 		E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */; };
 		E74BAF580CBAAA61610B3BB5 /* AccessoryRegions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */; };
 		EDA7812F7E5262A7D9FCD6CC /* GestureSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC9AD4A67A8CEAD5ADA1D1D /* GestureSettingsStore.swift */; };
+		EE898AA9E0BDE8EC12372775 /* RecognitionPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9BDE46939774931D40FD16 /* RecognitionPreset.swift */; };
 		F45D6D26C02B103FFB7229B5 /* SegmentationSettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74494C742EEEFC85732DB36 /* SegmentationSettingsModel.swift */; };
 		F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */; };
 		F763D89B75EA5F6A242E11F6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D991E7820B431D2DFE3FEDE9 /* Assets.xcassets */; };
@@ -166,6 +167,7 @@
 		71B3036C00B1B42D97134B4D /* ReactionCharacterArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionCharacterArt.swift; sourceTree = "<group>"; };
 		7812516CBE599A8DF0342DAB /* CodexAppServerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAppServerService.swift; sourceTree = "<group>"; };
 		7A71751C24D16B99F017B8FF /* KeepMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepMask.swift; sourceTree = "<group>"; };
+		7D9BDE46939774931D40FD16 /* RecognitionPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionPreset.swift; sourceTree = "<group>"; };
 		821CD20E682F67A0D077185E /* CodexServer.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = CodexServer.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
 		8400120A4F4F62B7C02C75E6 /* GestureConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureConfiguration.swift; sourceTree = "<group>"; };
 		8568133F76938204D3BD452B /* FrameProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameProcessor.swift; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 				8CA0C1248FE6F735CFBCCD39 /* CustomMaskTemporalFilter.swift */,
 				126A453F1A8E0088AE90DA78 /* DownloadableSegmentationModel.swift */,
 				30AFA6A072D39D9F98DDBD6F /* InstalledSegmentationModel.swift */,
+				7D9BDE46939774931D40FD16 /* RecognitionPreset.swift */,
 				D5A2FD09047B221531148F38 /* SegmentationConfiguration.swift */,
 				5414F1D449C9D0F50A1DCAEC /* SegmentationModelCatalog.swift */,
 				99D9786081E324F96E5D443B /* SegmentationModelDownloader.swift */,
@@ -585,6 +588,7 @@
 				654B4863D184440D5C7EC7AC /* ReactionCharacterArt.swift in Sources */,
 				AC26E214442943187AAF4E90 /* ReactionRenderer.swift in Sources */,
 				8F9EDD0D94D93C8EB99365A5 /* ReactionSprites.swift in Sources */,
+				EE898AA9E0BDE8EC12372775 /* RecognitionPreset.swift in Sources */,
 				906F7AC3F3E924FCC108F83D /* SegmentationConfiguration.swift in Sources */,
 				538F61977116B1EED2CA9183 /* SegmentationModelCatalog.swift in Sources */,
 				598050541D8DB208E25BF687 /* SegmentationModelDownloader.swift in Sources */,

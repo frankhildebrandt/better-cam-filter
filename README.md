@@ -337,7 +337,22 @@ Unter **Bilderkennung → Modell** stehen
 **Apple Vision**, **Apple Vision · Vordergrundobjekte**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
 und virtuelle Kamera und bleibt nach einem Neustart erhalten.
 
-Für ein Mikrofon am Arm empfiehlt sich zunächst **Apple Vision → Person + Zubehör**.
+Unter **Einstellungen → Bilderkennung → Aufnahme-Preset** lassen sich Modell,
+Maske und Zubehör-Erkennung gemeinsam wählen. Für ein Mikrofon am Arm mit
+dünnem Anschlusskabel empfiehlt sich **Mikrofon · Feine Kabel**.
+
+| Aufnahme-Preset | Modell | Zubehörbreite | Geeignet für |
+| --- | --- | --- | --- |
+| Mikrofon · Feine Kabel | Apple Vision | 1024 Pixel | Dünne Kabel, feine Streben und reflektierende Stecker |
+| Mikrofon · Ausgewogen | Apple Vision | 768 Pixel | Mikrofon und Arm, wenn die höchste Detailstufe die Bildrate zu stark senkt |
+| Videocall · Standard | Apple Vision | 512 Pixel | Breite Arme und geringeren Rechenaufwand |
+| Freistehendes Mikrofon | Apple Vision · Vordergrundobjekte | 1024 Pixel | Ein Mikrofon abseits der Person, mit zusätzlicher Personen- und Zubehörerkennung |
+
+Die drei Presets für Apple Vision verwenden die präzise Personenmaske und ergänzen
+das Zubehör separat. Einzelne Einstellungen lassen sich anschließend anpassen.
+Passt die Kombination zu keinem Preset, zeigt die App **Benutzerdefiniert**.
+Die Auswahl wird für den nächsten Start gespeichert.
+
 Für freistehende Gegenstände steht auch **Apple Vision · Vordergrundobjekte** direkt auf
 dem Mac zur Verfügung. Es übernimmt die auffälligen Objekte jedes Bildes. Dazu können
 auch Gegenstände im Zimmer gehören. Seine Vorgabe **Mikrofon, Arm & Kabel** ergänzt die

@@ -64,20 +64,6 @@ final class CameraModel: ObservableObject {
             engine.setPreviewMask(previewMask)
         }
     }
-    @Published var segmentationMode = SegmentationMode(
-        rawValue: UserDefaults.standard.string(forKey: "segmentationMode") ?? ""
-    ) ?? .foregroundObjects {
-        didSet {
-            UserDefaults.standard.set(segmentationMode.rawValue, forKey: "segmentationMode")
-            engine.setSegmentationMode(segmentationMode)
-        }
-    }
-    @Published var accessoriesEnabled = (UserDefaults.standard.object(forKey: "accessoriesEnabled") as? Bool) ?? true {
-        didSet {
-            UserDefaults.standard.set(accessoriesEnabled, forKey: "accessoriesEnabled")
-            engine.setAccessoriesEnabled(accessoriesEnabled)
-        }
-    }
     @Published var isEditingKeepMask = false {
         didSet { engine.setPreviewOriginal(isEditingKeepMask) }
     }
@@ -255,8 +241,6 @@ final class CameraModel: ObservableObject {
 
     func setSegmentationConfiguration(_ configuration: SegmentationConfiguration) {
         engine.setSegmentationConfiguration(configuration)
-        engine.setSegmentationMode(segmentationMode)
-        engine.setAccessoriesEnabled(accessoriesEnabled)
     }
 
     func addKeepStroke(_ stroke: KeepStroke) {
