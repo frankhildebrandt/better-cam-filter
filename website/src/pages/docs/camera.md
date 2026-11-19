@@ -8,26 +8,31 @@ generated: true
 ## Vordergrund und Schutzbereiche
 
 **Einstellungen → Bilderkennung → Zubehör → Person + Zubehör** ist bei Apple Vision der Standard. Die genaue Vision-Personenmaske
-bildet die Basis; daran wird Zubehör gezielt ergänzt. Allgemeine Vision-Instanzen
-werden nicht mehr pauschal übernommen, damit Tür oder Whiteboard bei wechselnder
-Erkennung nicht als neue Vordergrundobjekte erscheinen. **Nur Person** verwendet
+bildet die Basis für die gezielte Zubehörerkennung. **Nur Person** verwendet
 dieselbe Personenmaske ohne die automatische Zubehör-Ergänzung.
 
 **Stuhl & Mikrofon ergänzen** ist im Objektmodus standardmäßig aktiv. Ein lokaler
 Algorithmus sucht zusammenhängende dunkle, wenig gesättigte Flächen nahe der bereits
 erkannten Person. Schmale farbige Komponenten ergänzen beispielsweise ein Kabel;
-kurze Verbindungsstücke überbrücken helle Metallteile. Neue unabhängige Zubehörbereiche
+schmale dunkle Strukturen können einen Mikrofonarm oder ein schwarzes Anschlusskabel bilden.
+Die Suche folgt mehreren verbundenen Teilen. Helle Reflexe im Stecker brauchen einen
+weitgehend erhaltenen Rand mit grauen Metallpixeln. Beim Vergrößern der Zubehörmaske
+dienen die Helligkeitskanten des aktuellen Kamerabildes als Führung. Neue unabhängige Zubehörbereiche
 benötigen mindestens drei aufeinanderfolgende Beobachtungen über mindestens 100 ms.
 Bestätigtes Zubehör bleibt bei positiver Erkennung auch bei Farbsprüngen erhalten;
 seine Farbreferenz folgt laufenden Belichtungsänderungen. Ausblenden benötigt mindestens
 drei negative Beobachtungen über 200 ms. Bei deutlich anderem freigelegtem Hintergrund
 reichen zwei negative Beobachtungen über mindestens 60 ms. Eine Wiedererkennung vor
-der Freigabe gilt sofort. Die Personenmaske selbst wird weder verzögert noch mit alten
+der Freigabe gilt sofort. Diese Haltezeit gilt bis zur Spitze eines langen Arms. Die Personenmaske selbst wird weder verzögert noch mit alten
 Kopfkonturen überblendet.
 
 Bewegte Komponenten übernehmen die bestehende Bestätigung in einem
 begrenzten Randbereich (2 % der Analysebreite), wenn mindestens 40 % der aktuellen
-Komponente mit farblich passenden bestätigten Pixeln überlappen. Unabhängige neue
+Komponente mit farblich passenden bestätigten Pixeln überlappen. Bei einem dünnen
+verschobenen Kabel kann auch ein kurzer Versatz ohne Überlappung bestätigt werden.
+Dafür müssen sich die alten Bildpunkte sichtbar geändert haben und mindestens drei
+Viertel der verteilten Stichproben an der versetzten Position zu Form und Farbe passen.
+Die bisherigen Kabelpixel werden im selben Bild freigegeben. Unabhängige neue
 Bereiche durchlaufen weiterhin die anfängliche Mehrbildprüfung. Szenenwechsel werden
 an Hintergrundpixeln außerhalb der aktuellen und vorherigen Personenmaske sowie des
 Zubehörs gemessen, damit Personenbewegungen nicht die gesamte Zubehörhistorie löschen.

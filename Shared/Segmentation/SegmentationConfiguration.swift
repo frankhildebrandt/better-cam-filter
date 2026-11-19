@@ -1,12 +1,13 @@
 import Foundation
 
 enum SegmentationProvider: String, Codable, CaseIterable, Identifiable, Sendable {
-    case apple, custom
+    case apple, appleObjects, custom
 
     var id: Self { self }
     var title: String {
         switch self {
         case .apple: "Apple Vision"
+        case .appleObjects: "Apple Vision · Vordergrundobjekte"
         case .custom: "Custom-Modell"
         }
     }
@@ -22,7 +23,14 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
     var hasMaskSettings: Bool { maskProfiles[profileKey] != nil }
 
     var maskSettings: CustomMaskSettings {
-        get { (maskProfiles[profileKey] ?? (provider == .apple ? .original : .balanced)).sanitized }
+        get {
+            if let profile = maskProfiles[profileKey] { return profile.sanitized }
+            switch provider {
+            case .apple: return .original
+            case .appleObjects: return .microphoneSetup
+            case .custom: return .balanced
+            }
+        }
         set { maskProfiles[profileKey] = newValue.sanitized }
     }
 
@@ -31,7 +39,9 @@ struct SegmentationConfiguration: Codable, Equatable, Sendable {
         set { inferenceProfiles[profileKey] = newValue }
     }
 
-    private var profileKey: String { provider == .apple ? "apple" : customModelURL?.lastPathComponent ?? "custom" }
+    private var profileKey: String {
+        provider == .custom ? (customModelURL?.lastPathComponent ?? "custom") : provider.rawValue
+    }
 
     init(provider: SegmentationProvider = .apple, customModelURL: URL? = nil, customModelName: String? = nil,
          maskProfiles: [String: CustomMaskSettings] = [:], appleSettings: AppleRecognitionSettings = .init(),

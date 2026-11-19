@@ -1,17 +1,38 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: "Modell-Recherche"
-description: "Recherche vom 7. November 2026: mögliche nächste Schritte für Segmentierung und Matting."
+description: "Recherche vom 19. November 2026: mögliche nächste Schritte für Segmentierung und Matting."
 generated: true
 ---
 
-## Recherche zu Segmentierung und Matting (7. November 2026)
+## Recherche zu Segmentierung und Matting (19. November 2026)
+
+Für Mikrofon, Arm und Kabel sind die Kontur im Einzelbild und die Wiedererkennung
+bei Bewegung zwei verschiedene Anforderungen. Drei Kandidaten für einen Vergleich:
+
+- **EdgeTAM** verfolgt per Punkt oder Box markierte Objekte in Videos. Damit ließe sich
+  der Mikrofonaufbau einmal markieren. Der offizielle Core-ML-Export dokumentiert
+  Bildencoder, Promptencoder und Maskendecoder. Für BetterCam braucht es zusätzlich die
+  Videozustandsverwaltung und eine Laufzeitmessung mit der Kamera. [Meta, EdgeTAM](https://github.com/facebookresearch/EdgeTAM)
+- **BiRefNet-V2** untersucht hochauflösende Einzelbildmasken für dünne Strukturen und
+  offene Zwischenräume. Als Referenz für Kabelkanten ist es interessant. Die publizierten
+  Bildbenchmarks messen weder zeitliches Flackern noch die Live-Bildrate auf diesem Mac.
+  [Originalarbeit, November 2026](https://arxiv.org/abs/2611.11272)
+- **Cutie** übernimmt eine Startmaske und verfolgt das bezeichnete Objekt mit einem
+  Gedächtnis über die Folgeframes. Ein sorgfältig markierter Arm samt Kabel könnte so
+  auch beim Schwenken sichtbar bleiben. Die Qualität am lokalen Setup und eine native
+  Integration sind offen. [Forschungsprojekt und Referenzcode](https://github.com/hkchengrex/Cutie)
+
+Diese drei Modelle sind Recherchekandidaten. In der App verfügbar sind die beiden
+Vision-Verfahren, die beiden U²-Net-Downloads und kompatible eigene Core-ML-Modelle.
+
+### Weitere Ansätze
 
 - [Apples Foreground Instance Masks](https://developer.apple.com/videos/play/wwdc2023/10176/):
   native Segmentierung allgemeiner Vordergrundobjekte ab macOS 14. Diese Version
-  wurde zunächst als Basis verwendet. Inzwischen verwendet die App stattdessen
-  die Personenmaske als festen semantischen Anker, weil wechselnde allgemeine Instanzen
-  Raumobjekte freigeben konnten. Keine zusätzlichen Gewichte und keine Server erforderlich.
+  ist als **Apple Vision · Vordergrundobjekte** wählbar. Der Standard verwendet
+  die Personenmaske als Anker, weil wechselnde allgemeine Instanzen auch Raumobjekte
+  freigeben können. Keine zusätzlichen Gewichte und keine Server erforderlich.
 - [Robust Video Matting (RVM)](https://github.com/PeterL1n/RobustVideoMatting):
   zeitliches Gedächtnis und Core-ML-Unterstützung sind für flackerarme Personenmasken
   interessant. Es ist ausdrücklich für Human Matting trainiert; ein Erhalt von

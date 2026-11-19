@@ -1,4 +1,5 @@
 import CoreImage
+import CoreImage.CIFilterBuiltins
 
 final class AccessoryMaskRefiner {
     private let context: CIContext
@@ -11,7 +12,7 @@ final class AccessoryMaskRefiner {
     func reset() { temporal.reset() }
 
     func refine(mask: CIImage, image: CIImage, time: Double = ProcessInfo.processInfo.systemUptime) -> CIImage {
-        let width = 512
+        let width = min(512, max(1, Int(image.extent.width.rounded())))
         let height = max(1, Int(CGFloat(width) * image.extent.height / image.extent.width))
         let bounds = CGRect(x: 0, y: 0, width: width, height: height)
         let smallImage = FrameComposition.alignMask(image, to: bounds)
@@ -26,9 +27,14 @@ final class AccessoryMaskRefiner {
         let stable = temporal.filter(proposal.evidence, person: alpha, rgba: rgba,
                                      width: width, height: height, time: time)
         guard stable.contains(where: { $0 != 0 }) else { return mask }
-        let additions = CIImage(bitmapData: Data(stable), bytesPerRow: width,
-                                size: bounds.size, format: .L8, colorSpace: nil)
-            .applyingFilter("CIGaussianBlur", parameters: [kCIInputRadiusKey: 0.6]).cropped(to: bounds)
-        return FrameComposition.preserving(additions, in: mask)
+        let small = CIImage(bitmapData: Data(stable), bytesPerRow: width,
+                            size: bounds.size, format: .L8, colorSpace: nil)
+        let upsample = CIFilter.edgePreserveUpsample()
+        upsample.inputImage = image.transformed(by: CGAffineTransform(translationX: -image.extent.minX, y: -image.extent.minY))
+        upsample.smallImage = small
+        upsample.spatialSigma = 1.5
+        upsample.lumaSigma = 0.08
+        let fullBounds = CGRect(origin: .zero, size: image.extent.size)
+        return FrameComposition.preserving(upsample.outputImage?.cropped(to: fullBounds) ?? small, in: mask)
     }
 }

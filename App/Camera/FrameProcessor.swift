@@ -4,9 +4,8 @@ import CoreMedia
 /// CaptureEngine owns this processor and calls it only on its serial frame queue.
 final class FrameProcessor {
     let context = CIContext(options: [.cacheIntermediates: false])
-    private let segmentation = ForegroundSegmenter()
+    private lazy var segmentation = ForegroundSegmenter(context: context)
     private let gestureReactions = GestureReactionProcessor()
-    private let accessoryRefiner: AccessoryMaskRefiner
     private var pool: CVPixelBufferPool?
     private var inputSize = CGSize.zero
     var outputConfiguration = OutputConfiguration() {
@@ -18,15 +17,18 @@ final class FrameProcessor {
         }
     }
     var background: CIImage? { didSet { resetSegmentation() } }
-    var segmentationMode = SegmentationMode.foregroundObjects { didSet { resetSegmentation() } }
+    var segmentationMode = SegmentationMode.foregroundObjects {
+        didSet { if segmentationMode != oldValue { resetSegmentation() } }
+    }
     var segmentationConfiguration = SegmentationConfiguration() {
         didSet {
-            segmentation.configuration = segmentationConfiguration
-            accessoryRefiner.reset()
+            if segmentationConfiguration != oldValue { segmentation.configuration = segmentationConfiguration }
         }
     }
     var keepMask: CIImage?
-    var accessoriesEnabled = true { didSet { resetSegmentation() } }
+    var accessoriesEnabled = true {
+        didSet { if accessoriesEnabled != oldValue { resetSegmentation() } }
+    }
     private(set) var previewMask: CIImage?
     var gestureConfiguration: GestureConfiguration {
         get { gestureReactions.configuration }
@@ -36,11 +38,8 @@ final class FrameProcessor {
     var gestureError: String? { gestureReactions.error ?? reactionMaskError }
     private var reactionMaskError: String?
 
-    init() { accessoryRefiner = AccessoryMaskRefiner(context: context) }
-
     func resetSegmentation() {
         segmentation.reset()
-        accessoryRefiner.reset()
         previewMask = nil
     }
 
@@ -101,9 +100,8 @@ final class FrameProcessor {
     }
 
     private func mask(for image: CIImage, at time: Double) throws -> CIImage {
-        let automatic = try segmentation.mask(for: image, time: time)
-        let refined = segmentationConfiguration.provider == .apple && accessoriesEnabled && segmentationMode == .foregroundObjects
-            ? accessoryRefiner.refine(mask: automatic, image: image, time: time) : automatic
-        return FrameComposition.preserving(keepMask, in: refined)
+        let automatic = try segmentation.mask(for: image, time: time,
+                                              includeAppleAccessories: accessoriesEnabled && segmentationMode == .foregroundObjects)
+        return FrameComposition.preserving(keepMask, in: automatic)
     }
 }

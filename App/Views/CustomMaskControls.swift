@@ -5,10 +5,12 @@ struct RecognitionControls: View {
     @ObservedObject var settings: SegmentationSettingsModel
 
     var body: some View {
-        if settings.configuration.provider == .apple {
+        if settings.configuration.provider != .custom {
             Section {
-                Picker("Qualität", selection: appleValue(\.quality)) {
-                    ForEach(RecognitionQuality.allCases) { Text($0.title).tag($0) }
+                if settings.configuration.provider == .apple || settings.configuration.maskSettings.personSupport {
+                    Picker("Qualität", selection: appleValue(\.quality)) {
+                        ForEach(RecognitionQuality.allCases) { Text($0.title).tag($0) }
+                    }
                 }
                 Picker("Analyseauflösung", selection: appleValue(\.analysisWidth)) {
                     ForEach([256, 384, 512, 768, 1024, 1536, 1920, 2560, 3840], id: \.self) { width in
@@ -16,10 +18,12 @@ struct RecognitionControls: View {
                     }
                     Text("Volle Ausgabeauflösung").tag(0)
                 }
-                Picker("Vision-Version", selection: appleValue(\.revision)) {
-                    Text("Automatisch").tag(0)
-                    ForEach(Array(VNGeneratePersonSegmentationRequest.supportedRevisions), id: \.self) { revision in
-                        Text("Version \(revision)").tag(revision)
+                if settings.configuration.provider == .apple || settings.configuration.maskSettings.personSupport {
+                    Picker("Vision-Version", selection: appleValue(\.revision)) {
+                        Text("Automatisch").tag(0)
+                        ForEach(Array(VNGeneratePersonSegmentationRequest.supportedRevisions), id: \.self) { revision in
+                            Text("Version \(revision)").tag(revision)
+                        }
                     }
                 }
                 Toggle("Hintergrundverarbeitung bevorzugen", isOn: appleValue(\.preferBackgroundProcessing))
@@ -88,10 +92,17 @@ struct CustomMaskControls: View {
     @ObservedObject var settings: SegmentationSettingsModel
 
     private var mask: CustomMaskSettings { settings.configuration.maskSettings }
-    private let presets: [(id: String, title: String, value: CustomMaskSettings)] = [
-        ("balanced", "Ausgewogen", .balanced), ("detailed", "Mehr Vordergrund", .detailed),
-        ("clean", "Saubere Kanten", .cleanEdges), ("original", "Unverändert", .original)
-    ]
+    private var presets: [(id: String, title: String, value: CustomMaskSettings)] {
+        var values: [(id: String, title: String, value: CustomMaskSettings)] = [
+            ("stabilized", "Nur stabilisieren", .stabilized),
+            ("balanced", "Ausgewogen", .balanced), ("detailed", "Mehr Vordergrund", .detailed),
+            ("clean", "Saubere Kanten", .cleanEdges), ("original", "Unverändert", .original)
+        ]
+        if settings.configuration.provider != .apple {
+            values.insert(("mic", "Mikrofon, Arm & Kabel", .microphoneSetup), at: 0)
+        }
+        return values
+    }
 
     var body: some View {
         Section {
@@ -121,15 +132,18 @@ struct CustomMaskControls: View {
                     Slider(value: value(\.temporalStrength), in: 0...1, step: 0.1).accessibilityLabel("Flackern reduzieren")
                     hint("Überbrückt kurze Aussetzer bei gleichem Bildinhalt. Bei nachziehenden Konturen den Wert senken.")
                 }
-                if settings.configuration.provider == .custom {
+                if settings.configuration.provider != .apple {
                     Toggle("Person zusätzlich mit Apple erkennen", isOn: value(\.personSupport))
                     hint("Kann fehlende Körperbereiche ergänzen und benötigt zusätzliche Rechenzeit. Die Objektmaske des gewählten Modells bleibt erhalten.")
+                    if mask.personSupport {
+                        Toggle("Mikrofon, Arm & Kabel ergänzen", isOn: value(\.accessorySupport))
+                    }
                 }
             }
         } header: {
             Text("Maske optimieren")
         } footer: {
-            Text("Einstellungen gelten nur für dieses Modell. „Unverändert“ zeigt die rohe Modellmaske. Vollständig übersehene Gegenstände brauchen weiterhin Schutzmarkierungen.")
+            Text("Die Einstellungen gelten für das gewählte Modell. Bei dauerhaft fehlenden Teilen kannst du im Kamerabild Schutzbereiche markieren.")
         }
         .disabled(settings.isBusy)
     }

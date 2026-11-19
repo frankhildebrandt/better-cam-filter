@@ -1,4 +1,4 @@
-import Foundation
+import CoreGraphics
 
 /// Confirm object evidence even during semantic coverage; never use person alpha itself as evidence.
 final class AccessoryTemporalFilter {
@@ -13,6 +13,7 @@ final class AccessoryTemporalFilter {
     private var scene = AccessorySceneHistory()
     private var dimensions = (width: 0, height: 0)
     private var lastTime: Double?
+    private var previousPersonBounds = CGRect.null
 
     func reset() {
         firstSeen = []
@@ -26,6 +27,7 @@ final class AccessoryTemporalFilter {
         scene = AccessorySceneHistory()
         dimensions = (0, 0)
         lastTime = nil
+        previousPersonBounds = .null
     }
 
     func filter(_ evidence: [UInt8], person: [UInt8], rgba: [UInt8],
@@ -46,23 +48,25 @@ final class AccessoryTemporalFilter {
             colors = rgba
             dimensions = (width, height)
         }
-        if scene.changed(rgba: rgba, person: person, evidence: evidence, confirmed: confirmed) {
-            for pixel in evidence.indices { clear(pixel) }
-        }
-        lastTime = time
-        let seeds = person.indices.filter { person[$0] > 200 }
-        guard let minX = seeds.map({ $0 % width }).min(), let maxX = seeds.map({ $0 % width }).max(),
-              let minY = seeds.map({ $0 / width }).min(), let maxY = seeds.map({ $0 / width }).max() else {
+        guard let bounds = Self.personBounds(person, width: width) else {
             reset()
             return [UInt8](repeating: 0, count: count)
         }
-        let margin = max(2, width / 5)
-        let inherited = AccessoryMotionSupport.inherited(evidence: evidence, confirmed: confirmed,
-                                                        colors: colors, rgba: rgba, width: width, height: height)
+        let margin = CGFloat(max(2, width / 5))
+        let relocated = !previousPersonBounds.isNull
+            && !bounds.insetBy(dx: -margin, dy: -margin).intersects(previousPersonBounds)
+        if scene.changed(rgba: rgba, person: person, evidence: evidence, confirmed: confirmed) || relocated {
+            for pixel in evidence.indices { clear(pixel) }
+        }
+        previousPersonBounds = bounds
+        lastTime = time
+        let motion = AccessoryMotionSupport.transfer(evidence: evidence, confirmed: confirmed,
+                                                     colors: colors, rgba: rgba, width: width, height: height)
+        for pixel in motion.vacated { clear(pixel) }
         var output = [UInt8](repeating: 0, count: count)
         for pixel in evidence.indices {
             if evidence[pixel] > 200 {
-                if !confirmed[pixel] && !inherited[pixel] && colorDifference(pixel, rgba: rgba) > 40 { clear(pixel) }
+                if !confirmed[pixel] && !motion.inherited[pixel] && colorDifference(pixel, rgba: rgba) > 40 { clear(pixel) }
                 if firstSeen[pixel] < 0 {
                     firstSeen[pixel] = time
                     for channel in 0..<3 { colors[pixel * 4 + channel] = rgba[pixel * 4 + channel] }
@@ -72,33 +76,48 @@ final class AccessoryTemporalFilter {
                 misses[pixel] = 0
                 colorMisses[pixel] = 0
                 observations[pixel] = min(3, observations[pixel] + 1)
-                if inherited[pixel] || (observations[pixel] >= 3 && time - firstSeen[pixel] >= 0.10) {
+                if motion.inherited[pixel] || (observations[pixel] >= 3 && time - firstSeen[pixel] >= 0.10) {
                     confirmed[pixel] = true
                 }
                 if confirmed[pixel] { updateColor(pixel, rgba: rgba) }
-            } else {
-                firstSeen[pixel] = -1
-                observations[pixel] = 0
-                let x = pixel % width, y = pixel / width
-                let nearby = x >= minX - margin && x <= maxX + margin
-                    && y >= minY && y <= maxY + margin
-                if !confirmed[pixel] || !nearby { clear(pixel) }
-                else {
+            } else if confirmed[pixel] {
+                let difference = colorDifference(pixel, rgba: rgba)
+                // A confirmed mic may merge into a dark shirt. While Vision covers
+                // the same appearance it can retain, but never create, confirmation.
+                if person[pixel] > 200 && difference <= 24 {
+                    missingSince[pixel] = -1
+                    changedSince[pixel] = -1
+                    misses[pixel] = 0
+                    colorMisses[pixel] = 0
+                } else {
                     if missingSince[pixel] < 0 { missingSince[pixel] = time }
                     misses[pixel] = min(3, misses[pixel] + 1)
-                    let missingTime = time - missingSince[pixel]
-                    if colorDifference(pixel, rgba: rgba) > 80 {
+                    if difference > 80 {
                         if changedSince[pixel] < 0 { changedSince[pixel] = time }
                         colorMisses[pixel] = min(2, colorMisses[pixel] + 1)
                     } else { changedSince[pixel] = -1; colorMisses[pixel] = 0 }
-                    if (misses[pixel] >= 3 && missingTime >= 0.20)
+                    if (misses[pixel] >= 3 && time - missingSince[pixel] >= 0.20)
                         || (colorMisses[pixel] >= 2 && time - changedSince[pixel] >= 0.06) { clear(pixel) }
                 }
+            } else if observations[pixel] > 0 {
+                clear(pixel)
             }
-            // Semantic coverage hides the overlay while retaining its independent object confirmation.
-            if confirmed[pixel] && person[pixel] < 255 { output[pixel] = 255 }
+            // Upsample the continuous object silhouette before union with the full-size person mask.
+            if confirmed[pixel] { output[pixel] = 255 }
         }
         return output
+    }
+
+    private static func personBounds(_ person: [UInt8], width: Int) -> CGRect? {
+        guard let first = person.firstIndex(where: { $0 > 200 }),
+              let last = person.lastIndex(where: { $0 > 200 }) else { return nil }
+        var left = width, right = 0
+        for pixel in first...last where person[pixel] > 200 {
+            let x = pixel % width
+            left = min(left, x)
+            right = max(right, x)
+        }
+        return CGRect(x: left, y: first / width, width: right - left + 1, height: last / width - first / width + 1)
     }
 
     private func clear(_ pixel: Int) {
@@ -112,7 +131,10 @@ final class AccessoryTemporalFilter {
     }
 
     private func colorDifference(_ pixel: Int, rgba: [UInt8]) -> Int {
-        (0..<3).map { abs(Int(colors[pixel * 4 + $0]) - Int(rgba[pixel * 4 + $0])) }.max() ?? 0
+        let i = pixel * 4
+        return max(abs(Int(colors[i]) - Int(rgba[i])),
+                   abs(Int(colors[i + 1]) - Int(rgba[i + 1])),
+                   abs(Int(colors[i + 2]) - Int(rgba[i + 2])))
     }
 
     private func updateColor(_ pixel: Int, rgba: [UInt8]) {

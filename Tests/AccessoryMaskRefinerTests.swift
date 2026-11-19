@@ -36,6 +36,24 @@ struct AccessoryMaskRefinerTests {
         #expect(pixels(result, in: bounds) == pixels(mask, in: bounds))
     }
 
+    @Test func tallMicCapsuleStaysOpaqueAsVisionAlternatesAboveTheTorso() {
+        let bounds = CGRect(x: 0, y: 0, width: 320, height: 180)
+        let body = CGRect(x: 140, y: 0, width: 75, height: 150)
+        let microphone = CGRect(x: 125, y: 10, width: 12, height: 114)
+        let room = CIImage(color: .white).cropped(to: bounds)
+        let dark = CIImage(color: CIColor(red: 0.1, green: 0.1, blue: 0.1))
+        let image = dark.cropped(to: microphone).composited(over: dark.cropped(to: body).composited(over: room))
+        let person = CIImage(color: .white).cropped(to: body).composited(over: CIImage(color: .black).cropped(to: bounds))
+        let covered = CIImage(color: .white).cropped(to: microphone).composited(over: person)
+        let refiner = AccessoryMaskRefiner(context: context)
+        for frame in 0..<16 {
+            let semantic = frame < 6 || !frame.isMultiple(of: 2) ? covered : person
+            let mask = refiner.refine(mask: semantic, image: image, time: Double(frame) / 30)
+            #expect(pixels(mask, in: CGRect(x: 131, y: 112, width: 1, height: 1))[0] > 240)
+            #expect(pixels(mask, in: CGRect(x: 116, y: 112, width: 1, height: 1))[0] == 0)
+        }
+    }
+
     @Test func movingMicRetainsItsLeadingEdgeWithoutAnotherStartupDelay() {
         let bounds = CGRect(x: 0, y: 0, width: 320, height: 180)
         let body = CGRect(x: 140, y: 0, width: 40, height: 110)
@@ -73,6 +91,42 @@ struct AccessoryMaskRefinerTests {
         for frame in 0..<5 { result = refiner.refine(mask: mask, image: image, time: Double(frame) / 30) }
         #expect(pixels(result, in: CGRect(x: 192, y: 30, width: 1, height: 1))[0] > 240)
         #expect(pixels(result, in: CGRect(x: 126, y: 160, width: 1, height: 1))[0] == 0)
+    }
+
+    @Test func connectedBoomPlugAndThinCableStayVisibleWithOpenGaps() {
+        let bounds = CGRect(x: 0, y: 0, width: 1280, height: 720)
+        // Design the fixture in camera coordinates and render it at four times
+        // that size so the normal mask upsampling path is exercised as well.
+        func rect(_ x: Int, _ y: Int, _ w: Int, _ h: Int) -> CGRect {
+            CGRect(x: x * 4, y: y * 4, width: w * 4, height: h * 4)
+        }
+        let body = rect(236, 5, 42, 145)
+        let room = CIImage(color: .white).cropped(to: bounds)
+        let personOnly = room.cropped(to: body).composited(over: CIImage(color: .black).cropped(to: bounds))
+        var image = CIImage(color: .gray).cropped(to: body).composited(over: room)
+        let rails = [rect(145, 38, 91, 3), rect(145, 52, 91, 3), rect(232, 38, 4, 17),
+                     rect(145, 38, 5, 17), rect(135, 42, 11, 10)]
+        let plug = rect(123, 43, 13, 7)
+        let cable = rect(50, 46, 73, 1)
+        for part in rails + [cable] {
+            image = CIImage(color: .black).cropped(to: part).composited(over: image)
+        }
+        image = CIImage(color: .gray).cropped(to: plug).composited(over: image)
+        image = room.cropped(to: rect(125, 44, 8, 5)).composited(over: image)
+        let covered = room.cropped(to: cable).composited(over: personOnly)
+        let refiner = AccessoryMaskRefiner(context: context)
+        for frame in 0..<10 {
+            let mask = refiner.refine(mask: frame < 5 || !frame.isMultiple(of: 2) ? covered : personOnly,
+                                      image: image, time: Double(frame) / 30)
+            guard frame >= 5 else { continue }
+            for (x, y) in [(200, 39), (200, 53), (140, 46), (129, 46), (75, 46)] {
+                let pixel = CGRect(x: x * 4 + 2, y: y * 4 + 2, width: 1, height: 1)
+                #expect(pixels(mask, in: pixel)[0] > 220)
+            }
+            for (x, y) in [(200, 46), (75, 50), (75, 42)] {
+                #expect(pixels(mask, in: CGRect(x: x * 4, y: y * 4, width: 1, height: 1))[0] < 15)
+            }
+        }
     }
 
     private func pixels(_ image: CIImage, in bounds: CGRect) -> [UInt8] {

@@ -196,9 +196,7 @@ struct ConfigurationView: View {
     @ViewBuilder private var recognitionSections: some View {
         Section {
             modelPicker
-            Text(settings.configuration.provider == .apple
-                 ? "Apples Personenmodell verarbeitet deine Kamera lokal auf dem Mac."
-                 : "Das gewählte Modell liefert die Vordergrundmaske. Die Verarbeitung bleibt lokal auf dem Mac.")
+            Text(modelDescription)
                 .font(.callout).foregroundStyle(.secondary)
             Button("Modelle verwalten …") { selectedCategory = SettingsCategory.models.rawValue }
         } header: {
@@ -217,7 +215,7 @@ struct ConfigurationView: View {
                 }
                 if camera.segmentationMode == .foregroundObjects {
                     Toggle("Stuhl & Mikrofon ergänzen", isOn: $camera.accessoriesEnabled)
-                    Text("Ergänzt Zubehör nahe der Person anhand von Farbe und Bewegung. Bei dunklem Raumhintergrund ausschalten.")
+                    Text("Erhält auch verbundene Mikrofonarme, Stecker und Kabel. In der Maskenvorschau lassen sich die Zwischenräume am Arm prüfen.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -230,9 +228,17 @@ struct ConfigurationView: View {
         modelError
     }
 
+    private var modelDescription: String {
+        switch settings.configuration.provider {
+        case .apple: "Apples Personenmodell kann Stuhl und Mikrofon anhand ihrer Kontur und Farbe ergänzen."
+        case .appleObjects: "Apple erkennt auffällige Vordergrundobjekte in jedem Bild. Das kann ein freistehendes Mikrofon erfassen, aber auch Gegenstände im Raum. Das Modell läuft lokal ohne Download."
+        case .custom: "Das gewählte Modell liefert die Vordergrundmaske. Die Verarbeitung bleibt lokal auf dem Mac."
+        }
+    }
+
     private var modelPicker: some View {
         Picker("Modell", selection: selectedModel) {
-            Text("Apple Vision").tag("apple")
+            ForEach([SegmentationProvider.apple, .appleObjects]) { Text($0.title).tag($0.rawValue) }
             ForEach(SegmentationModelCatalog.models) { Text($0.title).tag($0.id) }
             ForEach(settings.installedModels.filter { $0.catalogID == nil }) { Text($0.name).tag($0.id) }
             Text("Eigenes Modell importieren …").tag("import")
@@ -322,11 +328,11 @@ struct ConfigurationView: View {
 
     private var selectedModel: Binding<String> {
         Binding(get: {
-            guard settings.configuration.provider == .custom else { return "apple" }
+            guard settings.configuration.provider == .custom else { return settings.configuration.provider.rawValue }
             let installed = settings.installedModels.first { $0.modelURL == settings.configuration.customModelURL }
             return installed?.catalogID ?? installed?.id ?? "import"
         }, set: { selected in
-            if selected == "apple" { settings.select(.apple) }
+            if let provider = SegmentationProvider(rawValue: selected), provider != .custom { settings.select(provider) }
             else if selected == "import" { choosingModel = true }
             else if let model = SegmentationModelCatalog.models.first(where: { $0.id == selected }) { settings.use(model) }
             else if let model = settings.installedModels.first(where: { $0.id == selected }) { settings.select(model) }

@@ -5,7 +5,7 @@ final class CustomMaskTemporalFilter {
     private let context: CIContext
     private var retained = [UInt8]()
     private var colors = [UInt8]()
-    private var missingSince = [Double]()
+    private var lastConfidentTime = [Double]()
     private var sourceExtent = CGRect.null
     private var maskExtent = CGRect.null
     private var lastTime: Double?
@@ -18,7 +18,7 @@ final class CustomMaskTemporalFilter {
     func reset() {
         retained = []
         colors = []
-        missingSince = []
+        lastConfidentTime = []
         sourceExtent = .null
         maskExtent = .null
         lastTime = nil
@@ -40,7 +40,7 @@ final class CustomMaskTemporalFilter {
             || lastStrength != amount || discontinuity {
             reset()
             retained = [UInt8](repeating: 0, count: count)
-            missingSince = [Double](repeating: -1, count: count)
+            lastConfidentTime = [Double](repeating: 0, count: count)
             colors = [UInt8](repeating: 0, count: count * 4)
         }
         sourceExtent = image.extent
@@ -57,16 +57,15 @@ final class CustomMaskTemporalFilter {
         for pixel in alpha.indices {
             if alpha[pixel] >= 224 {
                 retained[pixel] = alpha[pixel]
-                missingSince[pixel] = -1
+                lastConfidentTime[pixel] = time
                 for channel in 0..<3 { colors[pixel * 4 + channel] = rgba[pixel * 4 + channel] }
             } else if retained[pixel] > 0 {
-                if missingSince[pixel] < 0 { missingSince[pixel] = time }
                 let sameAppearance = (0..<3).allSatisfy {
                     abs(Int(colors[pixel * 4 + $0]) - Int(rgba[pixel * 4 + $0])) <= 24
                 }
-                if sameAppearance && time - missingSince[pixel] < 0.12 * amount {
+                if sameAppearance && time - lastConfidentTime[pixel] < 0.12 * amount {
                     held[pixel] = retained[pixel]
-                } else { retained[pixel] = 0; missingSince[pixel] = -1 }
+                } else { retained[pixel] = 0 }
             }
         }
         guard held.contains(where: { $0 != 0 }) else { return mask }

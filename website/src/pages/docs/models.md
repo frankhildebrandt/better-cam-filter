@@ -64,10 +64,17 @@ und dort bei Bedarf ausgeschaltet werden.
 ### Bilderkennungsmodelle
 
 Unter **Bilderkennung → Modell** stehen
-**Apple Vision**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
+**Apple Vision**, **Apple Vision · Vordergrundobjekte**, **U²-NetP**, **U²-Net** und eigene importierte Modelle zur Auswahl. Die Auswahl gilt für Vorschau
 und virtuelle Kamera und bleibt nach einem Neustart erhalten.
 
-Apple Vision ist der Standard und benötigt keinen Download. **U²-NetP** ist die
+Für ein Mikrofon am Arm empfiehlt sich zunächst **Apple Vision → Person + Zubehör**.
+Für freistehende Gegenstände steht auch **Apple Vision · Vordergrundobjekte** direkt auf
+dem Mac zur Verfügung. Es übernimmt die auffälligen Objekte jedes Bildes. Dazu können
+auch Gegenstände im Zimmer gehören. Seine Vorgabe **Mikrofon, Arm & Kabel** ergänzt die
+Objektmaske mit der Personen- und Zubehörerkennung. Das kostet einen zweiten
+Vision-Durchlauf. **Nur stabilisieren** zeigt die zeitlich gestützte Objektmaske allein.
+
+**U²-NetP** ist die
 empfohlene kleine Alternative für einen ersten Live-Versuch; **U²-Net** ist die größere
 Variante für einen Qualitätsvergleich. Die Auswahl eines noch nicht installierten
 Modells oder **Herunterladen und verwenden** startet den Download mit Fortschritt und
@@ -124,13 +131,14 @@ CPU/Neural Engine) und Eingangs-Skalierung (strecken, einpassen, ausfüllen) zur
 Die Eingangsgröße und die Maskenausgänge sind durch die jeweilige Modelldatei vorgegeben.
 Einpassen verwendet schwarze Ränder; Ausfüllen beschneidet den Eingang. Die Maske wird
 mit der passenden inversen Transformation auf das Kamerabild zurückgeführt.
-Die automatische Apple-Zubehör-Heuristik ist beim Custom-Modell ausgeschaltet.
-Explizite Schutzmarkierungen gelten weiterhin für beide Varianten.
+Auch für U²-Net und importierte Modelle lässt sich die Vorgabe **Mikrofon, Arm & Kabel**
+wählen. Sie behält die weichen Modellkanten bei und ergänzt lokal Person und Zubehör.
+Bisherige Modellprofile bleiben gespeichert. Schutzmarkierungen gelten für alle Modelle.
 
 ### Masken einstellen
 
 Unter **Bilderkennung → Maske optimieren** gibt es gespeicherte Einstellungen pro
-Modell, einschließlich Apple Vision. Apple beginnt mit **Unverändert**, um das bisherige Verhalten beizubehalten. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
+Modell, einschließlich Apple Vision. Das Apple-Personenmodell beginnt mit **Unverändert**, um das bisherige Verhalten beizubehalten. Bei U²-Net ist **Ausgewogen** voreingestellt; das kleine U²-NetP
 nutzt **Mehr Vordergrund**, weil es auf dem lokalen Testbild andernfalls auch im
 Pullover deutlich durchsichtige Bereiche erzeugt. Neu manuell importierte Modelle
 beginnen mit **Unverändert**, damit fertige Matting-Modelle ihre eigenen weichen
@@ -146,7 +154,7 @@ Personenerkennung und Stabilisierung vollständig aus.
   negative erweitern sie. Die Pixelangabe bezieht sich auf 1080 Pixel Ausgabehöhe.
 - **Flackern reduzieren:** Hält zuvor sicher erkannten Vordergrund kurz fest, wenn
   die Bildfarbe am gleichen Ort weiterhin passt. Die Haltezeit beträgt höchstens
-  120 ms bei 100 %. Neue Vordergrundflächen erscheinen sofort; eigene gehaltene
+  120 ms ab der letzten sicheren Erkennung bei 100 %. Neue Vordergrundflächen erscheinen sofort; eigene gehaltene
   Ausgaben verlängern die Historie nicht. Bei nachziehenden Konturen den Wert senken.
 - **Person zusätzlich mit Apple erkennen:** Vereinigt die aktuelle Vision-Personenmaske
   mit der Objektmaske vor der Nachbearbeitung. Das kann fehlende Körperbereiche

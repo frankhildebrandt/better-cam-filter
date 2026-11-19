@@ -7,6 +7,43 @@ struct AccessoryProposal {
 
 /// Bounded appearance-based additions anchored to the semantic foreground mask.
 enum AccessoryRegions {
+    private static let dark: UInt8 = 1
+    // Labels 2...13 are the cable hue bins.
+    private static let midtone: UInt8 = 14
+    private static let highlight: UInt8 = 15
+
+    private struct Candidate {
+        let pixels: [Int]
+        let material: UInt8
+        let slender: Bool
+        let touchesTop: Bool
+
+        init?(_ pixels: [Int], material: UInt8, width: Int, count: Int) {
+            guard pixels.count >= 4 else { return nil }
+            if material == highlight && pixels.count > max(4, count / 500) { return nil }
+            var left = width, right = 0, top = Int.max, bottom = 0
+            for pixel in pixels {
+                let x = pixel % width, y = pixel / width
+                left = min(left, x)
+                right = max(right, x)
+                top = min(top, y)
+                bottom = max(bottom, y)
+            }
+            let length = max(right - left + 1, bottom - top + 1)
+            slender = Double(pixels.count) / Double(length) <= max(2, Double(width) * 0.014)
+            if material == dark {
+                guard pixels.count >= max(4, count / 500) || (length >= max(8, width / 25) && slender) else { return nil }
+            } else if material == highlight {
+                guard length <= max(3, width / 20) else { return nil }
+            } else {
+                guard slender && (material != midtone || length <= width / 6) else { return nil }
+            }
+            self.pixels = pixels
+            self.material = material
+            touchesTop = top < 2
+        }
+    }
+
     static func refine(rgba: [UInt8], alpha: [UInt8], width: Int, height: Int) -> [UInt8] {
         propose(rgba: rgba, alpha: alpha, width: width, height: height).alpha
     }
@@ -15,56 +52,116 @@ enum AccessoryRegions {
     static func propose(rgba: [UInt8], alpha: [UInt8], width: Int, height: Int) -> AccessoryProposal {
         let empty = AccessoryProposal(alpha: alpha, evidence: [UInt8](repeating: 0, count: alpha.count))
         guard width > 0, height > 0 else { return empty }
-        let count = width * height
-        guard rgba.count == count * 4, alpha.count == count else { return empty }
+        let count = alpha.count
+        guard count / width == height, count % width == 0, rgba.count / 4 == count, rgba.count % 4 == 0
+        else { return empty }
+        guard let first = alpha.firstIndex(where: { $0 > 200 }), let last = alpha.lastIndex(where: { $0 > 200 })
+        else { return empty }
+        let top = first / width, bottom = last / width
+        let personArea = alpha[first...last].count(where: { $0 > 200 })
         let categories = (0..<count).map { category(rgba, at: $0 * 4) }
-        let regions = PixelComponents.regions(categories, width: width, height: height)
-        let person = alpha.indices.filter { alpha[$0] > 200 }
-        guard let top = person.map({ $0 / width }).min(), let bottom = person.map({ $0 / width }).max() else { return empty }
+        let candidates = PixelComponents.regions(categories, width: width, height: height).compactMap {
+            Candidate($0, material: categories[$0[0]], width: width, count: count)
+        }
         let torsoStart = top + (bottom - top) * 55 / 100
-        var torsoSeeds = alpha
-        for pixel in alpha.indices where pixel / width < torsoStart { torsoSeeds[pixel] = 0 }
         var result = alpha
         var evidence = empty.evidence
-        var anchors = torsoSeeds
+        var anchors = alpha
+        for pixel in 0..<(torsoStart * width) { anchors[pixel] = 0 }
         var accepted = Set<Int>()
         var remaining = count / 4
-        let reach = max(2, Int((Double(width) * 0.025).rounded()))
-        for _ in 0..<2 {
+        let reach = min(254, max(2, Int((Double(width) * 0.025).rounded())))
+        // Each pass can cross one material boundary, e.g. boom, plug, cable.
+        let maxPasses = 4
+        for pass in 0..<maxPasses {
             let proximity = distances(from: anchors, width: width, height: height, reach: reach)
-            for (identifier, region) in regions.enumerated() where !accepted.contains(identifier) {
-                guard region.count >= 4 else { continue }
-                if categories[region[0]] == 1 && region.count < max(4, count / 500) { continue }
+            let previousCount = accepted.count
+            for (identifier, candidate) in candidates.enumerated() where !accepted.contains(identifier) {
+                guard candidate.material != highlight, pass < 2 || candidate.slender else { continue }
+                let region = candidate.pixels
                 let added = region.filter { alpha[$0] < 128 && result[$0] < 128 }
                 guard added.count <= min(count / 5, remaining),
                       !added.contains(where: { $0 / width < 2 }) else { continue }
-                if categories[region[0]] > 1 {
-                    let xs = region.map { $0 % width }
-                    let ys = region.map { $0 / width }
-                    let length = max(xs.max()! - xs.min()! + 1, ys.max()! - ys.min()! + 1)
-                    guard Double(region.count) / Double(length) <= max(2, Double(width) * 0.014) else { continue }
-                }
                 guard let contact = region.min(by: { proximity.distance[$0] < proximity.distance[$1] }),
                       Int(proximity.distance[contact]) <= reach else { continue }
+                // Gray highlights can complete an attached barrel. A nearby patch
+                // of wall must not become an independent accessory.
+                if candidate.material == midtone {
+                    guard pass > 0, proximity.distance[contact] <= 1,
+                          touchesHardware(region, categories: categories, evidence: evidence, width: width, height: height)
+                    else { continue }
+                }
                 let requiredSupport = max(2, width / 100)
                 let support = region.lazy.filter { Int(proximity.distance[$0]) <= reach }.prefix(requiredSupport).count
                 guard support >= requiredSupport else { continue }
                 accepted.insert(identifier)
                 remaining -= added.count
+                // A small, torso-anchored component can be the capsule all the way up
+                // to the mouth, including when Vision puts it inside the person mask.
+                // Keep the upper part of a body-sized component out of the history.
+                let accessorySized = region.count <= personArea / 3 && !candidate.touchesTop
                 for pixel in region {
                     result[pixel] = 255
-                    if alpha[pixel] < 128 || pixel / width >= torsoStart { evidence[pixel] = 255 }
-                    if pixel / width >= torsoStart { anchors[pixel] = 255 }
+                    if accessorySized || alpha[pixel] < 128 || pixel / width >= torsoStart { evidence[pixel] = 255 }
+                    if pass + 1 < maxPasses && anchors[pixel] <= 200
+                        && (pixel / width >= torsoStart || (candidate.slender && alpha[pixel] < 128)) {
+                        anchors[pixel] = 255
+                    }
                 }
                 if proximity.distance[contact] > 0 {
                     let anchor = Int(proximity.anchor[contact])
-                    let radius = max(1, Int(Double(width) * (categories[region[0]] == 1 ? 0.009 : 0.003)))
+                    let radius = max(1, Int(Double(width) * (candidate.material == dark ? 0.009 : 0.003)))
                     bridge(from: contact, to: anchor, radius: radius, alpha: &result,
                            evidence: &evidence, original: alpha, remaining: &remaining, width: width, height: height)
                 }
             }
+            if accepted.count == previousCount || accepted.count == candidates.count { break }
+        }
+        // A specular reflection can be almost white. Complete only compact islands
+        // enclosed by accepted hardware, leaving the gaps between separate rails open.
+        for candidate in candidates where candidate.material == highlight {
+            let region = candidate.pixels
+            guard region.count <= remaining,
+                  enclosedByHardware(region, categories: categories, evidence: evidence, width: width, height: height)
+            else { continue }
+            for pixel in region {
+                if result[pixel] < 128 { remaining -= 1 }
+                result[pixel] = 255
+                evidence[pixel] = 255
+            }
         }
         return AccessoryProposal(alpha: result, evidence: evidence)
+    }
+
+    private static func touchesHardware(_ pixels: [Int], categories: [UInt8], evidence: [UInt8],
+                                        width: Int, height: Int) -> Bool {
+        for pixel in pixels {
+            let x = pixel % width, y = pixel / width
+            for ny in max(0, y - 1)...min(height - 1, y + 1) {
+                for nx in max(0, x - 1)...min(width - 1, x + 1) {
+                    let neighbor = ny * width + nx
+                    if evidence[neighbor] > 200 && (dark..<midtone).contains(categories[neighbor]) { return true }
+                }
+            }
+        }
+        return false
+    }
+
+    private static func enclosedByHardware(_ pixels: [Int], categories: [UInt8], evidence: [UInt8],
+                                           width: Int, height: Int) -> Bool {
+        var border = 0, supported = 0, metal = 0
+        for pixel in pixels {
+            let x = pixel % width, y = pixel / width
+            guard x > 0, x + 1 < width, y > 0, y + 1 < height else { return false }
+            for neighbor in [pixel - 1, pixel + 1, pixel - width, pixel + width] where categories[neighbor] != highlight {
+                border += 1
+                if evidence[neighbor] > 200 {
+                    supported += 1
+                    if categories[neighbor] == midtone { metal += 1 }
+                }
+            }
+        }
+        return border > 0 && supported * 4 >= border * 3 && metal * 2 >= border
     }
 
     private static func category(_ rgba: [UInt8], at offset: Int) -> UInt8 {
@@ -74,7 +171,8 @@ enum AccessoryRegions {
         let high = max(r, g, b), low = min(r, g, b)
         let chroma = high - low
         let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
-        if (luma < 0.33 && chroma < 0.22) || luma < 0.10 { return 1 }
+        if (luma < 0.33 && chroma < 0.22) || luma < 0.10 { return dark }
+        if chroma < 0.14 { return luma < 0.76 ? midtone : highlight }
         guard chroma > 0.22, chroma / max(high, 0.001) > 0.4 else { return 0 }
         let hue: Double
         if high == r { hue = ((g - b) / chroma).truncatingRemainder(dividingBy: 6) }
@@ -87,42 +185,46 @@ enum AccessoryRegions {
         -> (distance: [UInt8], anchor: [Int32]) {
         var distance = [UInt8](repeating: 255, count: alpha.count)
         var anchor = [Int32](repeating: -1, count: alpha.count)
+        // Only pixels within reach of an anchor can contribute. Start a wave at
+        // the silhouette boundary; the room and interior need no neighbor search.
+        var frontier = [Int]()
         for pixel in alpha.indices where alpha[pixel] > 200 {
             distance[pixel] = 0
             anchor[pixel] = Int32(pixel)
-        }
-        for pixel in alpha.indices {
-            let x = pixel % width, y = pixel / width
-            if x > 0 { relax(pixel, from: pixel - 1, width: width, reach: reach, distance: &distance, anchor: &anchor) }
-            if y > 0 {
-                for nx in max(0, x - 1)...min(width - 1, x + 1) {
-                    relax(pixel, from: (y - 1) * width + nx, width: width, reach: reach, distance: &distance, anchor: &anchor)
-                }
+            let x = pixel % width
+            if (x > 0 && alpha[pixel - 1] <= 200)
+                || (x + 1 < width && alpha[pixel + 1] <= 200)
+                || (pixel >= width && alpha[pixel - width] <= 200)
+                || (pixel + width < alpha.count && alpha[pixel + width] <= 200) {
+                frontier.append(pixel)
             }
         }
-        for pixel in alpha.indices.reversed() {
-            let x = pixel % width, y = pixel / width
-            if x < width - 1 { relax(pixel, from: pixel + 1, width: width, reach: reach, distance: &distance, anchor: &anchor) }
-            if y < height - 1 {
-                for nx in max(0, x - 1)...min(width - 1, x + 1) {
-                    relax(pixel, from: (y + 1) * width + nx, width: width, reach: reach, distance: &distance, anchor: &anchor)
+        var cursor = 0
+        for step in 1...reach {
+            let end = frontier.count
+            guard cursor < end else { break }
+            let nextDistance = UInt8(step)
+            while cursor < end {
+                let pixel = frontier[cursor]
+                cursor += 1
+                let x = pixel % width, y = pixel / width
+                for ny in max(0, y - 1)...min(height - 1, y + 1) {
+                    for nx in max(0, x - 1)...min(width - 1, x + 1) {
+                        let next = ny * width + nx
+                        if distance[next] > nextDistance {
+                            distance[next] = nextDistance
+                            anchor[next] = anchor[pixel]
+                            if step < reach { frontier.append(next) }
+                        } else if distance[next] == nextDistance && anchor[next] != anchor[pixel],
+                                  squaredDistance(next, Int(anchor[pixel]), width: width)
+                                    < squaredDistance(next, Int(anchor[next]), width: width) {
+                            anchor[next] = anchor[pixel]
+                        }
+                    }
                 }
             }
         }
         return (distance, anchor)
-    }
-
-    private static func relax(_ pixel: Int, from neighbor: Int, width: Int, reach: Int,
-                              distance: inout [UInt8], anchor: inout [Int32]) {
-        guard distance[neighbor] < reach else { return }
-        let candidate = distance[neighbor] + 1
-        let closerAnchor = candidate == distance[pixel]
-            && squaredDistance(pixel, Int(anchor[neighbor]), width: width)
-                < squaredDistance(pixel, Int(anchor[pixel]), width: width)
-        if candidate < distance[pixel] || closerAnchor {
-            distance[pixel] = distance[neighbor] + 1
-            anchor[pixel] = anchor[neighbor]
-        }
     }
 
     private static func squaredDistance(_ a: Int, _ b: Int, width: Int) -> Int {
