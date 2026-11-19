@@ -1,4 +1,5 @@
 import Combine
+import CoreImage
 import Foundation
 import SwiftUI
 
@@ -42,5 +43,35 @@ enum VerifyCameraSettings {
         precondition(changes == beforeUnchangedWrite)
         precondition(changes > 0 && changes <= 26)
         print("CameraModel settings: 60 FPS, all formats, persistence, invalid rates and notifications passed.")
+
+        verifyPreviewRendering()
+        print("Preview rendering passed for headless output, individual previews and shared previews.")
+    }
+
+    private static func verifyPreviewRendering() {
+        let bounds = CGRect(x: 0, y: 0, width: 2, height: 2)
+        let output = CIImage(color: .red).cropped(to: bounds)
+        let mask = CIImage(color: .white).cropped(to: bounds)
+        let context = CIContext()
+        let colorFrame = context.createCGImage(output, from: bounds)!
+        let maskFrame = context.createCGImage(mask, from: bounds)!
+
+        func check(_ visible: Set<PreviewSource>, alternate: CIImage?, main: CGImage?, gestures: CGImage?,
+                   renderCount: Int) {
+            var count = 0
+            let previews = CaptureEngine.renderPreviews(for: visible, alternate: alternate, output: output) { image in
+                count += 1
+                precondition(image === output || image === mask)
+                return image === output ? colorFrame : maskFrame
+            }
+            precondition(count == renderCount && previews.main === main && previews.gestures === gestures)
+        }
+
+        check([], alternate: mask, main: nil, gestures: nil, renderCount: 0)
+        check([.mainWindow], alternate: nil, main: colorFrame, gestures: nil, renderCount: 1)
+        check([.mainWindow], alternate: mask, main: maskFrame, gestures: nil, renderCount: 1)
+        check([.gestures], alternate: mask, main: nil, gestures: colorFrame, renderCount: 1)
+        check([.mainWindow, .gestures], alternate: nil, main: colorFrame, gestures: colorFrame, renderCount: 1)
+        check([.mainWindow, .gestures], alternate: mask, main: maskFrame, gestures: colorFrame, renderCount: 2)
     }
 }

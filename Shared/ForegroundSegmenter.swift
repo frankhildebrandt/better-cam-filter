@@ -72,7 +72,7 @@ final class ForegroundSegmenter {
             if configuration.provider != .apple && settings.personSupport {
                 var person = try personMask(for: image)
                 if settings.accessorySupport {
-                    person = accessories.refine(mask: person, image: image, time: time)
+                    person = accessories.refine(mask: person, image: image, time: time, detail: configuration.appleSettings.accessoryDetail)
                 }
                 mask = FrameComposition.preserving(person, in: mask)
             }
@@ -80,7 +80,7 @@ final class ForegroundSegmenter {
             mask = maskTemporal.filter(mask: mask, image: image, time: time, strength: settings.temporalStrength)
         }
         if configuration.provider == .apple && includeAppleAccessories {
-            mask = accessories.refine(mask: mask, image: image, time: time)
+            mask = accessories.refine(mask: mask, image: image, time: time, detail: configuration.appleSettings.accessoryDetail)
         }
         return mask
     }

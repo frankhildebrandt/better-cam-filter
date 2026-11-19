@@ -3,6 +3,18 @@ import Foundation
 struct AccessoryProposal {
     let alpha: [UInt8]
     let evidence: [UInt8]
+    let metalPixels: [Int]
+}
+
+struct AccessorySamples {
+    let rgba: [UInt8]
+    let alpha: [UInt8]
+    let width: Int
+    let height: Int
+
+    func proposal(collectMetal: Bool = false) -> AccessoryProposal {
+        AccessoryRegions.propose(rgba: rgba, alpha: alpha, width: width, height: height, collectMetal: collectMetal)
+    }
 }
 
 /// Bounded appearance-based additions anchored to the semantic foreground mask.
@@ -48,9 +60,34 @@ enum AccessoryRegions {
         propose(rgba: rgba, alpha: alpha, width: width, height: height).alpha
     }
 
+    static func restoreMetal(from coarse: AccessorySamples, in fine: AccessorySamples, evidence: inout [UInt8]) {
+        let metal = coarse.proposal(collectMetal: true).metalPixels
+        guard !metal.isEmpty else { return }
+        // Partition fine pixel centers by their nearest coarse sample, also for 768:512.
+        func boundaries(_ source: Int, _ target: Int) -> [Int] {
+            (0...source).map { (2 * $0 * target + source - 1) / (2 * source) }
+        }
+        let columns = boundaries(coarse.width, fine.width)
+        let rows = boundaries(coarse.height, fine.height)
+        for source in metal {
+            let x = source % coarse.width, y = source / coarse.width, reference = source * 4
+            for row in rows[y]..<rows[y + 1] {
+                for column in columns[x]..<columns[x + 1] {
+                    let pixel = row * fine.width + column, offset = pixel * 4
+                    guard evidence[pixel] == 0, category(fine.rgba, at: offset) >= midtone else { continue }
+                    // Reject mixed edge samples where the coarse pixel overlaps the room.
+                    if (0..<3).allSatisfy({ abs(Int(fine.rgba[offset + $0]) - Int(coarse.rgba[reference + $0])) <= 28 }) {
+                        evidence[pixel] = 255
+                    }
+                }
+            }
+        }
+    }
+
     /// Track approved components independently of which pixels Vision already calls foreground.
-    static func propose(rgba: [UInt8], alpha: [UInt8], width: Int, height: Int) -> AccessoryProposal {
-        let empty = AccessoryProposal(alpha: alpha, evidence: [UInt8](repeating: 0, count: alpha.count))
+    static func propose(rgba: [UInt8], alpha: [UInt8], width: Int, height: Int,
+                        collectMetal: Bool = false) -> AccessoryProposal {
+        let empty = AccessoryProposal(alpha: alpha, evidence: [UInt8](repeating: 0, count: alpha.count), metalPixels: [])
         guard width > 0, height > 0 else { return empty }
         let count = alpha.count
         guard count / width == height, count % width == 0, rgba.count / 4 == count, rgba.count % 4 == 0
@@ -66,6 +103,7 @@ enum AccessoryRegions {
         let torsoStart = top + (bottom - top) * 55 / 100
         var result = alpha
         var evidence = empty.evidence
+        var metalPixels = [Int]()
         var anchors = alpha
         for pixel in 0..<(torsoStart * width) { anchors[pixel] = 0 }
         var accepted = Set<Int>()
@@ -108,6 +146,9 @@ enum AccessoryRegions {
                         anchors[pixel] = 255
                     }
                 }
+                if collectMetal && candidate.material == midtone {
+                    metalPixels.append(contentsOf: region.filter { evidence[$0] > 200 })
+                }
                 if proximity.distance[contact] > 0 {
                     let anchor = Int(proximity.anchor[contact])
                     let radius = max(1, Int(Double(width) * (candidate.material == dark ? 0.009 : 0.003)))
@@ -129,8 +170,9 @@ enum AccessoryRegions {
                 result[pixel] = 255
                 evidence[pixel] = 255
             }
+            if collectMetal { metalPixels.append(contentsOf: region) }
         }
-        return AccessoryProposal(alpha: result, evidence: evidence)
+        return AccessoryProposal(alpha: result, evidence: evidence, metalPixels: metalPixels)
     }
 
     private static func touchesHardware(_ pixels: [Int], categories: [UInt8], evidence: [UInt8],

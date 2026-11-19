@@ -129,6 +129,31 @@ struct AccessoryMaskRefinerTests {
         }
     }
 
+    @Test func highDetailRecoversATwoPixelCableInAFullSizeFrame() {
+        let bounds = CGRect(x: 0, y: 0, width: 2048, height: 1152)
+        let body = CGRect(x: 1200, y: 0, width: 400, height: 820)
+        let cable = CGRect(x: 500, y: 320, width: 700, height: 2)
+        let white = CIImage(color: .white).cropped(to: bounds)
+        let black = CIImage(color: .black).cropped(to: bounds)
+        let image = black.cropped(to: cable).composited(over: CIImage(color: .gray).cropped(to: body).composited(over: white))
+        let person = white.cropped(to: body).composited(over: black)
+        func settledMask(_ detail: AccessoryDetail) -> CIImage {
+            let refiner = AccessoryMaskRefiner(context: context)
+            var mask = person
+            for frame in 0..<6 {
+                mask = refiner.refine(mask: person, image: image, time: Double(frame) / 30, detail: detail)
+            }
+            return mask
+        }
+        let standard = settledMask(.standard), fine = settledMask(.veryFine)
+        for x in [550, 850, 1140] {
+            let center = CGRect(x: x, y: 320, width: 1, height: 1)
+            #expect(pixels(fine, in: center)[0] > 220)
+            #expect(pixels(standard, in: center)[0] < 60)
+            #expect(pixels(fine, in: center.offsetBy(dx: 0, dy: 5))[0] < 15)
+        }
+    }
+
     private func pixels(_ image: CIImage, in bounds: CGRect) -> [UInt8] {
         var bytes = [UInt8](repeating: 0, count: Int(bounds.width * bounds.height) * 4)
         context.render(image, toBitmap: &bytes, rowBytes: Int(bounds.width) * 4,

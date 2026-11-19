@@ -105,6 +105,12 @@ struct ConfigurationView: View {
             .navigationTitle(category.title)
         }
         .frame(minWidth: 840, idealWidth: 900, minHeight: 640, idealHeight: 740)
+        .onAppear { if category == .gestures { camera.previewAppeared(.gestures) } }
+        .onChange(of: category) { previous, current in
+            if current == .gestures { camera.previewAppeared(.gestures) }
+            else if previous == .gestures { camera.endPreview(.gestures) }
+        }
+        .onDisappear { camera.endPreview(.gestures) }
         .fileImporter(isPresented: $choosingModel, allowedContentTypes: [.item, .folder]) { result in
             switch result {
             case .success(let url): Task { await settings.importModel(url) }
@@ -217,6 +223,7 @@ struct ConfigurationView: View {
                     Toggle("Stuhl & Mikrofon ergänzen", isOn: $camera.accessoriesEnabled)
                     Text("Erhält auch verbundene Mikrofonarme, Stecker und Kabel. In der Maskenvorschau lassen sich die Zwischenräume am Arm prüfen.")
                         .font(.caption).foregroundStyle(.secondary)
+                    if camera.accessoriesEnabled { AccessoryDetailPicker(settings: settings) }
                 }
             }
         }

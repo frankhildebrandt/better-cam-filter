@@ -198,7 +198,8 @@ Sobald eine Video-App den virtuellen Kamerastream **BetterCam** öffnet, startet
 die ausgewählte Webcam. Wenn die letzte Video-App den Stream schließt, gibt
 BetterCam die Webcam frei, sofern keine manuell gestartete Vorschau geöffnet ist.
 Für eine lokale Vorschau **Kamera starten** wählen. Beim Schließen der Vorschau
-endet der lokale Kamerabedarf.
+endet der lokale Kamerabedarf. Läuft BetterCam nur für eine Video-App, entfallen
+die zusätzlichen Vorschaubilder für das Hauptfenster und die Gesteneinstellungen.
 
 **Kamera stoppen** gibt die Webcam frei und pausiert einen laufenden Zugriff über
 die virtuelle Kamera. Sobald alle Video-Apps den Stream geschlossen haben, ist
@@ -447,6 +448,14 @@ nun sauber freigestellt werden; dafür ist eine neue Live-Prüfung erforderlich.
 bildet die Basis für die gezielte Zubehörerkennung. **Nur Person** verwendet
 dieselbe Personenmaske ohne die automatische Zubehör-Ergänzung.
 
+Für dünne Mikrofonkabel lässt sich die **Zubehör-Auflösung** von 512 Pixeln
+(Standard) auf 768 oder 1024 Pixel Breite erhöhen. Bei feinen Kabeln zuerst
+1024 ausprobieren und die Bildrate im Hauptfenster prüfen. Wenn sie zu stark
+sinkt, ist 768 die Zwischenstufe. Die Auswahl gilt auch für die Zubehör-Ergänzung
+bei anderen Modellen. In beiden höheren Stufen prüft BetterCam den Stecker zusätzlich
+bei 512 Pixeln. Dadurch können graue Metallflächen und helle Reflexe erhalten
+bleiben, wenn sie in der feineren Analyse mit der Wand verschmelzen.
+
 **Stuhl & Mikrofon ergänzen** ist im Objektmodus standardmäßig aktiv. Ein lokaler
 Algorithmus sucht zusammenhängende dunkle, wenig gesättigte Flächen nahe der bereits
 erkannten Person. Schmale farbige Komponenten ergänzen beispielsweise ein Kabel;
@@ -547,7 +556,7 @@ AVCaptureDevice → AVCaptureVideoDataOutput
 - **Shared:** Ausgabeformat, Seitenverhältnis, Vision-Segmentierung, Schutzmaske,
   Masken-Compositing und Sample-Puffer. Masken werden in normalisierten Koordinaten
   auf das bereits zugeschnittene Kamerabild abgebildet, ohne erneuten Aspect-Fill-Crop.
-  `AccessoryMaskRefiner` analysiert Bild und Maske bei 512 Pixeln Breite.
+  `AccessoryMaskRefiner` begrenzt die Analysebreite auf die gewählte Zubehör-Auflösung.
   `AccessoryRegions` ergänzt begrenzt verbundene Komponenten. `AccessoryTemporalFilter`
   bestätigt nur zusätzliche Zubehörpixel; die aktuelle hochauflösende Personenmaske
   und explizite Schutzbereiche bleiben davon unabhängig.

@@ -88,6 +88,28 @@ struct RecognitionControls: View {
     }
 }
 
+struct AccessoryDetailPicker: View {
+    @ObservedObject var settings: SegmentationSettingsModel
+
+    var body: some View {
+        Picker("Zubehör-Auflösung", selection: Binding(
+            get: { settings.configuration.appleSettings.accessoryDetail },
+            set: { detail in
+                var apple = settings.configuration.appleSettings
+                apple.accessoryDetail = detail
+                settings.updateAppleSettings(apple)
+            }
+        )) {
+            ForEach(AccessoryDetail.allCases, id: \.self) { detail in
+                Text("\(detail.rawValue) Pixel breit").tag(detail)
+            }
+        }
+        .disabled(settings.isBusy)
+        Text("Eine höhere Auflösung erfasst feinere Kabel und kann die Bildrate senken. Die Einstellung gilt für alle Modelle mit Zubehör-Erkennung.")
+            .font(.caption).foregroundStyle(.secondary)
+    }
+}
+
 struct CustomMaskControls: View {
     @ObservedObject var settings: SegmentationSettingsModel
 
@@ -137,6 +159,7 @@ struct CustomMaskControls: View {
                     hint("Kann fehlende Körperbereiche ergänzen und benötigt zusätzliche Rechenzeit. Die Objektmaske des gewählten Modells bleibt erhalten.")
                     if mask.personSupport {
                         Toggle("Mikrofon, Arm & Kabel ergänzen", isOn: value(\.accessorySupport))
+                        if mask.accessorySupport { AccessoryDetailPicker(settings: settings) }
                     }
                 }
             }

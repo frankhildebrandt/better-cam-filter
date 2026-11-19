@@ -32,7 +32,7 @@ AVCaptureDevice → AVCaptureVideoDataOutput
 - **Shared:** Ausgabeformat, Seitenverhältnis, Vision-Segmentierung, Schutzmaske,
   Masken-Compositing und Sample-Puffer. Masken werden in normalisierten Koordinaten
   auf das bereits zugeschnittene Kamerabild abgebildet, ohne erneuten Aspect-Fill-Crop.
-  `AccessoryMaskRefiner` analysiert Bild und Maske bei 512 Pixeln Breite.
+  `AccessoryMaskRefiner` begrenzt die Analysebreite auf die gewählte Zubehör-Auflösung.
   `AccessoryRegions` ergänzt begrenzt verbundene Komponenten. `AccessoryTemporalFilter`
   bestätigt nur zusätzliche Zubehörpixel; die aktuelle hochauflösende Personenmaske
   und explizite Schutzbereiche bleiben davon unabhängig.

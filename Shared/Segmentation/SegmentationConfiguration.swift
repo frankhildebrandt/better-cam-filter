@@ -81,18 +81,24 @@ enum RecognitionQuality: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 }
 
+enum AccessoryDetail: Int, CaseIterable, Codable, Sendable {
+    case standard = 512, fine = 768, veryFine = 1024
+}
+
 struct AppleRecognitionSettings: Codable, Equatable, Sendable {
     var quality: RecognitionQuality = .accurate
     /// Zero uses the complete output image; other values cap the analysis width.
     var analysisWidth = 768
+    var accessoryDetail: AccessoryDetail = .standard
     /// Zero follows the system's default revision.
     var revision = 0
     var preferBackgroundProcessing = false
 
     init(quality: RecognitionQuality = .accurate, analysisWidth: Int = 768, revision: Int = 0,
-         preferBackgroundProcessing: Bool = false) {
+         preferBackgroundProcessing: Bool = false, accessoryDetail: AccessoryDetail = .standard) {
         self.quality = quality
         self.analysisWidth = analysisWidth
+        self.accessoryDetail = accessoryDetail
         self.revision = revision
         self.preferBackgroundProcessing = preferBackgroundProcessing
     }
@@ -102,11 +108,12 @@ struct AppleRecognitionSettings: Codable, Equatable, Sendable {
         self.init(quality: try values.decodeIfPresent(RecognitionQuality.self, forKey: .quality) ?? .accurate,
                   analysisWidth: try values.decodeIfPresent(Int.self, forKey: .analysisWidth) ?? 768,
                   revision: try values.decodeIfPresent(Int.self, forKey: .revision) ?? 0,
-                  preferBackgroundProcessing: try values.decodeIfPresent(Bool.self, forKey: .preferBackgroundProcessing) ?? false)
+                  preferBackgroundProcessing: try values.decodeIfPresent(Bool.self, forKey: .preferBackgroundProcessing) ?? false,
+                  accessoryDetail: AccessoryDetail(rawValue: try values.decodeIfPresent(Int.self, forKey: .accessoryDetail) ?? 0) ?? .standard)
         self = sanitized
     }
 
-    private enum CodingKeys: String, CodingKey { case quality, analysisWidth, revision, preferBackgroundProcessing }
+    private enum CodingKeys: String, CodingKey { case quality, analysisWidth, accessoryDetail, revision, preferBackgroundProcessing }
 
     var sanitized: Self {
         var result = self

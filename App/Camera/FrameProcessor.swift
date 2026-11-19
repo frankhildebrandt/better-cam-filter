@@ -52,7 +52,7 @@ final class FrameProcessor {
         gestureReactions.preview(reaction, for: gesture, at: time)
     }
 
-    func process(_ input: CVPixelBuffer, at time: CMTime) throws -> CMSampleBuffer {
+    func process(_ input: CVPixelBuffer, at time: CMTime, keepPreviewMask: Bool) throws -> CMSampleBuffer {
         let size = CGSize(width: CVPixelBufferGetWidth(input), height: CVPixelBufferGetHeight(input))
         if size != inputSize {
             resetSegmentation()
@@ -75,7 +75,7 @@ final class FrameProcessor {
                 throw error
             }
             personMask = preserved
-            previewMask = preserved
+            previewMask = keepPreviewMask ? preserved : nil
             outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background,
                                                              mask: preserved, backgroundReaction: reactions.background)
         } else {

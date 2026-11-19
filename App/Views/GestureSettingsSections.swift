@@ -49,7 +49,6 @@ struct GestureSettingsSections: View {
         } footer: {
             Text("Für jeden Slot stehen nur passende Reactions zur Auswahl. Unbelegte Gesten werden ebenfalls erkannt und hier angezeigt. Fingerherz und Herzhände sind experimentell: Halte beide Hände vollständig im Bild und möglichst frei von Verdeckungen.")
         }
-        .onDisappear { camera.endPreview(.gestures) }
     }
 
     private var status: String {

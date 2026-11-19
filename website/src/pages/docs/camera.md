@@ -11,6 +11,14 @@ generated: true
 bildet die Basis für die gezielte Zubehörerkennung. **Nur Person** verwendet
 dieselbe Personenmaske ohne die automatische Zubehör-Ergänzung.
 
+Für dünne Mikrofonkabel lässt sich die **Zubehör-Auflösung** von 512 Pixeln
+(Standard) auf 768 oder 1024 Pixel Breite erhöhen. Bei feinen Kabeln zuerst
+1024 ausprobieren und die Bildrate im Hauptfenster prüfen. Wenn sie zu stark
+sinkt, ist 768 die Zwischenstufe. Die Auswahl gilt auch für die Zubehör-Ergänzung
+bei anderen Modellen. In beiden höheren Stufen prüft BetterCam den Stecker zusätzlich
+bei 512 Pixeln. Dadurch können graue Metallflächen und helle Reflexe erhalten
+bleiben, wenn sie in der feineren Analyse mit der Wand verschmelzen.
+
 **Stuhl & Mikrofon ergänzen** ist im Objektmodus standardmäßig aktiv. Ein lokaler
 Algorithmus sucht zusammenhängende dunkle, wenig gesättigte Flächen nahe der bereits
 erkannten Person. Schmale farbige Komponenten ergänzen beispielsweise ein Kabel;

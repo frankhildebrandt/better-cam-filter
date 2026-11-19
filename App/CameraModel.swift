@@ -10,8 +10,6 @@ struct CameraChoice: Identifiable {
 
 @MainActor
 final class CameraModel: ObservableObject {
-    enum PreviewSource { case mainWindow, gestures }
-
     @Published private(set) var cameras: [CameraChoice] = []
     @Published var selectedCameraID = UserDefaults.standard.string(forKey: "selectedCameraID") ?? "" {
         didSet {
@@ -158,7 +156,12 @@ final class CameraModel: ObservableObject {
         reconcileCapture()
     }
 
+    func previewAppeared(_ source: PreviewSource) {
+        engine.setPreviewVisible(true, for: source)
+    }
+
     func endPreview(_ source: PreviewSource) {
+        engine.setPreviewVisible(false, for: source)
         guard previewSource == source else { return }
         previewSource = nil
         reconcileCapture()

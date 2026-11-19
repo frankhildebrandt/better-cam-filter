@@ -2,6 +2,8 @@ import AVFoundation
 import CoreImage
 import Foundation
 
+enum PreviewSource: Sendable { case mainWindow, gestures }
+
 struct CaptureUpdate: Sendable {
     let preview: CGImage?
     let outputPreview: CGImage?
@@ -20,6 +22,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private let processor = FrameProcessor()
     private let output = VirtualCameraOutput()
     private var nextPreview: TimeInterval = 0
+    private var visiblePreviews = Set<PreviewSource>()
     private var nextFrame: TimeInterval = 0
     private var previewOriginal = false
     private var previewMask = false
@@ -91,6 +94,14 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
 
     func setPreviewMask(_ enabled: Bool) {
         queue.async { self.previewMask = enabled }
+    }
+
+    func setPreviewVisible(_ visible: Bool, for source: PreviewSource) {
+        queue.async {
+            guard self.visiblePreviews.contains(source) != visible else { return }
+            if visible { self.visiblePreviews.insert(source) } else { self.visiblePreviews.remove(source) }
+            self.nextPreview = 0
+        }
     }
 
     func setGestureConfiguration(_ configuration: GestureConfiguration) {
@@ -173,7 +184,8 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         let interval = 1.0 / Double(outputConfiguration.frameRate)
         nextFrame = nextFrame == 0 ? now + interval : max(nextFrame + interval, now)
         do {
-            let processed = try processor.process(input, at: CMClockGetTime(CMClockGetHostTimeClock()))
+            let needsMask = visiblePreviews.contains(.mainWindow) && previewMask && !previewOriginal && now >= nextPreview
+            let processed = try processor.process(input, at: CMClockGetTime(CMClockGetHostTimeClock()), keepPreviewMask: needsMask)
             processedFrames += 1
             let elapsed = ProcessInfo.processInfo.systemUptime - statisticsStarted
             if elapsed >= 1 {
@@ -191,14 +203,14 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
                 outputError = error.localizedDescription
             }
             guard now >= nextPreview, let buffer = processed.imageBuffer else { return }
-            nextPreview = now + 1.0 / 15.0
-            let previewImage = previewOriginal
+            nextPreview = now + (visiblePreviews.isEmpty ? 1 : 1.0 / 15.0)
+            let alternate = previewOriginal && visiblePreviews.contains(.mainWindow)
                 ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
-                : (previewMask ? processor.previewMask : nil) ?? CIImage(cvPixelBuffer: buffer)
-            let image = processor.context.createCGImage(previewImage, from: outputConfiguration.bounds)
-            let outputImage = previewOriginal || previewMask
-                ? processor.context.createCGImage(CIImage(cvPixelBuffer: buffer), from: outputConfiguration.bounds) : image
-            onUpdate(CaptureUpdate(preview: image, outputPreview: outputImage, outputConnected: connected, error: outputError,
+                : processor.previewMask
+            let previews = Self.renderPreviews(for: visiblePreviews, alternate: alternate, output: CIImage(cvPixelBuffer: buffer)) {
+                processor.context.createCGImage($0, from: outputConfiguration.bounds)
+            }
+            onUpdate(CaptureUpdate(preview: previews.main, outputPreview: previews.gestures, outputConnected: connected, error: outputError,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
                                    framesPerSecond: framesPerSecond, detectedGesture: processor.detectedGesture,
                                    gestureError: processor.gestureError))
@@ -209,6 +221,14 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
                                    framesPerSecond: 0, detectedGesture: nil, gestureError: processor.gestureError))
         }
+    }
+
+    static func renderPreviews(for visible: Set<PreviewSource>, alternate: CIImage?, output: CIImage,
+                               render: (CIImage) -> CGImage?) -> (main: CGImage?, gestures: CGImage?) {
+        let main = visible.contains(.mainWindow), gestures = visible.contains(.gestures)
+        let colorImage = gestures || (main && alternate == nil) ? render(output) : nil
+        if main, let alternate { return (render(alternate), colorImage) }
+        return (main ? colorImage : nil, gestures ? colorImage : nil)
     }
 }
 
