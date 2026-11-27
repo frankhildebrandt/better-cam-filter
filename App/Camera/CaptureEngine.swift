@@ -210,7 +210,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         defer { reportReactionMaskNeed() }
         do {
             let needsMask = visiblePreviews.contains(.mainWindow) && previewMask && !previewOriginal && now >= nextPreview
-            let processed = try processor.process(frame, keepPreviewMask: needsMask)
+            guard let processed = try processor.process(frame, keepPreviewMask: needsMask) else { return }
             processedFrames += 1
             let elapsed = ProcessInfo.processInfo.systemUptime - statisticsStarted
             if elapsed >= 1 {

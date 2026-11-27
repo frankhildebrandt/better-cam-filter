@@ -50,9 +50,10 @@ final class FrameProcessor {
         gestureReactions.preview(reaction, for: gesture, at: time)
     }
 
-    /// Compose one analyzed frame. While the analysis stage has not yet learned that a background
-    /// or reaction needs a mask, the frame passes through unmasked.
-    func process(_ frame: AnalyzedFrame, keepPreviewMask: Bool) throws -> CMSampleBuffer {
+    /// Compose one analyzed frame. Returns nil for a frame analyzed before the analysis stage learned
+    /// about a replacement background, so the real room is never sent. A rear reaction that starts
+    /// before its mask arrives is simply drawn a frame or two later.
+    func process(_ frame: AnalyzedFrame, keepPreviewMask: Bool) throws -> CMSampleBuffer? {
         let size = CGSize(width: CVPixelBufferGetWidth(frame.input), height: CVPixelBufferGetHeight(frame.input))
         if size != inputSize {
             resetSegmentation()
@@ -75,11 +76,10 @@ final class FrameProcessor {
                 resetSegmentation()
                 throw error
             }
-            if let personMask {
-                previewMask = keepPreviewMask ? personMask : nil
-                outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background,
-                                                                 mask: personMask, backgroundReaction: reactions.background)
-            }
+            guard let personMask else { return nil }
+            previewMask = keepPreviewMask ? personMask : nil
+            outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background,
+                                                             mask: personMask, backgroundReaction: reactions.background)
         }
         if reactions.background != nil, personMask == nil {
             do { personMask = try mask(for: frame) }
