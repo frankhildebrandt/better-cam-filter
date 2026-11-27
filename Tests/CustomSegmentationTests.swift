@@ -160,6 +160,27 @@ struct CustomSegmentationTests {
         #expect(throws: CustomSegmentationError.self) { try segmenter.mask(for: image) }
     }
 
+    @Test func separateAnalysisAndRefinementStagesMatchTheSynchronousSegmenter() throws {
+        let fixture = try CustomModelFixture.make(imageOutput: true)
+        defer { fixture.remove() }
+        let image = CIImage(bitmapData: Data(repeating: 128, count: 16), bytesPerRow: 4,
+                            size: CGSize(width: 4, height: 4), format: .L8, colorSpace: nil)
+        var configuration = SegmentationConfiguration(provider: .custom, customModelURL: fixture.compiled)
+        configuration.maskSettings = CustomMaskSettings(threshold: 0.3, transition: 0.2, edgeInset: 0, temporalStrength: 0)
+        let segmenter = ForegroundSegmenter()
+        segmenter.configuration = configuration
+        let analyzer = SegmentationAnalyzer()
+        analyzer.configuration = configuration
+        let refiner = SegmentationRefiner()
+        refiner.configuration = configuration
+
+        let staged = refiner.refine(try analyzer.analyze(image), image: image, time: 0)
+        let synchronous = try segmenter.mask(for: image, time: 0)
+        #expect(staged.extent == synchronous.extent)
+        #expect(abs(value(staged, x: 2, y: 2) - value(synchronous, x: 2, y: 2)) < 0.001)
+        #expect(try analyzer.analyze(image).supportingPerson == nil)
+    }
+
     private func value(_ image: CIImage, x: Int, y: Int) -> Float {
         var result: Float = -1
         CIContext().render(image, toBitmap: &result, rowBytes: MemoryLayout<Float>.size,

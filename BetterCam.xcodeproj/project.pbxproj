@@ -21,6 +21,7 @@
 		302F2F9102B075628167E35F /* InstalledSegmentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30AFA6A072D39D9F98DDBD6F /* InstalledSegmentationModel.swift */; };
 		3062CC74D585258CB28E0A87 /* HandGestureDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9EB74B5447CA4FFB7A83E8 /* HandGestureDetector.swift */; };
 		311965863F06070D8905A988 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36C7AB8A905DDE72735ED2 /* ContentView.swift */; };
+		3294E3679A9662270D07E473 /* SegmentationRefiner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19A5AAEE242869145B4FDBA /* SegmentationRefiner.swift */; };
 		343D7B5201CF9597EB984196 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C36F03963DB0C71698755D0 /* main.swift */; };
 		346B1B1E658B526FC925D16D /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
 		3678FEC8D8DB3EE8EDE76AE5 /* BackgroundLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2DA8A951A08E49AA84F9E39 /* BackgroundLibraryStore.swift */; };
@@ -31,6 +32,7 @@
 		419AAFDEC15A312ACEDBCFB4 /* BetterCamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */; };
 		41F6E8EED77B9DC8C98D548F /* CameraProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7596EA12E792194C0FC9B2 /* CameraProvider.swift */; };
 		44DA9868B27DDC1544AE386F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC24548297D6B472F820B7FE /* main.swift */; };
+		463BFE8A333E5D2627051C42 /* AccessoryMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083702AD73080EFC8837E271 /* AccessoryMaterial.swift */; };
 		477D6481434F3C11151D1983 /* ProducerAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE6E1830E4F056F9CABE541 /* ProducerAuthorization.swift */; };
 		4E718B1D9079DD4B49EE8835 /* DownloadableSegmentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126A453F1A8E0088AE90DA78 /* DownloadableSegmentationModel.swift */; };
 		52DE5BBCE8B86B59A94BC34F /* CMIOProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */; };
@@ -40,10 +42,14 @@
 		598050541D8DB208E25BF687 /* SegmentationModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D9786081E324F96E5D443B /* SegmentationModelDownloader.swift */; };
 		5CA2E6EF888416B112A20176 /* GestureReactionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC88AAE5BC48873A0DE7D85 /* GestureReactionProcessor.swift */; };
 		61FB909FBFBF2E0B9C1861D3 /* CustomMaskSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89A45C780CFF02FD0CFB413C /* CustomMaskSettings.swift */; };
+		631F68E4DF4AD8A620ACF93F /* AccessoryPixelHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F680DE557C0F80A407E64D1C /* AccessoryPixelHistory.swift */; };
 		6456835E045C97DC52BA0E8E /* BackgroundModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545DC1660B33828E9F6E1391 /* BackgroundModel.swift */; };
 		654B4863D184440D5C7EC7AC /* ReactionCharacterArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B3036C00B1B42D97134B4D /* ReactionCharacterArt.swift */; };
 		6E71F8D67258855249C396F5 /* BackgroundGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */; };
+		6EFCAFA0A75A05696ED7874C /* FrameAnalysisStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DA15A1425BEEADB0D58E0A /* FrameAnalysisStage.swift */; };
+		6FF1B9FE2627EDB524E163AF /* FrameHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22134456DFA51D2EF59005F /* FrameHandoff.swift */; };
 		7115FD2D787D73E09EBF93B8 /* CodexAppServerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7812516CBE599A8DF0342DAB /* CodexAppServerService.swift */; };
+		76E953B06817D6B703FDF373 /* SegmentationAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC48B9A4435AF241B974E3E0 /* SegmentationAnalyzer.swift */; };
 		781A6330A38CF0EF35EF028D /* GestureCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCCE63A0F13AA7222F42B13 /* GestureCatalog.swift */; };
 		78510B67F21DD6584F5A870D /* CustomMaskRefiner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08B6B84EEC25B0A55A3C1CC /* CustomMaskRefiner.swift */; };
 		7A2DA8FF1B2BD747E921C57D /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */; };
@@ -53,6 +59,7 @@
 		8561B92F1B3D352FB984D6D8 /* AccessorySceneHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C315F896A00E43C87E7C9C /* AccessorySceneHistory.swift */; };
 		85702ECB1C9BCCCED6584F97 /* CodexExecutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F042B747BE79D8124EEA0CC1 /* CodexExecutable.swift */; };
 		8A22774FB01EB4AB289D2693 /* CustomMaskDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60808FB17F835879E2C719B1 /* CustomMaskDecoder.swift */; };
+		8C7BDFB38FF1A56287CF7127 /* AccessoryPixelHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F680DE557C0F80A407E64D1C /* AccessoryPixelHistory.swift */; };
 		8D9638B99CDF0B75195270D9 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0972352CB0F20374B164A /* PreviewView.swift */; };
 		8EC2BB33A892A71FB9EF7373 /* HandGestureClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A648F0561C59708A61887312 /* HandGestureClassifier.swift */; };
 		8F9EDD0D94D93C8EB99365A5 /* ReactionSprites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CDC0C6C29BAFBF73D04303F /* ReactionSprites.swift */; };
@@ -66,6 +73,8 @@
 		A981C4148AF38C9BEFBC40EF /* GestureReactionPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87A7DBC1A047101376A9550C /* GestureReactionPlayback.swift */; };
 		AB69FEBEE2AECDAA09583FDC /* GestureTriggerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8661C9A748FD8E009C98A0FE /* GestureTriggerState.swift */; };
 		AC26E214442943187AAF4E90 /* ReactionRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDF57A93DB84FCFDB61D5DE /* ReactionRenderer.swift */; };
+		ADA76DFBB15290E5E28C9F26 /* EdgeAwareMaskUpsampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADC892CE0757BC8BE9A91C9 /* EdgeAwareMaskUpsampler.swift */; };
+		AFEF3B246EE410CEAE0E9F5A /* EdgeAwareMaskUpsampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADC892CE0757BC8BE9A91C9 /* EdgeAwareMaskUpsampler.swift */; };
 		B2027582732DAE755D989B73 /* SegmentationModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CFBA38FE299E70F4D5960C /* SegmentationModelStore.swift */; };
 		B8260A6D0795974234AE414F /* GestureSettingsSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152E9A68ECE0F9739FCAC19D /* GestureSettingsSections.swift */; };
 		B93BCE60522C9682CBC71E52 /* ConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3CD766CAAE863054D70781 /* ConfigurationView.swift */; };
@@ -74,11 +83,13 @@
 		C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC2F1453FF2775E12223786 /* VideoBuffers.swift */; };
 		CAA68E5CC796912C2F47C0B3 /* CodexBackgroundClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B271B76B6B0F6013E6293D7 /* CodexBackgroundClient.swift */; };
 		CD0C6D228CA03CA938DB9758 /* VirtualCameraDemand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A1EC8EA21C9DEECA20C93 /* VirtualCameraDemand.swift */; };
+		D0160BD48080C880E21EEA96 /* FrameHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22134456DFA51D2EF59005F /* FrameHandoff.swift */; };
 		D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		D99A786205144DB8BB7A476F /* AccessoryMaskRefiner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A4B48121E6510E42E6BD9 /* AccessoryMaskRefiner.swift */; };
 		DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */; };
 		E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */; };
 		E4C66DC7737A220F1D1FEB1D /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */; };
+		E52FFB2F9500B60909638FE2 /* AccessoryMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083702AD73080EFC8837E271 /* AccessoryMaterial.swift */; };
 		E74BAF580CBAAA61610B3BB5 /* AccessoryRegions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */; };
 		EDA7812F7E5262A7D9FCD6CC /* GestureSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC9AD4A67A8CEAD5ADA1D1D /* GestureSettingsStore.swift */; };
 		EE898AA9E0BDE8EC12372775 /* RecognitionPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9BDE46939774931D40FD16 /* RecognitionPreset.swift */; };
@@ -130,6 +141,7 @@
 
 /* Begin PBXFileReference section */
 		015A1EC8EA21C9DEECA20C93 /* VirtualCameraDemand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualCameraDemand.swift; sourceTree = "<group>"; };
+		083702AD73080EFC8837E271 /* AccessoryMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryMaterial.swift; sourceTree = "<group>"; };
 		0A36C7AB8A905DDE72735ED2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		124ACFFAE3571310A496DD82 /* ModelCatalogSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalogSection.swift; sourceTree = "<group>"; };
 		126A453F1A8E0088AE90DA78 /* DownloadableSegmentationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadableSegmentationModel.swift; sourceTree = "<group>"; };
@@ -156,12 +168,14 @@
 		5414F1D449C9D0F50A1DCAEC /* SegmentationModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationModelCatalog.swift; sourceTree = "<group>"; };
 		545DC1660B33828E9F6E1391 /* BackgroundModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundModel.swift; sourceTree = "<group>"; };
 		5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMIOProperties.swift; sourceTree = "<group>"; };
+		58DA15A1425BEEADB0D58E0A /* FrameAnalysisStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameAnalysisStage.swift; sourceTree = "<group>"; };
 		5CC9AD4A67A8CEAD5ADA1D1D /* GestureSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureSettingsStore.swift; sourceTree = "<group>"; };
 		5ED6BCE480775BAD10C84692 /* CameraStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStream.swift; sourceTree = "<group>"; };
 		60808FB17F835879E2C719B1 /* CustomMaskDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMaskDecoder.swift; sourceTree = "<group>"; };
 		61E945DF3EB44DC394D533C9 /* ExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionManager.swift; sourceTree = "<group>"; };
 		64D8AFCA54FBD2668AFF2D10 /* BackgroundLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLibraryView.swift; sourceTree = "<group>"; };
 		6AC2F1453FF2775E12223786 /* VideoBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoBuffers.swift; sourceTree = "<group>"; };
+		6ADC892CE0757BC8BE9A91C9 /* EdgeAwareMaskUpsampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeAwareMaskUpsampler.swift; sourceTree = "<group>"; };
 		6FFD8A81AA6373A1D9EAC72D /* HandLandmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandLandmarks.swift; sourceTree = "<group>"; };
 		70182A4C24CB8B5B7C0946C8 /* BackgroundControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundControls.swift; sourceTree = "<group>"; };
 		71B3036C00B1B42D97134B4D /* ReactionCharacterArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionCharacterArt.swift; sourceTree = "<group>"; };
@@ -181,10 +195,12 @@
 		99D9786081E324F96E5D443B /* SegmentationModelDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationModelDownloader.swift; sourceTree = "<group>"; };
 		9A0C4A902D1B39B9CB56C804 /* BackgroundGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundGeneratorView.swift; sourceTree = "<group>"; };
 		9BC88AAE5BC48873A0DE7D85 /* GestureReactionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureReactionProcessor.swift; sourceTree = "<group>"; };
+		A19A5AAEE242869145B4FDBA /* SegmentationRefiner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationRefiner.swift; sourceTree = "<group>"; };
 		A648F0561C59708A61887312 /* HandGestureClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandGestureClassifier.swift; sourceTree = "<group>"; };
 		ADB82EAB6C73516BBA8B310D /* AccessoryMotionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryMotionSupport.swift; sourceTree = "<group>"; };
 		AF3CD766CAAE863054D70781 /* ConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationView.swift; sourceTree = "<group>"; };
 		AF9EB74B5447CA4FFB7A83E8 /* HandGestureDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandGestureDetector.swift; sourceTree = "<group>"; };
+		B22134456DFA51D2EF59005F /* FrameHandoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameHandoff.swift; sourceTree = "<group>"; };
 		B2DA8A951A08E49AA84F9E39 /* BackgroundLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLibraryStore.swift; sourceTree = "<group>"; };
 		BC66E128993CCB9462615491 /* PixelComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelComponents.swift; sourceTree = "<group>"; };
 		BD070AACCAEAC0DF54EF36D5 /* BetterCamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterCamApp.swift; sourceTree = "<group>"; };
@@ -194,6 +210,7 @@
 		D067C0D4AD0B8B4569702957 /* BetterCam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5A2FD09047B221531148F38 /* SegmentationConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationConfiguration.swift; sourceTree = "<group>"; };
 		D991E7820B431D2DFE3FEDE9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DC48B9A4435AF241B974E3E0 /* SegmentationAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationAnalyzer.swift; sourceTree = "<group>"; };
 		DC64A35D8EB89D159E1A1967 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameComposition.swift; sourceTree = "<group>"; };
 		E5E3B8542031FEEC3B87D3EC /* CustomForegroundSegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomForegroundSegmenter.swift; sourceTree = "<group>"; };
@@ -202,6 +219,7 @@
 		F08B6B84EEC25B0A55A3C1CC /* CustomMaskRefiner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMaskRefiner.swift; sourceTree = "<group>"; };
 		F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
 		F5E0972352CB0F20374B164A /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		F680DE557C0F80A407E64D1C /* AccessoryPixelHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryPixelHistory.swift; sourceTree = "<group>"; };
 		F74494C742EEEFC85732DB36 /* SegmentationSettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationSettingsModel.swift; sourceTree = "<group>"; };
 		FD7A3CBC5F87BFF391D1B64A /* CodexXPCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexXPCConnection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -229,10 +247,12 @@
 				126A453F1A8E0088AE90DA78 /* DownloadableSegmentationModel.swift */,
 				30AFA6A072D39D9F98DDBD6F /* InstalledSegmentationModel.swift */,
 				7D9BDE46939774931D40FD16 /* RecognitionPreset.swift */,
+				DC48B9A4435AF241B974E3E0 /* SegmentationAnalyzer.swift */,
 				D5A2FD09047B221531148F38 /* SegmentationConfiguration.swift */,
 				5414F1D449C9D0F50A1DCAEC /* SegmentationModelCatalog.swift */,
 				99D9786081E324F96E5D443B /* SegmentationModelDownloader.swift */,
 				22CFBA38FE299E70F4D5960C /* SegmentationModelStore.swift */,
+				A19A5AAEE242869145B4FDBA /* SegmentationRefiner.swift */,
 			);
 			path = Segmentation;
 			sourceTree = "<group>";
@@ -276,6 +296,7 @@
 			children = (
 				F3A0F2C8DDABE959290D8A28 /* CaptureEngine.swift */,
 				5846E3D1B1CDFAC444B48632 /* CMIOProperties.swift */,
+				58DA15A1425BEEADB0D58E0A /* FrameAnalysisStage.swift */,
 				8568133F76938204D3BD452B /* FrameProcessor.swift */,
 				36EA7A659AFE4748CCE1F6BB /* GestureAnalysisWorker.swift */,
 				9BC88AAE5BC48873A0DE7D85 /* GestureReactionProcessor.swift */,
@@ -357,13 +378,17 @@
 			isa = PBXGroup;
 			children = (
 				455A4B48121E6510E42E6BD9 /* AccessoryMaskRefiner.swift */,
+				083702AD73080EFC8837E271 /* AccessoryMaterial.swift */,
 				ADB82EAB6C73516BBA8B310D /* AccessoryMotionSupport.swift */,
+				F680DE557C0F80A407E64D1C /* AccessoryPixelHistory.swift */,
 				41A96462683B7E8025AD75B7 /* AccessoryRegions.swift */,
 				52C315F896A00E43C87E7C9C /* AccessorySceneHistory.swift */,
 				30764A366BE67B1ACA09A7D3 /* AccessoryTemporalFilter.swift */,
 				3F40161CB61A62F2523DCE71 /* CameraConfiguration.swift */,
+				6ADC892CE0757BC8BE9A91C9 /* EdgeAwareMaskUpsampler.swift */,
 				CE8A1E8CA5E8091D8CABD002 /* ForegroundSegmenter.swift */,
 				DCB48463BFCEDC4FBDB73E7E /* FrameComposition.swift */,
+				B22134456DFA51D2EF59005F /* FrameHandoff.swift */,
 				87A7DBC1A047101376A9550C /* GestureReactionPlayback.swift */,
 				5CC9AD4A67A8CEAD5ADA1D1D /* GestureSettingsStore.swift */,
 				7A71751C24D16B99F017B8FF /* KeepMask.swift */,
@@ -508,11 +533,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E52FFB2F9500B60909638FE2 /* AccessoryMaterial.swift in Sources */,
+				631F68E4DF4AD8A620ACF93F /* AccessoryPixelHistory.swift in Sources */,
 				A20674BB1B01B1D44A730768 /* CameraConfiguration.swift in Sources */,
 				3A968138547AE595434B894A /* CameraDevice.swift in Sources */,
 				41F6E8EED77B9DC8C98D548F /* CameraProvider.swift in Sources */,
 				29AA684525025A5D3389309D /* CameraStream.swift in Sources */,
+				AFEF3B246EE410CEAE0E9F5A /* EdgeAwareMaskUpsampler.swift in Sources */,
 				D825D5E71CCA7782BA336EA9 /* FrameComposition.swift in Sources */,
+				D0160BD48080C880E21EEA96 /* FrameHandoff.swift in Sources */,
 				477D6481434F3C11151D1983 /* ProducerAuthorization.swift in Sources */,
 				C94AD9028B446CD9F365F6A9 /* VideoBuffers.swift in Sources */,
 				343D7B5201CF9597EB984196 /* main.swift in Sources */,
@@ -535,7 +564,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99A786205144DB8BB7A476F /* AccessoryMaskRefiner.swift in Sources */,
+				463BFE8A333E5D2627051C42 /* AccessoryMaterial.swift in Sources */,
 				7F43776AD75500D05BC5037F /* AccessoryMotionSupport.swift in Sources */,
+				8C7BDFB38FF1A56287CF7127 /* AccessoryPixelHistory.swift in Sources */,
 				E74BAF580CBAAA61610B3BB5 /* AccessoryRegions.swift in Sources */,
 				8561B92F1B3D352FB984D6D8 /* AccessorySceneHistory.swift in Sources */,
 				0DCFE52DF62A93845BEDD5C3 /* AccessoryTemporalFilter.swift in Sources */,
@@ -562,9 +593,12 @@
 				61FB909FBFBF2E0B9C1861D3 /* CustomMaskSettings.swift in Sources */,
 				3F669E8F2426A48F57FE6481 /* CustomMaskTemporalFilter.swift in Sources */,
 				4E718B1D9079DD4B49EE8835 /* DownloadableSegmentationModel.swift in Sources */,
+				ADA76DFBB15290E5E28C9F26 /* EdgeAwareMaskUpsampler.swift in Sources */,
 				F5BA852C58450A67EE22F6C8 /* ExtensionManager.swift in Sources */,
 				E08225AA0B1498174DA535E3 /* ForegroundSegmenter.swift in Sources */,
+				6EFCAFA0A75A05696ED7874C /* FrameAnalysisStage.swift in Sources */,
 				DE21A6C251B79920FFA8F5C2 /* FrameComposition.swift in Sources */,
+				6FF1B9FE2627EDB524E163AF /* FrameHandoff.swift in Sources */,
 				18B469165AAA90749154BAB2 /* FrameProcessor.swift in Sources */,
 				846CAA87D84A3153A975A680 /* GestureAnalysisWorker.swift in Sources */,
 				781A6330A38CF0EF35EF028D /* GestureCatalog.swift in Sources */,
@@ -589,10 +623,12 @@
 				AC26E214442943187AAF4E90 /* ReactionRenderer.swift in Sources */,
 				8F9EDD0D94D93C8EB99365A5 /* ReactionSprites.swift in Sources */,
 				EE898AA9E0BDE8EC12372775 /* RecognitionPreset.swift in Sources */,
+				76E953B06817D6B703FDF373 /* SegmentationAnalyzer.swift in Sources */,
 				906F7AC3F3E924FCC108F83D /* SegmentationConfiguration.swift in Sources */,
 				538F61977116B1EED2CA9183 /* SegmentationModelCatalog.swift in Sources */,
 				598050541D8DB208E25BF687 /* SegmentationModelDownloader.swift in Sources */,
 				B2027582732DAE755D989B73 /* SegmentationModelStore.swift in Sources */,
+				3294E3679A9662270D07E473 /* SegmentationRefiner.swift in Sources */,
 				F45D6D26C02B103FFB7229B5 /* SegmentationSettingsModel.swift in Sources */,
 				346B1B1E658B526FC925D16D /* VideoBuffers.swift in Sources */,
 				CD0C6D228CA03CA938DB9758 /* VirtualCameraDemand.swift in Sources */,

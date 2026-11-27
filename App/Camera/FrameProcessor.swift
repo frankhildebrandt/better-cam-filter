@@ -1,10 +1,11 @@
 import CoreImage
 import CoreMedia
 
-/// CaptureEngine owns this processor and calls it only on its serial frame queue.
+/// Refines masks and composes analyzed frames.
+/// CaptureEngine owns this processor and calls it only on its serial composition queue.
 final class FrameProcessor {
     let context = CIContext(options: [.cacheIntermediates: false])
-    private lazy var segmentation = ForegroundSegmenter(context: context)
+    private lazy var refiner = SegmentationRefiner(context: context)
     private let gestureReactions = GestureReactionProcessor()
     private var pool: CVPixelBufferPool?
     private var inputSize = CGSize.zero
@@ -19,11 +20,13 @@ final class FrameProcessor {
     var background: CIImage? { didSet { resetSegmentation() } }
     var segmentationConfiguration = SegmentationConfiguration() {
         didSet {
-            if segmentationConfiguration != oldValue { segmentation.configuration = segmentationConfiguration }
+            if segmentationConfiguration != oldValue { refiner.configuration = segmentationConfiguration }
         }
     }
     var keepMask: CIImage?
     private(set) var previewMask: CIImage?
+    /// Whether the last frame played a rear reaction, which the analysis stage must segment for.
+    private(set) var reactionsNeedMask = false
     var gestureConfiguration: GestureConfiguration {
         get { gestureReactions.configuration }
         set { gestureReactions.configuration = newValue }
@@ -33,21 +36,24 @@ final class FrameProcessor {
     private var reactionMaskError: String?
 
     func resetSegmentation() {
-        segmentation.reset()
+        refiner.reset()
         previewMask = nil
     }
 
     func resetGestures() {
         gestureReactions.reset()
         reactionMaskError = nil
+        reactionsNeedMask = false
     }
 
     func previewReaction(_ reaction: ReactionKind, for gesture: GestureKind, at time: Double) {
         gestureReactions.preview(reaction, for: gesture, at: time)
     }
 
-    func process(_ input: CVPixelBuffer, at time: CMTime, keepPreviewMask: Bool) throws -> CMSampleBuffer {
-        let size = CGSize(width: CVPixelBufferGetWidth(input), height: CVPixelBufferGetHeight(input))
+    /// Compose one analyzed frame. While the analysis stage has not yet learned that a background
+    /// or reaction needs a mask, the frame passes through unmasked.
+    func process(_ frame: AnalyzedFrame, keepPreviewMask: Bool) throws -> CMSampleBuffer {
+        let size = CGSize(width: CVPixelBufferGetWidth(frame.input), height: CVPixelBufferGetHeight(frame.input))
         if size != inputSize {
             resetSegmentation()
             resetGestures()
@@ -55,29 +61,28 @@ final class FrameProcessor {
         }
         if pool == nil { pool = try VideoBuffers.makePool(configuration: outputConfiguration) }
         guard let pool else { throw VideoError.allocation }
-        let foreground = FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
-        let reactions = gestureReactions.frame(for: foreground, at: time.seconds)
-        let outputImage: CIImage
+        let foreground = frame.foreground
+        let reactions = gestureReactions.frame(for: foreground, at: frame.time.seconds)
+        reactionsNeedMask = reactions.background != nil
+        var outputImage = foreground
         var personMask: CIImage?
         reactionMaskError = nil
+        previewMask = nil
         if let background {
-            let preserved: CIImage
             do {
-                preserved = try mask(for: foreground, at: time.seconds)
+                personMask = try mask(for: frame)
             } catch {
                 resetSegmentation()
                 throw error
             }
-            personMask = preserved
-            previewMask = keepPreviewMask ? preserved : nil
-            outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background,
-                                                             mask: preserved, backgroundReaction: reactions.background)
-        } else {
-            previewMask = nil
-            outputImage = foreground
+            if let personMask {
+                previewMask = keepPreviewMask ? personMask : nil
+                outputImage = FrameComposition.replaceBackground(foreground: foreground, background: background,
+                                                                 mask: personMask, backgroundReaction: reactions.background)
+            }
         }
         if reactions.background != nil, personMask == nil {
-            do { personMask = try mask(for: foreground, at: time.seconds) }
+            do { personMask = try mask(for: frame) }
             catch {
                 // Optional reaction masking must not interrupt an otherwise healthy camera stream.
                 reactionMaskError = "Reaction-Hintergrund konnte nicht freigestellt werden: \(error.localizedDescription)"
@@ -90,11 +95,13 @@ final class FrameProcessor {
         let buffer = try VideoBuffers.makePixelBuffer(from: pool)
         context.render(composed, to: buffer, bounds: outputConfiguration.bounds,
                        colorSpace: CGColorSpaceCreateDeviceRGB())
-        return try VideoBuffers.makeSampleBuffer(buffer, at: time, duration: outputConfiguration.frameDuration)
+        return try VideoBuffers.makeSampleBuffer(buffer, at: frame.time, duration: outputConfiguration.frameDuration)
     }
 
-    private func mask(for image: CIImage, at time: Double) throws -> CIImage {
-        let automatic = try segmentation.mask(for: image, time: time)
+    /// Refine the frame's raw segmentation with the keep mask; nil when the frame was not segmented.
+    private func mask(for frame: AnalyzedFrame) throws -> CIImage? {
+        guard let segmentation = frame.segmentation else { return nil }
+        let automatic = refiner.refine(try segmentation.get(), image: frame.foreground, time: frame.time.seconds)
         return FrameComposition.preserving(keepMask, in: automatic)
     }
 }
