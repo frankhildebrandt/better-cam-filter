@@ -55,8 +55,10 @@ final class ForegroundSegmenter {
     }
 
     /// Analyze the already cropped camera image, then map the full mask back without a second crop.
+    /// Vision requests share one handler so the analysis image is prepared only once per frame.
     func mask(for image: CIImage, time: Double = ProcessInfo.processInfo.systemUptime) throws -> CIImage {
         let settings = configuration.maskSettings
+        lazy var handler = analysisHandler(for: image)
         var mask: CIImage
         switch configuration.provider {
         case .custom:
@@ -64,12 +66,12 @@ final class ForegroundSegmenter {
             if custom == nil { custom = try CustomForegroundSegmenter(modelURL: url, settings: configuration.inferenceSettings) }
             guard let custom else { throw CustomSegmentationError.missingModel }
             mask = try custom.mask(for: image)
-        case .apple: mask = try personMask(for: image)
-        case .appleObjects: mask = try objectMask(for: image)
+        case .apple: mask = try personMask(for: image, using: handler)
+        case .appleObjects: mask = try objectMask(for: image, using: handler)
         }
         if settings.enabled {
             if configuration.provider != .apple && settings.personSupport {
-                var person = try personMask(for: image)
+                var person = try personMask(for: image, using: handler)
                 if settings.accessorySupport {
                     person = accessories.refine(mask: person, image: image, time: time, detail: configuration.appleSettings.accessoryDetail)
                 }
@@ -91,15 +93,13 @@ final class ForegroundSegmenter {
         return VNImageRequestHandler(ciImage: analysis, orientation: .up)
     }
 
-    private func personMask(for image: CIImage) throws -> CIImage {
-        let handler = analysisHandler(for: image)
+    private func personMask(for image: CIImage, using handler: VNImageRequestHandler) throws -> CIImage {
         try handler.perform([person])
         guard let result = person.results?.first else { throw VideoError.segmentation }
         return FrameComposition.alignMask(CIImage(cvPixelBuffer: result.pixelBuffer), to: image.extent)
     }
 
-    private func objectMask(for image: CIImage) throws -> CIImage {
-        let handler = analysisHandler(for: image)
+    private func objectMask(for image: CIImage, using handler: VNImageRequestHandler) throws -> CIImage {
         objects.preferBackgroundProcessing = configuration.appleSettings.preferBackgroundProcessing
         try handler.perform([objects])
         guard let result = objects.results?.first, !result.allInstances.isEmpty else {

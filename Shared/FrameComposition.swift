@@ -24,6 +24,19 @@ enum FrameComposition {
         )).cropped(to: bounds)
     }
 
+    /// Shrink an image at the origin to at most `maxWidth` pixels for on-screen previews.
+    /// Lanczos avoids aliasing when a 4K output is reduced several times.
+    static func preview(_ image: CIImage, maxWidth: CGFloat) -> CIImage {
+        let extent = image.extent
+        guard extent.width > maxWidth, extent.height > 0 else { return image }
+        let scale = maxWidth / extent.width
+        let target = CGRect(x: 0, y: 0, width: maxWidth, height: (extent.height * scale).rounded())
+        return image.transformed(by: CGAffineTransform(translationX: -extent.minX, y: -extent.minY))
+            .clampedToExtent()
+            .applyingFilter("CILanczosScaleTransform", parameters: [kCIInputScaleKey: scale, kCIInputAspectRatioKey: 1])
+            .cropped(to: target)
+    }
+
     static func replaceBackground(foreground: CIImage, background: CIImage, mask: CIImage,
                                   backgroundReaction: CIImage? = nil) -> CIImage {
         let bounds = foreground.extent

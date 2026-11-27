@@ -32,6 +32,8 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private var outputError: String?
     private var outputConfiguration = OutputConfiguration()
     private let onUpdate: @Sendable (CaptureUpdate) -> Void
+    /// Previews only monitor the stream; reading back full 1080p or 4K frames would cost several ms each.
+    private static let previewMaxWidth: CGFloat = 1280
 
     var captureSession: AVCaptureSession { session }
 
@@ -200,7 +202,8 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
                 ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
                 : processor.previewMask
             let previews = Self.renderPreviews(for: visiblePreviews, alternate: alternate, output: CIImage(cvPixelBuffer: buffer)) {
-                processor.context.createCGImage($0, from: outputConfiguration.bounds)
+                let preview = FrameComposition.preview($0.cropped(to: outputConfiguration.bounds), maxWidth: Self.previewMaxWidth)
+                return processor.context.createCGImage(preview, from: preview.extent)
             }
             onUpdate(CaptureUpdate(preview: previews.main, outputPreview: previews.gestures, outputConnected: connected, error: outputError,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
