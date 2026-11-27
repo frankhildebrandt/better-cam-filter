@@ -1,5 +1,4 @@
 import CoreImage
-import CoreImage.CIFilterBuiltins
 
 final class AccessoryMaskRefiner {
     private let context: CIContext
@@ -27,13 +26,7 @@ final class AccessoryMaskRefiner {
         guard stable.contains(where: { $0 != 0 }) else { return mask }
         let small = CIImage(bitmapData: Data(stable), bytesPerRow: width,
                             size: CGSize(width: width, height: frame.height), format: .L8, colorSpace: nil)
-        let upsample = CIFilter.edgePreserveUpsample()
-        upsample.inputImage = image.transformed(by: CGAffineTransform(translationX: -image.extent.minX, y: -image.extent.minY))
-        upsample.smallImage = small
-        upsample.spatialSigma = 1.5
-        upsample.lumaSigma = 0.08
-        let fullBounds = CGRect(origin: .zero, size: image.extent.size)
-        return FrameComposition.preserving(upsample.outputImage?.cropped(to: fullBounds) ?? small, in: mask)
+        return FrameComposition.preserving(EdgeAwareMaskUpsampler.upsample(small, guide: image), in: mask)
     }
 
     private func sample(_ image: CIImage, mask: CIImage, width: Int) -> AccessorySamples {

@@ -96,7 +96,7 @@ final class ForegroundSegmenter {
     private func personMask(for image: CIImage, using handler: VNImageRequestHandler) throws -> CIImage {
         try handler.perform([person])
         guard let result = person.results?.first else { throw VideoError.segmentation }
-        return FrameComposition.alignMask(CIImage(cvPixelBuffer: result.pixelBuffer), to: image.extent)
+        return EdgeAwareMaskUpsampler.upsample(CIImage(cvPixelBuffer: result.pixelBuffer), guide: image)
     }
 
     private func objectMask(for image: CIImage, using handler: VNImageRequestHandler) throws -> CIImage {
@@ -106,6 +106,6 @@ final class ForegroundSegmenter {
             return CIImage(color: .black).cropped(to: image.extent)
         }
         let pixels = try result.generateScaledMaskForImage(forInstances: result.allInstances, from: handler)
-        return FrameComposition.alignMask(CIImage(cvPixelBuffer: pixels, options: [.colorSpace: NSNull()]), to: image.extent)
+        return EdgeAwareMaskUpsampler.upsample(CIImage(cvPixelBuffer: pixels, options: [.colorSpace: NSNull()]), guide: image)
     }
 }
