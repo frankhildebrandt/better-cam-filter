@@ -55,13 +55,13 @@ struct CustomMaskConfigurationTests {
         settings.quality = .fast
         settings.preferBackgroundProcessing = true
         settings.revision = VNGeneratePersonSegmentationRequest.supportedRevisions.first ?? 0
-        let request = ForegroundSegmenter.makeRequest(settings: settings)
+        let request = SegmentationAnalyzer.makeRequest(settings: settings)
         #expect(request.qualityLevel == .fast)
         #expect(request.preferBackgroundProcessing)
         if settings.revision > 0 { #expect(request.revision == settings.revision) }
         settings.revision = Int.max
         #expect(VNGeneratePersonSegmentationRequest.supportedRevisions.contains(
-            ForegroundSegmenter.makeRequest(settings: settings).revision
+            SegmentationAnalyzer.makeRequest(settings: settings).revision
         ))
     }
 

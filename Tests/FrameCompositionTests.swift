@@ -97,6 +97,18 @@ struct FrameCompositionTests {
         #expect(abs(Int(rgba[2]) - 128) <= 1)
     }
 
+    @Test func previewShrinksWideFramesToAnIntegralExtentWithTheSameAspectRatio() {
+        let frame = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 3840, height: 2160))
+        let preview = FrameComposition.preview(frame, maxWidth: 1280)
+        #expect(preview.extent == CGRect(x: 0, y: 0, width: 1280, height: 720))
+        #expect(pixel(preview, x: 1279, y: 719) == [255, 0, 0, 255])
+    }
+
+    @Test func previewKeepsFramesThatAlreadyFit() {
+        let frame = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 1280, height: 720))
+        #expect(FrameComposition.preview(frame, maxWidth: 1280) === frame)
+    }
+
     private func pixel(_ image: CIImage, x: Int, y: Int) -> [UInt8] {
         var rgba = [UInt8](repeating: 0, count: 4)
         CIContext().render(image, toBitmap: &rgba, rowBytes: 4,

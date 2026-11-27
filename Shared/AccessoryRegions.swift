@@ -19,10 +19,9 @@ struct AccessorySamples {
 
 /// Bounded appearance-based additions anchored to the semantic foreground mask.
 enum AccessoryRegions {
-    private static let dark: UInt8 = 1
-    // Labels 2...13 are the cable hue bins.
-    private static let midtone: UInt8 = 14
-    private static let highlight: UInt8 = 15
+    private static let dark = AccessoryMaterial.dark
+    private static let midtone = AccessoryMaterial.midtone
+    private static let highlight = AccessoryMaterial.highlight
 
     private struct Candidate {
         let pixels: [Int]
@@ -74,7 +73,7 @@ enum AccessoryRegions {
             for row in rows[y]..<rows[y + 1] {
                 for column in columns[x]..<columns[x + 1] {
                     let pixel = row * fine.width + column, offset = pixel * 4
-                    guard evidence[pixel] == 0, category(fine.rgba, at: offset) >= midtone else { continue }
+                    guard evidence[pixel] == 0, AccessoryMaterial.category(fine.rgba, at: offset) >= midtone else { continue }
                     // Reject mixed edge samples where the coarse pixel overlaps the room.
                     if (0..<3).allSatisfy({ abs(Int(fine.rgba[offset + $0]) - Int(coarse.rgba[reference + $0])) <= 28 }) {
                         evidence[pixel] = 255
@@ -96,7 +95,7 @@ enum AccessoryRegions {
         else { return empty }
         let top = first / width, bottom = last / width
         let personArea = alpha[first...last].count(where: { $0 > 200 })
-        let categories = (0..<count).map { category(rgba, at: $0 * 4) }
+        let categories = (0..<count).map { AccessoryMaterial.category(rgba, at: $0 * 4) }
         let candidates = PixelComponents.regions(categories, width: width, height: height).compactMap {
             Candidate($0, material: categories[$0[0]], width: width, count: count)
         }
@@ -204,23 +203,6 @@ enum AccessoryRegions {
             }
         }
         return border > 0 && supported * 4 >= border * 3 && metal * 2 >= border
-    }
-
-    private static func category(_ rgba: [UInt8], at offset: Int) -> UInt8 {
-        let r = Double(rgba[offset]) / 255
-        let g = Double(rgba[offset + 1]) / 255
-        let b = Double(rgba[offset + 2]) / 255
-        let high = max(r, g, b), low = min(r, g, b)
-        let chroma = high - low
-        let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
-        if (luma < 0.33 && chroma < 0.22) || luma < 0.10 { return dark }
-        if chroma < 0.14 { return luma < 0.76 ? midtone : highlight }
-        guard chroma > 0.22, chroma / max(high, 0.001) > 0.4 else { return 0 }
-        let hue: Double
-        if high == r { hue = ((g - b) / chroma).truncatingRemainder(dividingBy: 6) }
-        else if high == g { hue = (b - r) / chroma + 2 }
-        else { hue = (r - g) / chroma + 4 }
-        return UInt8(Int(((hue + 6) * 2).rounded(.down)) % 12 + 2)
     }
 
     private static func distances(from alpha: [UInt8], width: Int, height: Int, reach: Int)

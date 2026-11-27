@@ -46,6 +46,28 @@ enum VerifyCameraSettings {
 
         verifyPreviewRendering()
         print("Preview rendering passed for headless output, individual previews and shared previews.")
+        try verifyUnsegmentedFramesNeverExposeTheRoom()
+        print("Background replacement drops frames that arrive before their segmentation.")
+    }
+
+    private static func verifyUnsegmentedFramesNeverExposeTheRoom() throws {
+        let configuration = OutputConfiguration()
+        var input: CVPixelBuffer?
+        CVPixelBufferCreate(nil, configuration.width, configuration.height, kCVPixelFormatType_32BGRA,
+                            [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &input)
+        let foreground = CIImage(cvPixelBuffer: input!)
+        let mask = CIImage(color: .white).cropped(to: configuration.bounds)
+        func frame(_ segmentation: Result<SegmentationAnalysis, any Error>?) -> AnalyzedFrame {
+            AnalyzedFrame(input: input!, time: .zero, foreground: foreground, segmentation: segmentation)
+        }
+        let processor = FrameProcessor()
+        processor.outputConfiguration = configuration
+        let withoutBackground = try processor.process(frame(nil), keepPreviewMask: false)
+        processor.background = CIImage(color: .blue).cropped(to: configuration.bounds)
+        let unsegmented = try processor.process(frame(nil), keepPreviewMask: false)
+        let segmented = try processor.process(frame(.success(SegmentationAnalysis(primary: mask, supportingPerson: nil))),
+                                              keepPreviewMask: false)
+        precondition(withoutBackground != nil && unsegmented == nil && segmented != nil)
     }
 
     private static func verifyPreviewRendering() {

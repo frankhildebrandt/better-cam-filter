@@ -15,15 +15,20 @@ struct CaptureUpdate: Sendable {
     let gestureError: String?
 }
 
-/// Session configuration, processing, and CMIO transport share one serial executor.
+/// Two serial stages overlap: camera frames arrive on `analysisQueue`, which runs Vision or Core ML,
+/// while session configuration, mask refinement, composition and CMIO transport share `queue`.
+/// Each mask therefore still belongs to exactly its own frame.
 final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     private let queue = DispatchQueue(label: "de.bettercam.capture", qos: .userInitiated)
+    private let analysisQueue = DispatchQueue(label: "de.bettercam.analysis", qos: .userInitiated)
     private let session = AVCaptureSession()
+    private let analysis = FrameAnalysisStage()
+    private let handoff = FrameHandoff()
     private let processor = FrameProcessor()
+    private var analysisNeedsReactionMask = false
     private let output = VirtualCameraOutput()
     private var nextPreview: TimeInterval = 0
     private var visiblePreviews = Set<PreviewSource>()
-    private var nextFrame: TimeInterval = 0
     private var previewOriginal = false
     private var previewMask = false
     private var statisticsStarted: TimeInterval = 0
@@ -32,6 +37,8 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     private var outputError: String?
     private var outputConfiguration = OutputConfiguration()
     private let onUpdate: @Sendable (CaptureUpdate) -> Void
+    /// Previews only monitor the stream; reading back full 1080p or 4K frames would cost several ms each.
+    private static let previewMaxWidth: CGFloat = 1280
 
     var captureSession: AVCaptureSession { session }
 
@@ -47,6 +54,8 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
                     self.outputConfiguration = configuration.sanitized
                     self.processor.outputConfiguration = self.outputConfiguration
                     self.output.configuration = self.outputConfiguration
+                    let analysisConfiguration = self.outputConfiguration
+                    self.analysisQueue.async { self.analysis.outputConfiguration = analysisConfiguration }
                     try self.configure(deviceID: deviceID)
                     self.session.startRunning()
                     guard self.session.isRunning else { throw CaptureError.startFailed }
@@ -70,10 +79,12 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
 
     func setBackground(_ image: CGImage?) {
         queue.async { self.processor.background = image.map { CIImage(cgImage: $0) } }
+        analysisQueue.async { self.analysis.backgroundEnabled = image != nil }
     }
 
     func setSegmentationConfiguration(_ configuration: SegmentationConfiguration) {
         queue.async { self.processor.segmentationConfiguration = configuration }
+        analysisQueue.async { self.analysis.segmentationConfiguration = configuration }
     }
 
     func setKeepMask(_ image: CGImage?) {
@@ -111,10 +122,13 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
 
     private func stopOnQueue() {
         session.stopRunning()
+        // Frames already analyzed for the old session must not reach the next one.
+        handoff.invalidate()
+        analysisQueue.async { self.analysis.reset() }
         processor.resetSegmentation()
         processor.resetGestures()
+        reportReactionMaskNeed()
         output.disconnect()
-        nextFrame = 0
         nextPreview = 0
         statisticsStarted = ProcessInfo.processInfo.systemUptime
         processedFrames = 0
@@ -135,7 +149,7 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         let video = AVCaptureVideoDataOutput()
         video.alwaysDiscardsLateVideoFrames = true
         video.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-        video.setSampleBufferDelegate(self, queue: queue)
+        video.setSampleBufferDelegate(self, queue: analysisQueue)
         guard session.canAddOutput(video) else { throw CaptureError.startFailed }
         session.addOutput(video)
         try device.lockForConfiguration()
@@ -169,15 +183,34 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         }
     }
 
+    /// Runs on `analysisQueue`. A frame is dropped when another analyzed frame still waits for composition.
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard session.isRunning, let input = sampleBuffer.imageBuffer else { return }
+        guard session.isRunning, let input = sampleBuffer.imageBuffer,
+              analysis.admit(at: ProcessInfo.processInfo.systemUptime),
+              let token = handoff.reserve() else { return }
+        let frame = analysis.analyze(input, at: CMClockGetTime(CMClockGetHostTimeClock()))
+        queue.async {
+            guard self.handoff.begin(token), self.session.isRunning else { return }
+            self.compose(frame)
+        }
+    }
+
+    /// Tell the analysis stage when rear reactions start or stop needing a person mask.
+    private func reportReactionMaskNeed() {
+        let needed = processor.reactionsNeedMask
+        guard needed != analysisNeedsReactionMask else { return }
+        analysisNeedsReactionMask = needed
+        analysisQueue.async { self.analysis.reactionsNeedMask = needed }
+    }
+
+    /// Runs on `queue`: refine, compose, send to the virtual camera and publish previews.
+    private func compose(_ frame: AnalyzedFrame) {
+        let input = frame.input
         let now = ProcessInfo.processInfo.systemUptime
-        guard now + 0.001 >= nextFrame else { return }
-        let interval = 1.0 / Double(outputConfiguration.frameRate)
-        nextFrame = nextFrame == 0 ? now + interval : max(nextFrame + interval, now)
+        defer { reportReactionMaskNeed() }
         do {
             let needsMask = visiblePreviews.contains(.mainWindow) && previewMask && !previewOriginal && now >= nextPreview
-            let processed = try processor.process(input, at: CMClockGetTime(CMClockGetHostTimeClock()), keepPreviewMask: needsMask)
+            guard let processed = try processor.process(frame, keepPreviewMask: needsMask) else { return }
             processedFrames += 1
             let elapsed = ProcessInfo.processInfo.systemUptime - statisticsStarted
             if elapsed >= 1 {
@@ -197,10 +230,11 @@ final class CaptureEngine: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
             guard now >= nextPreview, let buffer = processed.imageBuffer else { return }
             nextPreview = now + (visiblePreviews.isEmpty ? 1 : 1.0 / 15.0)
             let alternate = previewOriginal && visiblePreviews.contains(.mainWindow)
-                ? FrameComposition.aspectFill(CIImage(cvPixelBuffer: input), in: outputConfiguration.bounds)
+                ? frame.foreground
                 : processor.previewMask
             let previews = Self.renderPreviews(for: visiblePreviews, alternate: alternate, output: CIImage(cvPixelBuffer: buffer)) {
-                processor.context.createCGImage($0, from: outputConfiguration.bounds)
+                let preview = FrameComposition.preview($0.cropped(to: outputConfiguration.bounds), maxWidth: Self.previewMaxWidth)
+                return processor.context.createCGImage(preview, from: preview.extent)
             }
             onUpdate(CaptureUpdate(preview: previews.main, outputPreview: previews.gestures, outputConnected: connected, error: outputError,
                                    inputResolution: "\(CVPixelBufferGetWidth(input)) × \(CVPixelBufferGetHeight(input))",
